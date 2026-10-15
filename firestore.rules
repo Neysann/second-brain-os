@@ -1,0 +1,53 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Fonction vérifiant si l'utilisateur connecté est le Super-Administrateur du site
+    function isAdmin() {
+      return request.auth != null && 
+        request.auth.token.email != null && 
+        request.auth.token.email.lower() == 'ndebeaupuis@gmail.com';
+    }
+
+    // Règle globale pour la collection des tâches (Accès ouvert aux membres + droits Super-Admin)
+    match /tasks/{taskId} {
+      allow read, write: if true;
+    }
+
+    // Règle globale pour la collection des projets PARA
+    match /projects/{projectId} {
+      allow read, write: if true;
+    }
+
+    // Règle globale pour la collection des notes de connaissances
+    match /notes/{noteId} {
+      allow read, write: if true;
+
+      // Sous-collection des tracés manuscrits segmentés
+      match /inkChunks/{chunkId} {
+        allow read, write: if true;
+      }
+
+      // Sous-collection des pièces jointes et fichiers importés segmentés (multi-appareils)
+      match /attachmentChunks/{chunkId} {
+        allow read, write: if true;
+      }
+    }
+
+    // Règle globale pour la collection des dossiers
+    match /folders/{folderId} {
+      allow read, write: if true;
+    }
+
+    // Règle pour les profils et paramètres utilisateurs
+    match /users/{userId}/{allPaths=**} {
+      allow read, write: if true;
+    }
+
+    // Collection réservée au Super-Administrateur (Diagnostics, logs et métadonnées système)
+    match /system/{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

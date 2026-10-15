@@ -1,0 +1,1678 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --bg-main: #fcfcfd;
+    --card-main: #ffffff;
+    --border-main: #e4e4e7;
+    --text-primary: #18181b;
+    --text-secondary: #71717a;
+    --accent: #6366f1;
+  }
+
+  html.dark, :root[data-color-mode="dark"] {
+    --bg-main: #09090b; /* zinc-950 */
+    --card-main: #18181b; /* zinc-900 */
+    --border-main: #27272a; /* zinc-800 */
+    --text-primary: #f4f4f5; /* zinc-100 */
+    --text-secondary: #a1a1aa; /* zinc-400 */
+    --accent: #6366f1;
+  }
+
+  /* Mode Noir Pur OLED (#000000) */
+  html.dark[data-dark-bg="oled"],
+  html.dark.oled,
+  body.dark[data-dark-bg="oled"],
+  body.dark.oled {
+    --bg-main: #000000;
+    --card-main: #09090b;
+    --border-main: #18181b;
+
+    /* Tokens Tailwind v4 pour fond OLED et cartes contrastées */
+    --color-zinc-950: #000000;
+    --color-zinc-900: #09090b;
+    --color-zinc-850: #121215;
+    --color-zinc-800: #18181b;
+  }
+
+  /* Palettes d'accentuation CSS Variables & Tailwind Tokens */
+  :root, [data-accent="purple"] {
+    --color-purple-50: #faf5ff;
+    --color-purple-100: #f3e8ff;
+    --color-purple-200: #e9d5ff;
+    --color-purple-300: #d8b4fe;
+    --color-purple-400: #c084fc;
+    --color-purple-500: #a855f7;
+    --color-purple-600: #8b5cf6;
+    --color-purple-700: #7c3aed;
+    --color-purple-800: #6d28d9;
+    --color-purple-900: #581c87;
+    --color-purple-950: #3b0764;
+
+    --color-indigo-50: #faf5ff;
+    --color-indigo-100: #f3e8ff;
+    --color-indigo-200: #e9d5ff;
+    --color-indigo-300: #d8b4fe;
+    --color-indigo-400: #c084fc;
+    --color-indigo-500: #a855f7;
+    --color-indigo-600: #8b5cf6;
+    --color-indigo-700: #7c3aed;
+    --color-indigo-800: #6d28d9;
+    --color-indigo-900: #581c87;
+    --color-indigo-950: #3b0764;
+
+    --accent-primary: #8b5cf6;
+    --accent-hover: #7c3aed;
+    --accent-glow: rgba(139, 92, 246, 0.35);
+    --accent-subtle: rgba(139, 92, 246, 0.12);
+    --accent-text: #a78bfa;
+  }
+
+  /* Palette AETHER Céleste (Inspirée de Uiverse Aether Design System : Cyan céleste vers Violet éthéré) */
+  [data-accent="aether"] {
+    --color-purple-50: #f5f3ff;
+    --color-purple-100: #ede9fe;
+    --color-purple-200: #ddd6fe;
+    --color-purple-300: #c4b5fd;
+    --color-purple-400: #a78bfa;
+    --color-purple-500: #8b5cf6;
+    --color-purple-600: #7c3aed;
+    --color-purple-700: #6d28d9;
+    --color-purple-800: #5b21b6;
+    --color-purple-900: #4c1d95;
+    --color-purple-950: #2e1065;
+
+    --color-indigo-50: #f0fdfa;
+    --color-indigo-100: #ccfbf1;
+    --color-indigo-200: #99f6e4;
+    --color-indigo-300: #67e8f9;
+    --color-indigo-400: #38bdf8;
+    --color-indigo-500: #00d2ff;
+    --color-indigo-600: #0284c7;
+    --color-indigo-700: #0369a1;
+    --color-indigo-800: #075985;
+    --color-indigo-900: #0c4a6e;
+    --color-indigo-950: #082f49;
+
+    --accent-primary: #00d2ff;
+    --accent-hover: #a855f7;
+    --accent-glow: rgba(168, 85, 247, 0.45);
+    --accent-subtle: rgba(139, 92, 246, 0.16);
+    --accent-text: #c084fc;
+    --accent-aether-gradient: linear-gradient(135deg, #00d2ff 0%, #6366f1 45%, #a855f7 75%, #c084fc 100%);
+  }
+
+  [data-accent="cyan"] {
+    --color-purple-50: #ecfeff;
+    --color-purple-100: #cffafe;
+    --color-purple-200: #a5f3fc;
+    --color-purple-300: #67e8f9;
+    --color-purple-400: #22d3ee;
+    --color-purple-500: #06b6d4;
+    --color-purple-600: #0891b2;
+    --color-purple-700: #0e7490;
+    --color-purple-800: #155e75;
+    --color-purple-900: #164e63;
+    --color-purple-950: #083344;
+
+    --color-indigo-50: #ecfeff;
+    --color-indigo-100: #cffafe;
+    --color-indigo-200: #a5f3fc;
+    --color-indigo-300: #67e8f9;
+    --color-indigo-400: #22d3ee;
+    --color-indigo-500: #06b6d4;
+    --color-indigo-600: #0891b2;
+    --color-indigo-700: #0e7490;
+    --color-indigo-800: #155e75;
+    --color-indigo-900: #164e63;
+    --color-indigo-950: #083344;
+
+    --accent-primary: #06b6d4;
+    --accent-hover: #0891b2;
+    --accent-glow: rgba(6, 182, 212, 0.35);
+    --accent-subtle: rgba(6, 182, 212, 0.12);
+    --accent-text: #22d3ee;
+  }
+
+  [data-accent="emerald"] {
+    --color-purple-50: #ecfdf5;
+    --color-purple-100: #d1fae5;
+    --color-purple-200: #a7f3d0;
+    --color-purple-300: #6ee7b7;
+    --color-purple-400: #34d399;
+    --color-purple-500: #10b981;
+    --color-purple-600: #059669;
+    --color-purple-700: #047857;
+    --color-purple-800: #065f46;
+    --color-purple-900: #064e3b;
+    --color-purple-950: #022c22;
+
+    --color-indigo-50: #ecfdf5;
+    --color-indigo-100: #d1fae5;
+    --color-indigo-200: #a7f3d0;
+    --color-indigo-300: #6ee7b7;
+    --color-indigo-400: #34d399;
+    --color-indigo-500: #10b981;
+    --color-indigo-600: #059669;
+    --color-indigo-700: #047857;
+    --color-indigo-800: #065f46;
+    --color-indigo-900: #064e3b;
+    --color-indigo-950: #022c22;
+
+    --accent-primary: #10b981;
+    --accent-hover: #059669;
+    --accent-glow: rgba(16, 185, 129, 0.35);
+    --accent-subtle: rgba(16, 185, 129, 0.12);
+    --accent-text: #34d399;
+  }
+
+  [data-accent="amber"] {
+    --color-purple-50: #fffbeb;
+    --color-purple-100: #fef3c7;
+    --color-purple-200: #fde68a;
+    --color-purple-300: #fcd34d;
+    --color-purple-400: #fbbf24;
+    --color-purple-500: #f59e0b;
+    --color-purple-600: #d97706;
+    --color-purple-700: #b45309;
+    --color-purple-800: #92400e;
+    --color-purple-900: #78350f;
+    --color-purple-950: #451a03;
+
+    --color-indigo-50: #fffbeb;
+    --color-indigo-100: #fef3c7;
+    --color-indigo-200: #fde68a;
+    --color-indigo-300: #fcd34d;
+    --color-indigo-400: #fbbf24;
+    --color-indigo-500: #f59e0b;
+    --color-indigo-600: #d97706;
+    --color-indigo-700: #b45309;
+    --color-indigo-800: #92400e;
+    --color-indigo-900: #78350f;
+    --color-indigo-950: #451a03;
+
+    --accent-primary: #f59e0b;
+    --accent-hover: #d97706;
+    --accent-glow: rgba(245, 158, 11, 0.35);
+    --accent-subtle: rgba(245, 158, 11, 0.12);
+    --accent-text: #fbbf24;
+  }
+
+  [data-accent="rose"] {
+    --color-purple-50: #fff1f2;
+    --color-purple-100: #ffe4e6;
+    --color-purple-200: #fecdd3;
+    --color-purple-300: #fda4af;
+    --color-purple-400: #fb7185;
+    --color-purple-500: #f43f5e;
+    --color-purple-600: #e11d48;
+    --color-purple-700: #be123c;
+    --color-purple-800: #9f1239;
+    --color-purple-900: #881337;
+    --color-purple-950: #4c0519;
+
+    --color-indigo-50: #fff1f2;
+    --color-indigo-100: #ffe4e6;
+    --color-indigo-200: #fecdd3;
+    --color-indigo-300: #fda4af;
+    --color-indigo-400: #fb7185;
+    --color-indigo-500: #f43f5e;
+    --color-indigo-600: #e11d48;
+    --color-indigo-700: #be123c;
+    --color-indigo-800: #9f1239;
+    --color-indigo-900: #881337;
+    --color-indigo-950: #4c0519;
+
+    --accent-primary: #f43f5e;
+    --accent-hover: #e11d48;
+    --accent-glow: rgba(244, 63, 94, 0.35);
+    --accent-subtle: rgba(244, 63, 94, 0.12);
+    --accent-text: #fb7185;
+  }
+
+  html.dark[data-accent="monochrome"],
+  body.dark[data-accent="monochrome"],
+  [data-accent="monochrome"] {
+    --color-purple-50: #18181b;
+    --color-purple-100: #27272a;
+    --color-purple-200: #3f3f46;
+    --color-purple-300: #e4e4e7;
+    --color-purple-400: #f4f4f5;
+    --color-purple-500: #ffffff;
+    --color-purple-600: #ffffff;
+    --color-purple-700: #f4f4f5;
+    --color-purple-800: #e4e4e7;
+    --color-purple-900: #27272a;
+    --color-purple-950: #18181b;
+
+    --color-indigo-50: #18181b;
+    --color-indigo-100: #27272a;
+    --color-indigo-200: #3f3f46;
+    --color-indigo-300: #e4e4e7;
+    --color-indigo-400: #f4f4f5;
+    --color-indigo-500: #ffffff;
+    --color-indigo-600: #ffffff;
+    --color-indigo-700: #f4f4f5;
+    --color-indigo-800: #e4e4e7;
+    --color-indigo-900: #27272a;
+    --color-indigo-950: #18181b;
+
+    --accent-primary: #ffffff;
+    --accent-hover: #f4f4f5;
+    --accent-glow: rgba(255, 255, 255, 0.4);
+    --accent-subtle: rgba(255, 255, 255, 0.15);
+    --accent-text: #ffffff;
+  }
+
+  html.light[data-accent="monochrome"],
+  body.light[data-accent="monochrome"] {
+    --color-purple-50: #fafafa;
+    --color-purple-100: #f4f4f5;
+    --color-purple-200: #e4e4e7;
+    --color-purple-300: #d4d4d8;
+    --color-purple-400: #71717a;
+    --color-purple-500: #18181b;
+    --color-purple-600: #09090b;
+    --color-purple-700: #000000;
+    --color-purple-800: #09090b;
+    --color-purple-900: #18181b;
+    --color-purple-950: #27272a;
+
+    --color-indigo-50: #fafafa;
+    --color-indigo-100: #f4f4f5;
+    --color-indigo-200: #e4e4e7;
+    --color-indigo-300: #d4d4d8;
+    --color-indigo-400: #71717a;
+    --color-indigo-500: #18181b;
+    --color-indigo-600: #09090b;
+    --color-indigo-700: #000000;
+    --color-indigo-800: #09090b;
+    --color-indigo-900: #18181b;
+    --color-indigo-950: #27272a;
+
+    --accent-primary: #18181b;
+    --accent-hover: #09090b;
+    --accent-glow: rgba(0, 0, 0, 0.25);
+    --accent-subtle: rgba(0, 0, 0, 0.08);
+    --accent-text: #18181b;
+  }
+
+
+  /* Polices typographiques */
+  html[data-font="serif"], body[data-font="serif"] {
+    font-family: "Georgia", "Merriweather", "Lora", "Cambria", serif !important;
+  }
+
+  html[data-font="mono"], body[data-font="mono"] {
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", Menlo, monospace !important;
+  }
+
+  html[data-font="sans"], body[data-font="sans"] {
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif !important;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    overflow-x: hidden;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+}
+
+/* Scrollbars 100% transparentes et invisibles (avec défilement fluide préservé) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+/* Apparition ultra-subtile uniquement au survol direct */
+*:hover::-webkit-scrollbar-thumb {
+  background: rgba(161, 161, 170, 0.15);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Customisation de l'éditeur Markdown @uiw/react-md-editor */
+.w-md-editor {
+  background-color: transparent !important;
+  color: inherit !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.w-md-editor-toolbar {
+  background-color: rgba(24, 24, 27, 0.7) !important;
+  border-bottom: 1px solid rgba(39, 39, 42, 0.8) !important;
+  padding: 6px 12px !important;
+}
+
+html.light .w-md-editor-toolbar {
+  background-color: rgba(244, 244, 245, 0.9) !important;
+  border-bottom: 1px solid rgba(228, 228, 231, 0.8) !important;
+}
+
+.w-md-editor-content {
+  background-color: transparent !important;
+}
+
+.w-md-editor-text-pre,
+.w-md-editor-text-input {
+  font-family: "JetBrains Mono", Menlo, Monaco, Consolas, monospace !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+.wmde-markdown {
+  background-color: transparent !important;
+  color: inherit !important;
+  font-family: inherit !important;
+}
+
+.wmde-markdown h1,
+.wmde-markdown h2,
+.wmde-markdown h3 {
+  border-bottom-color: rgba(39, 39, 42, 0.6) !important;
+}
+
+.wmde-markdown code {
+  background-color: var(--accent-subtle) !important;
+  color: var(--accent-text) !important;
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.wmde-markdown pre {
+  background-color: rgba(15, 15, 18, 0.9) !important;
+  border: 1px solid rgba(39, 39, 42, 0.8) !important;
+  border-radius: 8px;
+}
+
+/* ==========================================================================
+   DYNAMISME DES COULEURS D'ACCENTUATION (Syntropy Neon Accents)
+   S'applique sur tous les boutons, liens actifs, bordures, badges et ombres
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   0. AETHER CÉLESTE (Dégradé Cyan Céleste vers Violet Fluo #00d2ff -> #a855f7)
+   -------------------------------------------------------------------------- */
+[data-accent="aether"] .bg-purple-600,
+[data-accent="aether"] .bg-indigo-600,
+[data-accent="aether"] .bg-purple-500,
+[data-accent="aether"] .bg-indigo-500 {
+  background: linear-gradient(135deg, #00d2ff 0%, #6366f1 45%, #a855f7 80%, #9333ea 100%) !important;
+  color: #ffffff !important;
+}
+
+[data-accent="aether"] .hover\:bg-purple-500:hover,
+[data-accent="aether"] .hover\:bg-indigo-500:hover,
+[data-accent="aether"] .hover\:bg-purple-600:hover,
+[data-accent="aether"] .hover\:bg-indigo-600:hover {
+  background: linear-gradient(135deg, #38bdf8 0%, #4f46e5 45%, #9333ea 80%, #7e22ce 100%) !important;
+}
+
+[data-accent="aether"] .bg-indigo-700,
+[data-accent="aether"] .bg-purple-700 {
+  background: linear-gradient(135deg, #0284c7 0%, #4338ca 45%, #7e22ce 100%) !important;
+  color: #ffffff !important;
+}
+
+[data-accent="aether"] .text-purple-400,
+[data-accent="aether"] .text-indigo-400,
+[data-accent="aether"] .text-purple-500,
+[data-accent="aether"] .text-indigo-500,
+[data-accent="aether"] .text-purple-300,
+[data-accent="aether"] .text-indigo-300,
+[data-accent="aether"] .hover\:text-indigo-400:hover,
+[data-accent="aether"] .hover\:text-purple-400:hover,
+[data-accent="aether"] .hover\:text-indigo-300:hover,
+[data-accent="aether"] .hover\:text-purple-300:hover,
+[data-accent="aether"] .group:hover .group-hover\:text-purple-400,
+[data-accent="aether"] .group:hover .group-hover\:text-indigo-400 {
+  color: #c084fc !important;
+}
+
+html.dark[data-accent="aether"] .text-purple-600,
+html.dark[data-accent="aether"] .text-indigo-600,
+html.dark[data-accent="aether"] .text-purple-700,
+html.dark[data-accent="aether"] .text-indigo-700,
+html.dark[data-accent="aether"] .dark\:text-purple-400,
+html.dark[data-accent="aether"] .dark\:text-indigo-400 {
+  color: #a855f7 !important;
+}
+
+html.light[data-accent="aether"] .text-purple-600,
+html.light[data-accent="aether"] .text-indigo-600,
+html.light[data-accent="aether"] .text-purple-700,
+html.light[data-accent="aether"] .text-indigo-700,
+html.light[data-accent="aether"] .hover\:text-purple-600:hover,
+html.light[data-accent="aether"] .hover\:text-indigo-600:hover {
+  color: #7c3aed !important;
+}
+
+[data-accent="aether"] .bg-purple-50,
+[data-accent="aether"] .bg-indigo-50,
+[data-accent="aether"] .bg-purple-100,
+[data-accent="aether"] .bg-indigo-100 {
+  background-color: #f5f3ff !important;
+}
+
+[data-accent="aether"] .border-purple-200,
+[data-accent="aether"] .border-indigo-200 {
+  border-color: #ddd6fe !important;
+}
+
+[data-accent="aether"] .border-purple-500,
+[data-accent="aether"] .border-indigo-500,
+[data-accent="aether"] .border-purple-600,
+[data-accent="aether"] .border-indigo-600,
+[data-accent="aether"] .border-purple-400,
+[data-accent="aether"] .border-indigo-400,
+[data-accent="aether"] .hover\:border-indigo-400:hover,
+[data-accent="aether"] .hover\:border-purple-400:hover {
+  border-color: #a855f7 !important;
+}
+
+[data-accent="aether"] .border-purple-500\/80 {
+  border-color: rgba(168, 85, 247, 0.8) !important;
+}
+
+[data-accent="aether"] .border-purple-500\/60,
+[data-accent="aether"] .border-indigo-500\/60 {
+  border-color: rgba(168, 85, 247, 0.6) !important;
+}
+
+[data-accent="aether"] .border-purple-500\/40,
+[data-accent="aether"] .border-indigo-500\/40,
+[data-accent="aether"] .border-purple-500\/30,
+[data-accent="aether"] .border-indigo-500\/30,
+[data-accent="aether"] .border-purple-500\/20,
+[data-accent="aether"] .border-indigo-500\/20,
+[data-accent="aether"] .border-purple-800\/40,
+[data-accent="aether"] .border-indigo-800\/40 {
+  border-color: rgba(168, 85, 247, 0.35) !important;
+}
+
+[data-accent="aether"] .ring-purple-500\/30,
+[data-accent="aether"] .ring-purple-500\/40,
+[data-accent="aether"] .ring-purple-500\/50,
+[data-accent="aether"] .ring-indigo-400\/50,
+[data-accent="aether"] .ring-indigo-500\/50,
+[data-accent="aether"] .ring-purple-500,
+[data-accent="aether"] .ring-indigo-500 {
+  --tw-ring-color: rgba(168, 85, 247, 0.5) !important;
+}
+
+[data-accent="aether"] .bg-purple-500\/10,
+[data-accent="aether"] .bg-purple-500\/15,
+[data-accent="aether"] .bg-indigo-500\/10,
+[data-accent="aether"] .bg-indigo-500\/15,
+[data-accent="aether"] .bg-purple-600\/10,
+[data-accent="aether"] .bg-indigo-600\/10,
+[data-accent="aether"] .hover\:bg-indigo-500\/10:hover,
+[data-accent="aether"] .hover\:bg-purple-500\/10:hover {
+  background-color: rgba(168, 85, 247, 0.12) !important;
+}
+
+[data-accent="aether"] .bg-purple-500\/20,
+[data-accent="aether"] .bg-indigo-500\/20,
+[data-accent="aether"] .bg-purple-600\/20,
+[data-accent="aether"] .bg-indigo-600\/20,
+[data-accent="aether"] .hover\:bg-indigo-600\/20:hover,
+[data-accent="aether"] .hover\:bg-purple-600\/20:hover {
+  background-color: rgba(168, 85, 247, 0.2) !important;
+}
+
+[data-accent="aether"] .bg-purple-950\/20,
+[data-accent="aether"] .bg-indigo-950\/20,
+[data-accent="aether"] .bg-purple-950\/30,
+[data-accent="aether"] .bg-indigo-950\/30,
+[data-accent="aether"] .hover\:bg-purple-950\/60:hover,
+[data-accent="aether"] .hover\:bg-indigo-950\/60:hover {
+  background-color: rgba(168, 85, 247, 0.15) !important;
+}
+
+[data-accent="aether"] .shadow-purple-600\/30,
+[data-accent="aether"] .shadow-indigo-600\/30,
+[data-accent="aether"] .shadow-purple-600\/20,
+[data-accent="aether"] .shadow-indigo-600\/20 {
+  box-shadow: 0 10px 25px -5px rgba(0, 210, 255, 0.35), 0 8px 12px -4px rgba(168, 85, 247, 0.4) !important;
+}
+
+[data-accent="aether"] ::selection {
+  background-color: rgba(168, 85, 247, 0.4) !important;
+  color: #ffffff !important;
+}
+
+/* --------------------------------------------------------------------------
+   1. CYAN ÉLECTRIQUE (#06b6d4)
+   -------------------------------------------------------------------------- */
+[data-accent="cyan"] .bg-purple-600,
+[data-accent="cyan"] .bg-indigo-600,
+[data-accent="cyan"] .bg-purple-500,
+[data-accent="cyan"] .bg-indigo-500 {
+  background-color: #06b6d4 !important;
+  color: #ffffff !important;
+}
+
+[data-accent="cyan"] .hover\:bg-purple-500:hover,
+[data-accent="cyan"] .hover\:bg-indigo-500:hover,
+[data-accent="cyan"] .hover\:bg-purple-600:hover,
+[data-accent="cyan"] .hover\:bg-indigo-600:hover {
+  background-color: #0891b2 !important;
+}
+
+[data-accent="cyan"] .bg-indigo-700,
+[data-accent="cyan"] .bg-purple-700 {
+  background-color: #0891b2 !important;
+  color: #ffffff !important;
+}
+
+[data-accent="cyan"] .text-purple-400,
+[data-accent="cyan"] .text-indigo-400,
+[data-accent="cyan"] .text-purple-500,
+[data-accent="cyan"] .text-indigo-500,
+[data-accent="cyan"] .text-purple-300,
+[data-accent="cyan"] .text-indigo-300,
+[data-accent="cyan"] .hover\:text-indigo-400:hover,
+[data-accent="cyan"] .hover\:text-purple-400:hover,
+[data-accent="cyan"] .hover\:text-indigo-300:hover,
+[data-accent="cyan"] .hover\:text-purple-300:hover,
+[data-accent="cyan"] .group:hover .group-hover\:text-purple-400,
+[data-accent="cyan"] .group:hover .group-hover\:text-indigo-400 {
+  color: #22d3ee !important;
+}
+
+html.dark[data-accent="cyan"] .text-purple-600,
+html.dark[data-accent="cyan"] .text-indigo-600,
+html.dark[data-accent="cyan"] .text-purple-700,
+html.dark[data-accent="cyan"] .text-indigo-700,
+html.dark[data-accent="cyan"] .dark\:text-purple-400,
+html.dark[data-accent="cyan"] .dark\:text-indigo-400 {
+  color: #22d3ee !important;
+}
+
+html.light[data-accent="cyan"] .text-purple-600,
+html.light[data-accent="cyan"] .text-indigo-600,
+html.light[data-accent="cyan"] .text-purple-700,
+html.light[data-accent="cyan"] .text-indigo-700,
+html.light[data-accent="cyan"] .hover\:text-purple-600:hover,
+html.light[data-accent="cyan"] .hover\:text-indigo-600:hover {
+  color: #0891b2 !important;
+}
+
+[data-accent="cyan"] .bg-purple-50,
+[data-accent="cyan"] .bg-indigo-50,
+[data-accent="cyan"] .bg-purple-100,
+[data-accent="cyan"] .bg-indigo-100 {
+  background-color: #ecfeff !important;
+}
+
+[data-accent="cyan"] .border-purple-200,
+[data-accent="cyan"] .border-indigo-200 {
+  border-color: #a5f3fc !important;
+}
+
+[data-accent="cyan"] .border-purple-500,
+[data-accent="cyan"] .border-indigo-500,
+[data-accent="cyan"] .border-purple-600,
+[data-accent="cyan"] .border-indigo-600,
+[data-accent="cyan"] .border-purple-400,
+[data-accent="cyan"] .border-indigo-400,
+[data-accent="cyan"] .hover\:border-indigo-400:hover,
+[data-accent="cyan"] .hover\:border-purple-400:hover {
+  border-color: #06b6d4 !important;
+}
+
+[data-accent="cyan"] .border-purple-500\/80 {
+  border-color: rgba(6, 182, 212, 0.8) !important;
+}
+
+[data-accent="cyan"] .border-purple-500\/60,
+[data-accent="cyan"] .border-indigo-500\/60 {
+  border-color: rgba(6, 182, 212, 0.6) !important;
+}
+
+[data-accent="cyan"] .border-purple-500\/40,
+[data-accent="cyan"] .border-indigo-500\/40,
+[data-accent="cyan"] .border-purple-500\/30,
+[data-accent="cyan"] .border-indigo-500\/30,
+[data-accent="cyan"] .border-purple-500\/20,
+[data-accent="cyan"] .border-indigo-500\/20,
+[data-accent="cyan"] .border-purple-800\/40,
+[data-accent="cyan"] .border-indigo-800\/40 {
+  border-color: rgba(6, 182, 212, 0.35) !important;
+}
+
+[data-accent="cyan"] .ring-purple-500\/30,
+[data-accent="cyan"] .ring-purple-500\/40,
+[data-accent="cyan"] .ring-purple-500\/50,
+[data-accent="cyan"] .ring-indigo-400\/50,
+[data-accent="cyan"] .ring-indigo-500\/50,
+[data-accent="cyan"] .ring-purple-500,
+[data-accent="cyan"] .ring-indigo-500 {
+  --tw-ring-color: rgba(6, 182, 212, 0.45) !important;
+}
+
+[data-accent="cyan"] .bg-purple-500\/10,
+[data-accent="cyan"] .bg-purple-500\/15,
+[data-accent="cyan"] .bg-indigo-500\/10,
+[data-accent="cyan"] .bg-indigo-500\/15,
+[data-accent="cyan"] .bg-purple-600\/10,
+[data-accent="cyan"] .bg-indigo-600\/10,
+[data-accent="cyan"] .hover\:bg-indigo-500\/10:hover,
+[data-accent="cyan"] .hover\:bg-purple-500\/10:hover {
+  background-color: rgba(6, 182, 212, 0.12) !important;
+}
+
+[data-accent="cyan"] .bg-purple-500\/20,
+[data-accent="cyan"] .bg-indigo-500\/20,
+[data-accent="cyan"] .bg-purple-600\/20,
+[data-accent="cyan"] .bg-indigo-600\/20,
+[data-accent="cyan"] .hover\:bg-indigo-600\/20:hover,
+[data-accent="cyan"] .hover\:bg-purple-600\/20:hover {
+  background-color: rgba(6, 182, 212, 0.2) !important;
+}
+
+[data-accent="cyan"] .bg-purple-950\/20,
+[data-accent="cyan"] .bg-indigo-950\/20,
+[data-accent="cyan"] .bg-purple-950\/30,
+[data-accent="cyan"] .bg-indigo-950\/30,
+[data-accent="cyan"] .hover\:bg-purple-950\/60:hover,
+[data-accent="cyan"] .hover\:bg-indigo-950\/60:hover {
+  background-color: rgba(6, 182, 212, 0.16) !important;
+}
+
+[data-accent="cyan"] .shadow-purple-600\/30,
+[data-accent="cyan"] .shadow-indigo-600\/30,
+[data-accent="cyan"] .shadow-purple-600\/20,
+[data-accent="cyan"] .shadow-indigo-600\/20 {
+  box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.35), 0 8px 10px -6px rgba(6, 182, 212, 0.2) !important;
+}
+
+[data-accent="cyan"] ::selection {
+  background-color: rgba(6, 182, 212, 0.35) !important;
+  color: #ecfeff !important;
+}
+
+/* --------------------------------------------------------------------------
+   2. VERT ÉMERAUDE (#10b981)
+   -------------------------------------------------------------------------- */
+[data-accent="emerald"] .bg-purple-600,
+[data-accent="emerald"] .bg-indigo-600,
+[data-accent="emerald"] .bg-purple-500,
+[data-accent="emerald"] .bg-indigo-500 {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+[data-accent="emerald"] .hover\:bg-purple-500:hover,
+[data-accent="emerald"] .hover\:bg-indigo-500:hover,
+[data-accent="emerald"] .hover\:bg-purple-600:hover,
+[data-accent="emerald"] .hover\:bg-indigo-600:hover {
+  background-color: #059669 !important;
+}
+
+[data-accent="emerald"] .bg-indigo-700,
+[data-accent="emerald"] .bg-purple-700 {
+  background-color: #059669 !important;
+  color: #ffffff !important;
+}
+
+[data-accent="emerald"] .text-purple-400,
+[data-accent="emerald"] .text-indigo-400,
+[data-accent="emerald"] .text-purple-500,
+[data-accent="emerald"] .text-indigo-500,
+[data-accent="emerald"] .text-purple-300,
+[data-accent="emerald"] .text-indigo-300,
+[data-accent="emerald"] .hover\:text-indigo-400:hover,
+[data-accent="emerald"] .hover\:text-purple-400:hover,
+[data-accent="emerald"] .hover\:text-indigo-300:hover,
+[data-accent="emerald"] .hover\:text-purple-300:hover,
+[data-accent="emerald"] .group:hover .group-hover\:text-purple-400,
+[data-accent="emerald"] .group:hover .group-hover\:text-indigo-400 {
+  color: #34d399 !important;
+}
+
+html.dark[data-accent="emerald"] .text-purple-600,
+html.dark[data-accent="emerald"] .text-indigo-600,
+html.dark[data-accent="emerald"] .text-purple-700,
+html.dark[data-accent="emerald"] .text-indigo-700,
+html.dark[data-accent="emerald"] .dark\:text-purple-400,
+html.dark[data-accent="emerald"] .dark\:text-indigo-400 {
+  color: #34d399 !important;
+}
+
+html.light[data-accent="emerald"] .text-purple-600,
+html.light[data-accent="emerald"] .text-indigo-600,
+html.light[data-accent="emerald"] .text-purple-700,
+html.light[data-accent="emerald"] .text-indigo-700,
+html.light[data-accent="emerald"] .hover\:text-purple-600:hover,
+html.light[data-accent="emerald"] .hover\:text-indigo-600:hover {
+  color: #059669 !important;
+}
+
+[data-accent="emerald"] .bg-purple-50,
+[data-accent="emerald"] .bg-indigo-50,
+[data-accent="emerald"] .bg-purple-100,
+[data-accent="emerald"] .bg-indigo-100 {
+  background-color: #ecfdf5 !important;
+}
+
+[data-accent="emerald"] .border-purple-200,
+[data-accent="emerald"] .border-indigo-200 {
+  border-color: #a7f3d0 !important;
+}
+
+[data-accent="emerald"] .border-purple-500,
+[data-accent="emerald"] .border-indigo-500,
+[data-accent="emerald"] .border-purple-600,
+[data-accent="emerald"] .border-indigo-600,
+[data-accent="emerald"] .border-purple-400,
+[data-accent="emerald"] .border-indigo-400,
+[data-accent="emerald"] .hover\:border-indigo-400:hover,
+[data-accent="emerald"] .hover\:border-purple-400:hover {
+  border-color: #10b981 !important;
+}
+
+[data-accent="emerald"] .border-purple-500\/80 {
+  border-color: rgba(16, 185, 129, 0.8) !important;
+}
+
+[data-accent="emerald"] .border-purple-500\/60,
+[data-accent="emerald"] .border-indigo-500\/60 {
+  border-color: rgba(16, 185, 129, 0.6) !important;
+}
+
+[data-accent="emerald"] .border-purple-500\/40,
+[data-accent="emerald"] .border-indigo-500\/40,
+[data-accent="emerald"] .border-purple-500\/30,
+[data-accent="emerald"] .border-indigo-500\/30,
+[data-accent="emerald"] .border-purple-500\/20,
+[data-accent="emerald"] .border-indigo-500\/20,
+[data-accent="emerald"] .border-purple-800\/40,
+[data-accent="emerald"] .border-indigo-800\/40 {
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+[data-accent="emerald"] .ring-purple-500\/30,
+[data-accent="emerald"] .ring-purple-500\/40,
+[data-accent="emerald"] .ring-purple-500\/50,
+[data-accent="emerald"] .ring-indigo-400\/50,
+[data-accent="emerald"] .ring-indigo-500\/50,
+[data-accent="emerald"] .ring-purple-500,
+[data-accent="emerald"] .ring-indigo-500 {
+  --tw-ring-color: rgba(16, 185, 129, 0.45) !important;
+}
+
+[data-accent="emerald"] .bg-purple-500\/10,
+[data-accent="emerald"] .bg-purple-500\/15,
+[data-accent="emerald"] .bg-indigo-500\/10,
+[data-accent="emerald"] .bg-indigo-500\/15,
+[data-accent="emerald"] .bg-purple-600\/10,
+[data-accent="emerald"] .bg-indigo-600\/10,
+[data-accent="emerald"] .hover\:bg-indigo-500\/10:hover,
+[data-accent="emerald"] .hover\:bg-purple-500\/10:hover {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+}
+
+[data-accent="emerald"] .bg-purple-500\/20,
+[data-accent="emerald"] .bg-indigo-500\/20,
+[data-accent="emerald"] .bg-purple-600\/20,
+[data-accent="emerald"] .bg-indigo-600\/20,
+[data-accent="emerald"] .hover\:bg-indigo-600\/20:hover,
+[data-accent="emerald"] .hover\:bg-purple-600\/20:hover {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+[data-accent="emerald"] .bg-purple-950\/20,
+[data-accent="emerald"] .bg-indigo-950\/20,
+[data-accent="emerald"] .bg-purple-950\/30,
+[data-accent="emerald"] .bg-indigo-950\/30,
+[data-accent="emerald"] .hover\:bg-purple-950\/60:hover,
+[data-accent="emerald"] .hover\:bg-indigo-950\/60:hover {
+  background-color: rgba(16, 185, 129, 0.16) !important;
+}
+
+[data-accent="emerald"] .shadow-purple-600\/30,
+[data-accent="emerald"] .shadow-indigo-600\/30,
+[data-accent="emerald"] .shadow-purple-600\/20,
+[data-accent="emerald"] .shadow-indigo-600\/20 {
+  box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.35), 0 8px 10px -6px rgba(16, 185, 129, 0.2) !important;
+}
+
+[data-accent="emerald"] ::selection {
+  background-color: rgba(16, 185, 129, 0.35) !important;
+  color: #ecfdf5 !important;
+}
+
+/* --------------------------------------------------------------------------
+   3. ORANGE AMBRE (#f59e0b)
+   -------------------------------------------------------------------------- */
+[data-accent="amber"] .bg-purple-600,
+[data-accent="amber"] .bg-indigo-600,
+[data-accent="amber"] .bg-purple-500,
+[data-accent="amber"] .bg-indigo-500 {
+  background-color: #f59e0b !important;
+  color: #000000 !important;
+}
+
+[data-accent="amber"] .bg-purple-600 *,
+[data-accent="amber"] .bg-indigo-600 * {
+  color: #000000 !important;
+}
+
+[data-accent="amber"] .hover\:bg-purple-500:hover,
+[data-accent="amber"] .hover\:bg-indigo-500:hover,
+[data-accent="amber"] .hover\:bg-purple-600:hover,
+[data-accent="amber"] .hover\:bg-indigo-600:hover {
+  background-color: #d97706 !important;
+}
+
+[data-accent="amber"] .bg-indigo-700,
+[data-accent="amber"] .bg-purple-700 {
+  background-color: #d97706 !important;
+  color: #ffffff !important;
+}
+
+[data-accent="amber"] .text-purple-400,
+[data-accent="amber"] .text-indigo-400,
+[data-accent="amber"] .text-purple-500,
+[data-accent="amber"] .text-indigo-500,
+[data-accent="amber"] .text-purple-300,
+[data-accent="amber"] .text-indigo-300,
+[data-accent="amber"] .hover\:text-indigo-400:hover,
+[data-accent="amber"] .hover\:text-purple-400:hover,
+[data-accent="amber"] .hover\:text-indigo-300:hover,
+[data-accent="amber"] .hover\:text-purple-300:hover,
+[data-accent="amber"] .group:hover .group-hover\:text-purple-400,
+[data-accent="amber"] .group:hover .group-hover\:text-indigo-400 {
+  color: #fbbf24 !important;
+}
+
+html.dark[data-accent="amber"] .text-purple-600,
+html.dark[data-accent="amber"] .text-indigo-600,
+html.dark[data-accent="amber"] .text-purple-700,
+html.dark[data-accent="amber"] .text-indigo-700,
+html.dark[data-accent="amber"] .dark\:text-purple-400,
+html.dark[data-accent="amber"] .dark\:text-indigo-400 {
+  color: #fbbf24 !important;
+}
+
+html.light[data-accent="amber"] .text-purple-600,
+html.light[data-accent="amber"] .text-indigo-600,
+html.light[data-accent="amber"] .text-purple-700,
+html.light[data-accent="amber"] .text-indigo-700,
+html.light[data-accent="amber"] .hover\:text-purple-600:hover,
+html.light[data-accent="amber"] .hover\:text-indigo-600:hover {
+  color: #d97706 !important;
+}
+
+[data-accent="amber"] .bg-purple-50,
+[data-accent="amber"] .bg-indigo-50,
+[data-accent="amber"] .bg-purple-100,
+[data-accent="amber"] .bg-indigo-100 {
+  background-color: #fffbeb !important;
+}
+
+[data-accent="amber"] .border-purple-200,
+[data-accent="amber"] .border-indigo-200 {
+  border-color: #fde68a !important;
+}
+
+[data-accent="amber"] .border-purple-500,
+[data-accent="amber"] .border-indigo-500,
+[data-accent="amber"] .border-purple-600,
+[data-accent="amber"] .border-indigo-600,
+[data-accent="amber"] .border-purple-400,
+[data-accent="amber"] .border-indigo-400,
+[data-accent="amber"] .hover\:border-indigo-400:hover,
+[data-accent="amber"] .hover\:border-purple-400:hover {
+  border-color: #f59e0b !important;
+}
+
+[data-accent="amber"] .border-purple-500\/80 {
+  border-color: rgba(245, 158, 11, 0.8) !important;
+}
+
+[data-accent="amber"] .border-purple-500\/60,
+[data-accent="amber"] .border-indigo-500\/60 {
+  border-color: rgba(245, 158, 11, 0.6) !important;
+}
+
+[data-accent="amber"] .border-purple-500\/40,
+[data-accent="amber"] .border-indigo-500\/40,
+[data-accent="amber"] .border-purple-500\/30,
+[data-accent="amber"] .border-indigo-500\/30,
+[data-accent="amber"] .border-purple-500\/20,
+[data-accent="amber"] .border-indigo-500\/20,
+[data-accent="amber"] .border-purple-800\/40,
+[data-accent="amber"] .border-indigo-800\/40 {
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+[data-accent="amber"] .ring-purple-500\/30,
+[data-accent="amber"] .ring-purple-500\/40,
+[data-accent="amber"] .ring-purple-500\/50,
+[data-accent="amber"] .ring-indigo-400\/50,
+[data-accent="amber"] .ring-indigo-500\/50,
+[data-accent="amber"] .ring-purple-500,
+[data-accent="amber"] .ring-indigo-500 {
+  --tw-ring-color: rgba(245, 158, 11, 0.45) !important;
+}
+
+[data-accent="amber"] .bg-purple-500\/10,
+[data-accent="amber"] .bg-purple-500\/15,
+[data-accent="amber"] .bg-indigo-500\/10,
+[data-accent="amber"] .bg-indigo-500\/15,
+[data-accent="amber"] .bg-purple-600\/10,
+[data-accent="amber"] .bg-indigo-600\/10,
+[data-accent="amber"] .hover\:bg-indigo-500\/10:hover,
+[data-accent="amber"] .hover\:bg-purple-500\/10:hover {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+}
+
+[data-accent="amber"] .bg-purple-500\/20,
+[data-accent="amber"] .bg-indigo-500\/20,
+[data-accent="amber"] .bg-purple-600\/20,
+[data-accent="amber"] .bg-indigo-600\/20,
+[data-accent="amber"] .hover\:bg-indigo-600\/20:hover,
+[data-accent="amber"] .hover\:bg-purple-600\/20:hover {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+}
+
+[data-accent="amber"] .bg-purple-950\/20,
+[data-accent="amber"] .bg-indigo-950\/20,
+[data-accent="amber"] .bg-purple-950\/30,
+[data-accent="amber"] .bg-indigo-950\/30,
+[data-accent="amber"] .hover\:bg-purple-950\/60:hover,
+[data-accent="amber"] .hover\:bg-indigo-950\/60:hover {
+  background-color: rgba(245, 158, 11, 0.16) !important;
+}
+
+[data-accent="amber"] .shadow-purple-600\/30,
+[data-accent="amber"] .shadow-indigo-600\/30,
+[data-accent="amber"] .shadow-purple-600\/20,
+[data-accent="amber"] .shadow-indigo-600\/20 {
+  box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.35), 0 8px 10px -6px rgba(245, 158, 11, 0.2) !important;
+}
+
+[data-accent="amber"] ::selection {
+  background-color: rgba(245, 158, 11, 0.35) !important;
+  color: #fffbeb !important;
+}
+
+/* --------------------------------------------------------------------------
+   4. ROSE MAGENTA (#f43f5e)
+   -------------------------------------------------------------------------- */
+[data-accent="rose"] .bg-purple-600,
+[data-accent="rose"] .bg-indigo-600,
+[data-accent="rose"] .bg-purple-500,
+[data-accent="rose"] .bg-indigo-500 {
+  background-color: #f43f5e !important;
+  color: #ffffff !important;
+}
+
+[data-accent="rose"] .hover\:bg-purple-500:hover,
+[data-accent="rose"] .hover\:bg-indigo-500:hover,
+[data-accent="rose"] .hover\:bg-purple-600:hover,
+[data-accent="rose"] .hover\:bg-indigo-600:hover {
+  background-color: #e11d48 !important;
+}
+
+[data-accent="rose"] .bg-indigo-700,
+[data-accent="rose"] .bg-purple-700 {
+  background-color: #e11d48 !important;
+  color: #ffffff !important;
+}
+
+[data-accent="rose"] .text-purple-400,
+[data-accent="rose"] .text-indigo-400,
+[data-accent="rose"] .text-purple-500,
+[data-accent="rose"] .text-indigo-500,
+[data-accent="rose"] .text-purple-300,
+[data-accent="rose"] .text-indigo-300,
+[data-accent="rose"] .hover\:text-indigo-400:hover,
+[data-accent="rose"] .hover\:text-purple-400:hover,
+[data-accent="rose"] .hover\:text-indigo-300:hover,
+[data-accent="rose"] .hover\:text-purple-300:hover,
+[data-accent="rose"] .group:hover .group-hover\:text-purple-400,
+[data-accent="rose"] .group:hover .group-hover\:text-indigo-400 {
+  color: #fb7185 !important;
+}
+
+html.dark[data-accent="rose"] .text-purple-600,
+html.dark[data-accent="rose"] .text-indigo-600,
+html.dark[data-accent="rose"] .text-purple-700,
+html.dark[data-accent="rose"] .text-indigo-700,
+html.dark[data-accent="rose"] .dark\:text-purple-400,
+html.dark[data-accent="rose"] .dark\:text-indigo-400 {
+  color: #fb7185 !important;
+}
+
+html.light[data-accent="rose"] .text-purple-600,
+html.light[data-accent="rose"] .text-indigo-600,
+html.light[data-accent="rose"] .text-purple-700,
+html.light[data-accent="rose"] .text-indigo-700,
+html.light[data-accent="rose"] .hover\:text-purple-600:hover,
+html.light[data-accent="rose"] .hover\:text-indigo-600:hover {
+  color: #e11d48 !important;
+}
+
+[data-accent="rose"] .bg-purple-50,
+[data-accent="rose"] .bg-indigo-50,
+[data-accent="rose"] .bg-purple-100,
+[data-accent="rose"] .bg-indigo-100 {
+  background-color: #fff1f2 !important;
+}
+
+[data-accent="rose"] .border-purple-200,
+[data-accent="rose"] .border-indigo-200 {
+  border-color: #fecdd3 !important;
+}
+
+[data-accent="rose"] .border-purple-500,
+[data-accent="rose"] .border-indigo-500,
+[data-accent="rose"] .border-purple-600,
+[data-accent="rose"] .border-indigo-600,
+[data-accent="rose"] .border-purple-400,
+[data-accent="rose"] .border-indigo-400,
+[data-accent="rose"] .hover\:border-indigo-400:hover,
+[data-accent="rose"] .hover\:border-purple-400:hover {
+  border-color: #f43f5e !important;
+}
+
+[data-accent="rose"] .border-purple-500\/80 {
+  border-color: rgba(244, 63, 94, 0.8) !important;
+}
+
+[data-accent="rose"] .border-purple-500\/60,
+[data-accent="rose"] .border-indigo-500\/60 {
+  border-color: rgba(244, 63, 94, 0.6) !important;
+}
+
+[data-accent="rose"] .border-purple-500\/40,
+[data-accent="rose"] .border-indigo-500\/40,
+[data-accent="rose"] .border-purple-500\/30,
+[data-accent="rose"] .border-indigo-500\/30,
+[data-accent="rose"] .border-purple-500\/20,
+[data-accent="rose"] .border-indigo-500\/20,
+[data-accent="rose"] .border-purple-800\/40,
+[data-accent="rose"] .border-indigo-800\/40 {
+  border-color: rgba(244, 63, 94, 0.35) !important;
+}
+
+[data-accent="rose"] .ring-purple-500\/30,
+[data-accent="rose"] .ring-purple-500\/40,
+[data-accent="rose"] .ring-purple-500\/50,
+[data-accent="rose"] .ring-indigo-400\/50,
+[data-accent="rose"] .ring-indigo-500\/50,
+[data-accent="rose"] .ring-purple-500,
+[data-accent="rose"] .ring-indigo-500 {
+  --tw-ring-color: rgba(244, 63, 94, 0.45) !important;
+}
+
+[data-accent="rose"] .bg-purple-500\/10,
+[data-accent="rose"] .bg-purple-500\/15,
+[data-accent="rose"] .bg-indigo-500\/10,
+[data-accent="rose"] .bg-indigo-500\/15,
+[data-accent="rose"] .bg-purple-600\/10,
+[data-accent="rose"] .bg-indigo-600\/10,
+[data-accent="rose"] .hover\:bg-indigo-500\/10:hover,
+[data-accent="rose"] .hover\:bg-purple-500\/10:hover {
+  background-color: rgba(244, 63, 94, 0.12) !important;
+}
+
+[data-accent="rose"] .bg-purple-500\/20,
+[data-accent="rose"] .bg-indigo-500\/20,
+[data-accent="rose"] .bg-purple-600\/20,
+[data-accent="rose"] .bg-indigo-600\/20,
+[data-accent="rose"] .hover\:bg-indigo-600\/20:hover,
+[data-accent="rose"] .hover\:bg-purple-600\/20:hover {
+  background-color: rgba(244, 63, 94, 0.2) !important;
+}
+
+[data-accent="rose"] .bg-purple-950\/20,
+[data-accent="rose"] .bg-indigo-950\/20,
+[data-accent="rose"] .bg-purple-950\/30,
+[data-accent="rose"] .bg-indigo-950\/30,
+[data-accent="rose"] .hover\:bg-purple-950\/60:hover,
+[data-accent="rose"] .hover\:bg-indigo-950\/60:hover {
+  background-color: rgba(244, 63, 94, 0.16) !important;
+}
+
+[data-accent="rose"] .shadow-purple-600\/30,
+[data-accent="rose"] .shadow-indigo-600\/30,
+[data-accent="rose"] .shadow-purple-600\/20,
+[data-accent="rose"] .shadow-indigo-600\/20 {
+  box-shadow: 0 10px 25px -5px rgba(244, 63, 94, 0.35), 0 8px 10px -6px rgba(244, 63, 94, 0.2) !important;
+}
+
+[data-accent="rose"] ::selection {
+  background-color: rgba(244, 63, 94, 0.35) !important;
+  color: #fff1f2 !important;
+}
+
+/* --------------------------------------------------------------------------
+   5. BLANC MINIMALISTE (#f4f4f5)
+   -------------------------------------------------------------------------- */
+[data-accent="monochrome"] .bg-purple-600,
+[data-accent="monochrome"] .bg-indigo-600,
+[data-accent="monochrome"] .bg-purple-500,
+[data-accent="monochrome"] .bg-indigo-500 {
+  background-color: #ffffff !important;
+  color: #09090b !important;
+}
+
+[data-accent="monochrome"] .bg-purple-600 *,
+[data-accent="monochrome"] .bg-indigo-600 *,
+[data-accent="monochrome"] .bg-purple-500 *,
+[data-accent="monochrome"] .bg-indigo-500 *,
+[data-accent="monochrome"] .bg-purple-600 svg,
+[data-accent="monochrome"] .bg-indigo-600 svg,
+[data-accent="monochrome"] .bg-purple-500 svg,
+[data-accent="monochrome"] .bg-indigo-500 svg,
+[data-accent="monochrome"] .bg-purple-600 .text-white,
+[data-accent="monochrome"] .bg-purple-500 .text-white {
+  color: #09090b !important;
+  stroke: #09090b !important;
+}
+
+[data-accent="monochrome"] .hover\:bg-purple-500:hover,
+[data-accent="monochrome"] .hover\:bg-indigo-500:hover,
+[data-accent="monochrome"] .hover\:bg-purple-600:hover,
+[data-accent="monochrome"] .hover\:bg-indigo-600:hover {
+  background-color: #f4f4f5 !important;
+  color: #09090b !important;
+}
+
+[data-accent="monochrome"] .bg-indigo-700,
+[data-accent="monochrome"] .bg-purple-700 {
+  background-color: #e4e4e7 !important;
+  color: #09090b !important;
+}
+
+/* Textes Accent en Dark Mode pour Monochrome */
+html.dark[data-accent="monochrome"] .text-purple-600,
+html.dark[data-accent="monochrome"] .text-indigo-600,
+html.dark[data-accent="monochrome"] .text-purple-700,
+html.dark[data-accent="monochrome"] .text-indigo-700,
+html.dark[data-accent="monochrome"] .text-purple-500,
+html.dark[data-accent="monochrome"] .text-indigo-500,
+html.dark[data-accent="monochrome"] .text-purple-400,
+html.dark[data-accent="monochrome"] .text-indigo-400,
+html.dark[data-accent="monochrome"] .text-purple-300,
+html.dark[data-accent="monochrome"] .text-indigo-300,
+html.dark[data-accent="monochrome"] .dark\:text-purple-400,
+html.dark[data-accent="monochrome"] .dark\:text-purple-300,
+html.dark[data-accent="monochrome"] .dark\:text-indigo-400,
+html.dark[data-accent="monochrome"] .dark\:text-indigo-300,
+html.dark[data-accent="monochrome"] .hover\:text-purple-400:hover,
+html.dark[data-accent="monochrome"] .hover\:text-indigo-400:hover,
+html.dark[data-accent="monochrome"] .hover\:text-purple-300:hover,
+html.dark[data-accent="monochrome"] .hover\:text-indigo-300:hover,
+html.dark[data-accent="monochrome"] .group:hover .group-hover\:text-purple-400,
+html.dark[data-accent="monochrome"] .group:hover .group-hover\:text-indigo-400 {
+  color: #ffffff !important;
+}
+
+/* Textes Accent en Light Mode pour Monochrome */
+html.light[data-accent="monochrome"] .text-purple-600,
+html.light[data-accent="monochrome"] .text-indigo-600,
+html.light[data-accent="monochrome"] .text-purple-700,
+html.light[data-accent="monochrome"] .text-indigo-700,
+html.light[data-accent="monochrome"] .text-purple-500,
+html.light[data-accent="monochrome"] .text-indigo-500,
+html.light[data-accent="monochrome"] .hover\:text-purple-600:hover,
+html.light[data-accent="monochrome"] .hover\:text-indigo-600:hover {
+  color: #18181b !important;
+}
+
+[data-accent="monochrome"] .bg-purple-50,
+[data-accent="monochrome"] .bg-indigo-50,
+[data-accent="monochrome"] .bg-purple-100,
+[data-accent="monochrome"] .bg-indigo-100 {
+  background-color: #f4f4f5 !important;
+}
+
+[data-accent="monochrome"] .border-purple-200,
+[data-accent="monochrome"] .border-indigo-200 {
+  border-color: #e4e4e7 !important;
+}
+
+[data-accent="monochrome"] .border-purple-500,
+[data-accent="monochrome"] .border-indigo-500,
+[data-accent="monochrome"] .border-purple-600,
+[data-accent="monochrome"] .border-indigo-600,
+[data-accent="monochrome"] .border-purple-400,
+[data-accent="monochrome"] .border-indigo-400,
+[data-accent="monochrome"] .hover\:border-indigo-400:hover,
+[data-accent="monochrome"] .hover\:border-purple-400:hover {
+  border-color: #ffffff !important;
+}
+
+[data-accent="monochrome"] .border-purple-500\/80 {
+  border-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-accent="monochrome"] .border-purple-500\/60,
+[data-accent="monochrome"] .border-indigo-500\/60 {
+  border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+[data-accent="monochrome"] .border-purple-500\/40,
+[data-accent="monochrome"] .border-indigo-500\/40,
+[data-accent="monochrome"] .border-purple-500\/30,
+[data-accent="monochrome"] .border-indigo-500\/30,
+[data-accent="monochrome"] .border-purple-500\/20,
+[data-accent="monochrome"] .border-indigo-500\/20,
+[data-accent="monochrome"] .border-purple-800\/40,
+[data-accent="monochrome"] .border-indigo-800\/40 {
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+[data-accent="monochrome"] .ring-purple-500\/30,
+[data-accent="monochrome"] .ring-purple-500\/40,
+[data-accent="monochrome"] .ring-purple-500\/50,
+[data-accent="monochrome"] .ring-indigo-400\/50,
+[data-accent="monochrome"] .ring-indigo-500\/50,
+[data-accent="monochrome"] .ring-purple-500,
+[data-accent="monochrome"] .ring-indigo-500 {
+  --tw-ring-color: rgba(255, 255, 255, 0.45) !important;
+}
+
+[data-accent="monochrome"] .bg-purple-500\/10,
+[data-accent="monochrome"] .bg-purple-500\/15,
+[data-accent="monochrome"] .bg-indigo-500\/10,
+[data-accent="monochrome"] .bg-indigo-500\/15,
+[data-accent="monochrome"] .bg-purple-600\/10,
+[data-accent="monochrome"] .bg-indigo-600\/10,
+[data-accent="monochrome"] .hover\:bg-indigo-500\/10:hover,
+[data-accent="monochrome"] .hover\:bg-purple-500\/10:hover {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+[data-accent="monochrome"] .bg-purple-500\/20,
+[data-accent="monochrome"] .bg-indigo-500\/20,
+[data-accent="monochrome"] .bg-purple-600\/20,
+[data-accent="monochrome"] .bg-indigo-600\/20,
+[data-accent="monochrome"] .hover\:bg-indigo-600\/20:hover,
+[data-accent="monochrome"] .hover\:bg-purple-600\/20:hover {
+  background-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+[data-accent="monochrome"] .bg-purple-950\/20,
+[data-accent="monochrome"] .bg-indigo-950\/20,
+[data-accent="monochrome"] .bg-purple-950\/30,
+[data-accent="monochrome"] .bg-indigo-950\/30,
+[data-accent="monochrome"] .hover\:bg-purple-950\/60:hover,
+[data-accent="monochrome"] .hover\:bg-indigo-950\/60:hover {
+  background-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+[data-accent="monochrome"] .shadow-purple-600\/30,
+[data-accent="monochrome"] .shadow-indigo-600\/30,
+[data-accent="monochrome"] .shadow-purple-600\/20,
+[data-accent="monochrome"] .shadow-indigo-600\/20 {
+  box-shadow: 0 10px 25px -5px rgba(255, 255, 255, 0.35), 0 8px 10px -6px rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-accent="monochrome"] ::selection {
+  background-color: rgba(255, 255, 255, 0.35) !important;
+  color: #000000 !important;
+}
+
+/* --------------------------------------------------------------------------
+   6. VIOLET SYNAPTIQUE (Défaut - Harmonise également les classes indigo)
+   -------------------------------------------------------------------------- */
+[data-accent="purple"] .bg-indigo-600 {
+  background-color: #8b5cf6 !important;
+  color: #ffffff !important;
+}
+
+[data-accent="purple"] .hover\:bg-indigo-500:hover,
+[data-accent="purple"] .hover\:bg-indigo-600:hover {
+  background-color: #7c3aed !important;
+}
+
+[data-accent="purple"] .bg-indigo-700 {
+  background-color: #7c3aed !important;
+  color: #ffffff !important;
+}
+
+[data-accent="purple"] .text-indigo-400,
+[data-accent="purple"] .text-indigo-300,
+[data-accent="purple"] .hover\:text-indigo-400:hover,
+[data-accent="purple"] .hover\:text-indigo-300:hover,
+[data-accent="purple"] .group:hover .group-hover\:text-indigo-400 {
+  color: #a78bfa !important;
+}
+
+[data-accent="purple"] .border-indigo-500,
+[data-accent="purple"] .border-indigo-600,
+[data-accent="purple"] .border-indigo-400,
+[data-accent="purple"] .hover\:border-indigo-400:hover {
+  border-color: #8b5cf6 !important;
+}
+
+[data-accent="purple"] .border-indigo-500\/40,
+[data-accent="purple"] .border-indigo-500\/30,
+[data-accent="purple"] .border-indigo-500\/20,
+[data-accent="purple"] .border-indigo-800\/40 {
+  border-color: rgba(139, 92, 246, 0.35) !important;
+}
+
+[data-accent="purple"] .ring-indigo-400\/50,
+[data-accent="purple"] .ring-indigo-500\/50,
+[data-accent="purple"] .ring-indigo-500 {
+  --tw-ring-color: rgba(139, 92, 246, 0.45) !important;
+}
+
+[data-accent="purple"] .bg-indigo-500\/10,
+[data-accent="purple"] .bg-indigo-600\/10,
+[data-accent="purple"] .hover\:bg-indigo-500\/10:hover {
+  background-color: rgba(139, 92, 246, 0.12) !important;
+}
+
+[data-accent="purple"] .bg-indigo-500\/20,
+[data-accent="purple"] .bg-indigo-600\/20,
+[data-accent="purple"] .hover\:bg-indigo-600\/20:hover {
+  background-color: rgba(139, 92, 246, 0.2) !important;
+}
+
+[data-accent="purple"] .bg-indigo-950\/20,
+[data-accent="purple"] .bg-indigo-950\/30,
+[data-accent="purple"] .hover\:bg-indigo-950\/60:hover {
+  background-color: rgba(139, 92, 246, 0.16) !important;
+}
+
+[data-accent="purple"] .shadow-indigo-600\/30,
+[data-accent="purple"] .shadow-indigo-600\/20 {
+  box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.35), 0 8px 10px -6px rgba(139, 92, 246, 0.2) !important;
+}
+
+/* ==========================================================================
+   APPLICATION DU NOIR PUR OLED (#000000)
+   ========================================================================== */
+html.dark[data-dark-bg="oled"] body,
+html.dark.oled body {
+  background-color: #000000 !important;
+}
+
+html.dark[data-dark-bg="oled"] aside,
+html.dark.oled aside {
+  background-color: #000000 !important;
+  border-color: #18181b !important;
+}
+
+html.dark[data-dark-bg="oled"] main,
+html.dark.oled main {
+  background-color: #000000 !important;
+}
+
+html.dark[data-dark-bg="oled"] header,
+html.dark.oled header {
+  background-color: rgba(0, 0, 0, 0.9) !important;
+  border-color: #18181b !important;
+}
+
+html.dark[data-dark-bg="oled"] .bg-zinc-950,
+html.dark[data-dark-bg="oled"] .bg-zinc-950\/95,
+html.dark[data-dark-bg="oled"] .bg-zinc-950\/90,
+html.dark[data-dark-bg="oled"] .bg-zinc-950\/80,
+html.dark[data-dark-bg="oled"] .bg-zinc-950\/60,
+html.dark[data-dark-bg="oled"] .bg-zinc-950\/40,
+html.dark[data-dark-bg="oled"] .bg-zinc-950\/30,
+html.dark.oled .bg-zinc-950,
+html.dark.oled .bg-zinc-950\/95,
+html.dark.oled .bg-zinc-950\/90,
+html.dark.oled .bg-zinc-950\/80,
+html.dark.oled .bg-zinc-950\/60,
+html.dark.oled .bg-zinc-950\/40,
+html.dark.oled .bg-zinc-950\/30 {
+  background-color: #000000 !important;
+}
+
+html.dark[data-dark-bg="oled"] .bg-zinc-900,
+html.dark[data-dark-bg="oled"] .bg-zinc-900\/50,
+html.dark[data-dark-bg="oled"] .bg-zinc-900\/60,
+html.dark[data-dark-bg="oled"] .bg-zinc-900\/80,
+html.dark.oled .bg-zinc-900,
+html.dark.oled .bg-zinc-900\/50,
+html.dark.oled .bg-zinc-900\/60,
+html.dark.oled .bg-zinc-900\/80 {
+  background-color: #09090b !important;
+}
+
+html.dark[data-dark-bg="oled"] .border-zinc-800,
+html.dark[data-dark-bg="oled"] .border-zinc-800\/80,
+html.dark[data-dark-bg="oled"] .border-zinc-800\/60,
+html.dark.oled .border-zinc-800,
+html.dark.oled .border-zinc-800\/80,
+html.dark.oled .border-zinc-800\/60 {
+  border-color: #18181b !important;
+}
+
+/* ==========================================================================
+   CONTRÔLE DE L'INTENSITÉ NÉON & LUMINESCENCE (Glow & Halos)
+   ========================================================================== */
+
+/* 1. Mode Néon Discret / Atténué (Diminue l'effet néon de 75%) */
+[data-neon="subtle"],
+html.neon-subtle,
+body.neon-subtle {
+  --accent-glow: rgba(139, 92, 246, 0.12) !important;
+  --accent-subtle: rgba(139, 92, 246, 0.06) !important;
+}
+
+[data-accent="aether"][data-neon="subtle"],
+html[data-accent="aether"].neon-subtle,
+body[data-accent="aether"].neon-subtle {
+  --accent-glow: rgba(0, 210, 255, 0.12) !important;
+  --accent-subtle: rgba(0, 210, 255, 0.06) !important;
+}
+
+[data-accent="cyan"][data-neon="subtle"],
+html[data-accent="cyan"].neon-subtle,
+body[data-accent="cyan"].neon-subtle {
+  --accent-glow: rgba(6, 182, 212, 0.12) !important;
+  --accent-subtle: rgba(6, 182, 212, 0.06) !important;
+}
+
+[data-accent="emerald"][data-neon="subtle"],
+html[data-accent="emerald"].neon-subtle,
+body[data-accent="emerald"].neon-subtle {
+  --accent-glow: rgba(16, 185, 129, 0.12) !important;
+  --accent-subtle: rgba(16, 185, 129, 0.06) !important;
+}
+
+[data-accent="amber"][data-neon="subtle"],
+html[data-accent="amber"].neon-subtle,
+body[data-accent="amber"].neon-subtle {
+  --accent-glow: rgba(245, 158, 11, 0.12) !important;
+  --accent-subtle: rgba(245, 158, 11, 0.06) !important;
+}
+
+[data-accent="rose"][data-neon="subtle"],
+html[data-accent="rose"].neon-subtle,
+body[data-accent="rose"].neon-subtle {
+  --accent-glow: rgba(244, 63, 94, 0.12) !important;
+  --accent-subtle: rgba(244, 63, 94, 0.06) !important;
+}
+
+[data-accent="monochrome"][data-neon="subtle"],
+html[data-accent="monochrome"].neon-subtle,
+body[data-accent="monochrome"].neon-subtle {
+  --accent-glow: rgba(255, 255, 255, 0.15) !important;
+  --accent-subtle: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Atténuation des ombres néon en mode Discret */
+[data-neon="subtle"] .shadow-purple-600\/30,
+[data-neon="subtle"] .shadow-indigo-600\/30,
+[data-neon="subtle"] .shadow-purple-600\/20,
+[data-neon="subtle"] .shadow-indigo-600\/20,
+[data-neon="subtle"] .shadow-purple-950\/40,
+[data-neon="subtle"] .shadow-purple-900\/50,
+[data-neon="subtle"] .shadow-purple-950\/30,
+[data-neon="subtle"] .shadow-purple-900\/30,
+[data-accent][data-neon="subtle"] .shadow-purple-600\/30,
+[data-accent][data-neon="subtle"] .shadow-indigo-600\/30,
+[data-accent][data-neon="subtle"] .shadow-purple-600\/20,
+[data-accent][data-neon="subtle"] .shadow-indigo-600\/20,
+[data-accent][data-neon="subtle"] .shadow-purple-950\/40,
+[data-accent][data-neon="subtle"] .shadow-purple-900\/50,
+[data-accent][data-neon="subtle"] .shadow-purple-950\/30,
+[data-accent][data-neon="subtle"] .shadow-purple-900\/30,
+html.neon-subtle .shadow-purple-600\/30,
+html.neon-subtle .shadow-indigo-600\/30,
+html.neon-subtle .shadow-purple-600\/20,
+html.neon-subtle .shadow-indigo-600\/20 {
+  box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.25), 0 2px 4px -2px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Atténuation des halos animés et anneaux */
+[data-neon="subtle"] .animate-ping,
+html.neon-subtle .animate-ping {
+  opacity: 0.2 !important;
+  animation-duration: 3s !important;
+}
+
+[data-neon="subtle"] .ring-purple-500\/40,
+[data-neon="subtle"] .ring-purple-500\/30,
+html.neon-subtle .ring-purple-500\/40,
+html.neon-subtle .ring-purple-500\/30 {
+  --tw-ring-color: rgba(139, 92, 246, 0.15) !important;
+}
+
+/* 2. Mode Minimaliste / Éteint (Zéro halo néon) */
+[data-neon="none"],
+html.neon-none,
+body.neon-none {
+  --accent-glow: transparent !important;
+  --accent-subtle: rgba(139, 92, 246, 0.04) !important;
+}
+
+[data-accent="aether"][data-neon="none"],
+html[data-accent="aether"].neon-none,
+body[data-accent="aether"].neon-none {
+  --accent-glow: transparent !important;
+  --accent-subtle: rgba(0, 210, 255, 0.04) !important;
+}
+
+[data-accent="cyan"][data-neon="none"],
+html[data-accent="cyan"].neon-none,
+body[data-accent="cyan"].neon-none {
+  --accent-glow: transparent !important;
+  --accent-subtle: rgba(6, 182, 212, 0.04) !important;
+}
+
+[data-accent="emerald"][data-neon="none"],
+html[data-accent="emerald"].neon-none,
+body[data-accent="emerald"].neon-none {
+  --accent-glow: transparent !important;
+  --accent-subtle: rgba(16, 185, 129, 0.04) !important;
+}
+
+[data-accent="amber"][data-neon="none"],
+html[data-accent="amber"].neon-none,
+body[data-accent="amber"].neon-none {
+  --accent-glow: transparent !important;
+  --accent-subtle: rgba(245, 158, 11, 0.04) !important;
+}
+
+[data-accent="rose"][data-neon="none"],
+html[data-accent="rose"].neon-none,
+body[data-accent="rose"].neon-none {
+  --accent-glow: transparent !important;
+  --accent-subtle: rgba(244, 63, 94, 0.04) !important;
+}
+
+[data-accent="monochrome"][data-neon="none"],
+html[data-accent="monochrome"].neon-none,
+body[data-accent="monochrome"].neon-none {
+  --accent-glow: transparent !important;
+  --accent-subtle: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Suppression des ombres néon en mode Éteint */
+[data-neon="none"] .shadow-purple-600\/30,
+[data-neon="none"] .shadow-indigo-600\/30,
+[data-neon="none"] .shadow-purple-600\/20,
+[data-neon="none"] .shadow-indigo-600\/20,
+[data-neon="none"] .shadow-purple-950\/40,
+[data-neon="none"] .shadow-purple-900\/50,
+[data-neon="none"] .shadow-purple-950\/30,
+[data-neon="none"] .shadow-purple-900\/30,
+[data-accent][data-neon="none"] .shadow-purple-600\/30,
+[data-accent][data-neon="none"] .shadow-indigo-600\/30,
+[data-accent][data-neon="none"] .shadow-purple-600\/20,
+[data-accent][data-neon="none"] .shadow-indigo-600\/20,
+[data-accent][data-neon="none"] .shadow-purple-950\/40,
+[data-accent][data-neon="none"] .shadow-purple-900\/50,
+[data-accent][data-neon="none"] .shadow-purple-950\/30,
+[data-accent][data-neon="none"] .shadow-purple-900\/30,
+html.neon-none .shadow-purple-600\/30,
+html.neon-none .shadow-indigo-600\/30,
+html.neon-none .shadow-purple-600\/20,
+html.neon-none .shadow-indigo-600\/20 {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Suppression des animations de clignotement / ping néon */
+[data-neon="none"] .animate-ping,
+html.neon-none .animate-ping {
+  display: none !important;
+  animation: none !important;
+}
+
+/* Suppression des anneaux de halo */
+[data-neon="none"] .ring-purple-500\/40,
+[data-neon="none"] .ring-purple-500\/30,
+[data-neon="none"] .ring-purple-500\/20,
+[data-neon="none"] .ring-2,
+[data-neon="none"] .ring-1,
+html.neon-none .ring-purple-500\/40,
+html.neon-none .ring-purple-500\/30,
+html.neon-none .ring-2,
+html.neon-none .ring-1 {
+  --tw-ring-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Suppression des fonds de lueur néon en dégradé */
+[data-neon="none"] .bg-gradient-to-br.from-purple-900\/30,
+html.neon-none .bg-gradient-to-br.from-purple-900\/30 {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+

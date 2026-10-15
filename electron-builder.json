@@ -1,0 +1,50 @@
+{
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "appId": "com.syntropy.os",
+  "productName": "Syntropy OS",
+  "copyright": "Copyright © 2026 Syntropy OS",
+  "artifactName": "Syntropy-OS-Setup-${version}.${ext}",
+  "directories": {
+    "output": "dist",
+    "buildResources": "build"
+  },
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "Neysann",
+      "repo": "second-brain-os"
+    }
+  ],
+  "files": [
+    "electron/**/*",
+    "out/**/*",
+    "!out/**/*.exe",
+    "!out/*.exe",
+    "package.json"
+  ],
+  "nodeGypRebuild": false,
+  "npmRebuild": false,
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      }
+    ],
+    "icon": "build/icon.ico"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Syntropy OS",
+    "installerIcon": "build/icon.ico",
+    "uninstallerIcon": "build/icon.ico",
+    "installerHeaderIcon": "build/icon.ico",
+    "deleteAppDataOnUninstall": false
+  }
+}

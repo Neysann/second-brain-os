@@ -1,0 +1,1171 @@
+================================================================================
+SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
+===============================================================================
+
+#### [V2.5.0] - 2026-10-15 (Moteur Desktop Native Windows .exe, Auto-Updater electron-updater, Onglet Admin & Capture Rapide Alt+Espace)
+--------------------------------------------------------------------------------
+1. Architecture Desktop Native Windows (.exe) avec Nextron & electron-builder :
+- Conversion de l'application Next.js 14+ / App Router en exécutable Windows natif x64 autonome.
+- Configuration officielle de `electron-builder.json` et de l'installateur NSIS `Syntropy-OS-Setup-2.5.0.exe` :
+  * Génération automatique dans le dossier `dist/` avec icône personnalisée Syntropy (.ico) et raccourcis bureau / menu démarrer.
+  * Serveur HTTP local autonome embarqué pour servir les routes Next.js avec isolation complète et persistance Firebase Auth (http://127.0.0.1:38200).
+  * Nouveaux scripts `package.json` : `npm run dev:desktop` et `npm run build:win`.
+
+2. Moteur de Mises à Jour Automatiques Silencieuses (`electron-updater`) :
+- Module dédié `electron/auto-updater.js` avec initialisation de l'API officielle `electron-updater` reliée au canal GitHub Releases (`Neysann/second-brain-os`).
+- Composant UI haute fidélité `src/components/settings/AdminUpdateSection.tsx` intégré dans les Paramètres Administrateur :
+  * Badge dynamique de version active (v2.5.0) et détection du mode Desktop vs Session Web Cloud.
+  * Bouton interactif « 🔄 Vérifier les mises à jour » avec animation de recherche.
+  * Bouton de confirmation « 📥 Télécharger la vX.X.X » (mode autoDownload contrôlé).
+  * Barre de progression en temps réel avec calcul de la vitesse (Ko/s, Mo/s) et volume transféré.
+  * Bouton d'action étincelant « 🚀 Redémarrer et Installer » déclenchant `quitAndInstall()`.
+- Vérification silencieuse automatique au démarrage et notification Windows Toast interactive avec bouton « Redémarrer et Installer ».
+- Intégration dans le menu contextuel du System Tray (clic droit) avec l'option « 🔄 Rechercher des mises à jour ».
+- Sécurisation IPC via `preload.js` : exposition de `getAppVersion()`, `checkForUpdates()`, `startUpdateDownload()`, `quitAndInstall()` et `onUpdateStatus()`.
+
+3. Raccourci Clavier Global & Mini-Fenêtre de Capture Flottante (`Alt + Espace`) :
+- Enregistrement du raccourci global `Alt + Espace` dans le processus principal Electron (`globalShortcut`).
+- Fenêtre flottante ultra-légère, centrée, sans bordure (frameless) et maintenue au premier plan (*always-on-top*).
+- Capture instantanée de Tâches, Notes ou Idées transmises en temps réel vers Cloud Firestore (Inbox / Méthode PARA).
+- Prise en charge de la dictée vocale intégrée et fermeture automatique d'un appui sur `Échap` ou validation `Entrée`.
+
+4. Zone de Notification Windows (System Tray) & Réduction d'Arrière-Plan :
+- Intégration de l'icône synaptique violette dans la barre des tâches Windows (près de l'horloge).
+- Gestion de la fermeture [X] : l'application se réduit en tâche de fond dans le System Tray sans interrompre les minuteurs ou synchronisations.
+- Menu contextuel interactif au clic-droit sur l'icône du Tray :
+  * ⏯️ Démarrer / Pause Pomodoro
+  * 📋 Aperçu du Top 3 des tâches du jour
+  * 📝 Nouvelle Note rapide (Alt+Espace)
+  * 🔄 Rechercher des mises à jour
+  * 🚪 Quitter Syntropy OS
+
+5. Lancement au Démarrage de Windows (Auto-Start on Boot) :
+- Configuration native via `app.setLoginItemSettings()` d'Electron.
+- Commutateur interactif (toggle) dans les Paramètres Administrateur pour activer ou désactiver le lancement silencieux au démarrage du PC.
+
+6. Notifications Natives Windows Toast Interactives :
+- Notifications système Windows intégrées au centre de notifications via l'API `Notification` d'Electron.
+- Boutons d'action interactifs (« Terminé », « Reporter de 15 min ») reliés au gestionnaire de tâches et au minuteur Pomodoro.
+
+7. Accès & Sauvegarde dans le Système de Fichiers Local :
+- Intégration sécurisée des API Node.js/Electron (`fs`, `path`, `dialog`) via pont IPC `preload.js`.
+- Sélecteur de dossier natif Windows pour définir l'emplacement des sauvegardes.
+- Exportation directe en un clic de la base de données JSON intégrale ou de l'ensemble des notes au format Markdown standard (.md).
+
+8. Vérification de Sécurité au Lancement Desktop :
+- Contrôle strict des accréditations administrateur lors de l'exécution sur PC :
+  * Si la session n'appartient pas à un compte administrateur (`role === 'admin'` ou `isAdmin`), un écran de verrouillage haute sécurité bloque l'accès.
+  * Options sécurisées de déconnexion pour basculer vers un compte admin ou quitter l'application.
+
+9. Onglet "Paramètres Administrateur" & Téléchargement Direct de l'Installateur .exe :
+- Ajout de l'onglet dédié **« Paramètres Administrateur »** dans `/settings`, réservé exclusivement aux comptes administrateurs.
+- Carte centrale de téléchargement : **« Télécharger Syntropy-OS-Setup-2.5.0.exe »** avec badge *Admin Only* et lien GitHub Releases / miroir.
+- Tableau de bord de supervision desktop avec métriques système et contrôles des fonctionnalités natives.
+
+--------------------------------------------------------------------------------
+
+[V2.3.9] - 2026-10-10 (Enregistrement Direct Identity Platform des Domaines OAuth)
+--------------------------------------------------------------------------------
+1. Résolution Définitive de l'Autorisation de Domaine Firebase / Google Sign-In :
+- Synchronisation directe de la configuration Identity Platform via l'API Google Cloud Identity Toolkit :
+  * Enregistrement vérifié avec code de statut HTTP 200 des domaines `evris-syntropy-os.web.app` et `evris-syntropy-os.firebaseapp.com` dans la liste de production `authorizedDomains`.
+  * Élimination complète de l'erreur `auth/unauthorized-domain` lors du clic sur « Continuer avec Google ».
+  * Activation immédiate sans délai de propagation pour l'ensemble des utilisateurs et navigateurs.
+
+--------------------------------------------------------------------------------
+
+[V2.3.8] - 2026-10-10 (Connexion Google Optimisée & Option Mot de Passe Oublié)
+--------------------------------------------------------------------------------
+1. Authentification Google Sécurisée & Synchronisation des Domaines :
+- Résolution complète du dysfonctionnement de connexion Google sur le nouveau domaine :
+  * Déploiement et autorisation officielle des domaines `evris-syntropy-os.web.app` et `evris-syntropy-os.firebaseapp.com` dans Firebase Authentication.
+  * Gestion avancée et robuste des erreurs d'authentification Google (popup bloqué, annulation utilisateur, domaines autorisés).
+  * Préservation de la compatibilité sur l'ensemble des adresses web et mobiles de l'application.
+
+2. Nouveau Module de Récupération « Mot de Passe Oublié ? » :
+- Ajout de l'option « Mot de passe oublié ? » directement sous le champ de saisie du mot de passe dans la fenêtre de connexion.
+- Formulaire dédié et ergonomique de réinitialisation :
+  * Pré-remplissage automatique avec l'adresse email déjà saisie.
+  * Envoi instantané d'un email contenant un lien sécurisé de réinitialisation officiel (`sendPasswordResetEmail`).
+  * Carte de confirmation rassurante avec rappel des consignes de sécurité et vérification du dossier spams.
+  * Navigation retour simplifiée d'un clic vers l'écran de connexion standard.
+
+3. Règle Typographique et Contraste Thème Clair :
+- Lisibilité optimale garantie : tous les textes, boutons, labels et indicateurs respectent les contrastes élevés en thème clair (`text-zinc-900` et `text-zinc-700`), éliminant tout risque de texte blanc invisible.
+
+--------------------------------------------------------------------------------
+
+[V2.3.7] - 2026-10-10 (Nouvelle Adresse Web Dédiée : evris-syntropy-os.web.app)
+--------------------------------------------------------------------------------
+1. Déploiement Multi-Sites & Nouvelle URL Officielle :
+- Configuration et activation du site d'hébergement `evris-syntropy-os` sur Firebase Hosting :
+  * Nouvelle URL principale disponible : https://evris-syntropy-os.web.app
+  * URL secondaire maintenue active : https://second-brain-os-e6a83.web.app
+  * Sécurité SSL HTTPS automatique et domaine autorisé dans Firebase Authentication (connexion Google & Email).
+  * Synchronisation en direct de vos données Cloud Firestore, fichiers IndexedDB et préférences locales.
+
+--------------------------------------------------------------------------------
+
+[V2.3.6] - 2026-10-10 (Palette de Commandes Universelle & Logo Officiel sur le Tableau de Bord)
+--------------------------------------------------------------------------------
+1. Command Palette Universelle Inspirée de Raycast / Linear / Notion (Ctrl+K / Cmd+K) :
+- Écouteur Global du Raccourci Clavier :
+  * Déclenchement instantané depuis n'importe quel écran, vue ou modal via `Ctrl+K` ou `Cmd+K`.
+  * Résolution définitive du bug d'ouverture : suppression de la dépendance fragile à un sélecteur DOM inexistant.
+- Navigation Clavier Complète & Ergonomie :
+  * Parcourez les résultats sans la souris avec les flèches haut (`↑`) et bas (`↓`).
+  * Défilement automatique fluide de la liste sur l'élément sélectionné (`scrollIntoView`).
+  * Touche `Entrée` (`↵`) pour exécuter l'action ou naviguer immédiatement.
+  * Touche `Échap` (`ESC`) ou clic sur l'arrière-plan flouté pour refermer instantanément la palette.
+  * Synchronisation bidirectionnelle fluide entre le survol de la souris et la sélection active.
+- Actions Rapides Disponibles au Clavier :
+  * `+ Nouvelle note de synthèse` : ouvre directement l'éditeur Markdown vierge (/notes?action=new).
+  * `+ Nouveau mémo manuscrit` : ouvre le carnet de croquis et stylet interactif (/notes?type=ink&action=new).
+  * `+ Nouvelle tâche Kanban` : ouvre la fenêtre de création de tâche (/tasks?action=new).
+  * `+ Nouvel événement agenda` : ouvre la modal de planification d'événement (/calendar?action=new).
+  * `+ Nouvelle habitude de vie` : ouvre la création d'un nouveau rituel quotidien (/habits?action=new).
+  * `Basculer en Thème Clair / Sombre` : inverse immédiatement le thème de l'application sans recharger la page.
+  * `Basculer Plein Écran` : passe en immersion totale sans distraction.
+  * `Nouveautés de Version` : ouvre le récapitulatif des mises à jour.
+- Indexation Intégrale & Recherche Multi-Modules :
+  * Recherche instantanée dans toutes vos notes (titres, extraits nettoyés du markdown et tags #).
+  * Recherche dans vos tâches Kanban (statuts colorés, priorités et catégories PARA).
+  * Recherche dans vos projets actifs avec redirection directe sur la catégorie correspondante.
+  * Recherche dans votre calendrier (titres, dates et heures).
+  * Recherche dans vos habitudes et rituels (icônes, objectifs et flammes).
+  * Filtrage rapide par onglets : Tout, Actions, Navigation, Notes, Tâches, Calendrier, Habitudes.
+- Règle Typographique Absolue en Thème Clair :
+  * Tous les textes, intitulés, extraits et badges s'affichent en noir haute lisibilité (`text-zinc-900`) et gris foncé contrasté (`text-zinc-700`).
+  * Zéro police blanche ou texte invisible sur fond clair.
+
+2. Identité Visuelle & Logo Officiel sur le Tableau de Bord :
+- Intégration du Logo Officiel Syntropy dans l'en-tête du Dashboard :
+  * Conteneur d'emblème néon avec contour violet (`border-purple-500/30`), halo lumineux (`shadow-purple-500/20`), fond sombre immersif et logo du cerveau neural illuminé.
+  * Effet au survol fluide (`group-hover:scale-105`) avec badge animé `SYNTROPY • TABLEAU DE BORD V2`.
+- Raccourci Direct de Recherche sur le Dashboard :
+  * Bouton d'accès rapide « Recherche... ⌘K » intégré directement à droite de l'en-tête du tableau de bord.
+- Modernisation du badge Logo sur la barre latérale Desktop et l'en-tête Mobile.
+
+--------------------------------------------------------------------------------
+
+[V2.3.5] - 2026-10-10 (Synchronisation Intégrale Widgets ↔ Écrans Dédiés)
+--------------------------------------------------------------------------------
+1. Fin des Données Isolées et Fictives sur le Tableau de Bord :
+- Widget Calendriers (/calendar) :
+  * Remplacement des événements statiques de démonstration par les vrais événements de l'utilisateur (`events`) et les tâches échues (`tasks`).
+  * L'ajout rapide d'un événement directement depuis le widget l'enregistre désormais instantanément dans Cloud Firestore et le calendrier principal.
+  * Filtres par catégorie (Tous, Perso, Travail, Google/iCal) et clic direct pour ouvrir l'événement dans le calendrier.
+- Widget Notes & Mémos (/notes) :
+  * Suppression du stockage LocalStorage isolé (`syntropy_quick_notes_widget_v2`).
+  * Le widget affiche désormais vos vraies notes récentes créées dans `/notes` (avec titres, pastilles et tags).
+  * L'ajout d'un mémo rapide depuis le tableau de bord crée une vraie note (`addNote`) immédiatement synchronisée dans la boîte de réception de l'écran Notes.
+- Widget To-do List (/tasks) :
+  * Tri intelligent et priorisation automatique des tâches en attente (`status !== 'done'`) selon leur criticité (Urgente > Haute > Moyenne > Basse).
+  * Compteur précis de tâches en cours et faites, synchronisation bidirectionnelle instantanée des coches de validation.
+- Widgets Progression Projet & Vue d'Ensemble des Projets (/tasks) :
+  * Élimination des pourcentages et nombres de tâches fictifs (12/8 tâches).
+  * Calcul strict des tâches réelles associées à chaque projet de l'utilisateur.
+  * Possibilité de faire défiler les projets actifs ou d'afficher la progression globale de toutes les tâches si aucun projet n'est assigné.
+- Widget Sprint Habitudes (/habits) :
+  * Calcul dynamique automatique du jour actuel du sprint (J1 à J10) basé sur la date de début du cycle actif, éliminant la valeur 4 codée en dur.
+  * Cohérence parfaite en temps réel entre le widget et la page `/habits`.
+
+--------------------------------------------------------------------------------
+
+[V2.3.4] - 2026-10-10 (Refonte Complète du Module Habitudes & Élimination des Polices Blanches en Mode Clair)
+--------------------------------------------------------------------------------
+1. Règle Typographique Absolue en Thème Clair (Zéro Texte Blanc sur Fond Clair) :
+- Correction du bug visuel majeur où les textes et compteurs apparaissaient blancs sur fond blanc lorsque le mode clair était activé.
+- Carte « SÉRIE ACTIVE » : le nombre de jours consécutifs s'affiche désormais en noir franc (`text-zinc-900`) en mode clair et blanc en mode sombre (`dark:text-white`), garantissant une visibilité parfaite du compteur de streak.
+- Carte « OBJECTIFS AUJOURD'HUI » : le nombre d'habitudes complétées du jour est rendu en noir ultra-contrasté devant le total.
+- Carte « MÉTHODE SPRINT 10 JOURS » : passage de la citation en gris foncé contrasté (`text-zinc-700`) au lieu de gris très pâle.
+- Tableau du Sprint de 10 Jours : intitulé des habitudes, cases de validation et scores finals adaptés pour un contraste irréprochable sur fond blanc.
+- Modales (Nouveau Cycle, Nouvelle Habitude, Tutoriel) : conteneurs clairs, textes sombres et champs de saisie adaptés en mode clair.
+
+2. Refonte Complète du Module Habitude & Retrait de la Grille Syntropy Streaks :
+- Suppression définitive de la grille annuelle de 196 cases minuscules (Syntropy Streaks 2026 In-Review) qui encombrait l'écran et imposait un conteneur noir sombre.
+- Nouveau composant « Rituels & Habitudes Quotidiens » (`HabitsTrackerView`) :
+  * Cartes individuelles d'habitudes avec bordure colorée personnalisée, icône dédiée, intitulé et objectif.
+  * Bouton d'action direct « Valider aujourd'hui » / « Fait ! » pour cocher/décocher son rituel en un seul clic sans chercher sa case.
+  * Bouton global « Tout valider aujourd'hui » pour enregistrer ses rituels en masse.
+  * Bandeau interactif compact des 7 derniers jours (Lun..Dim) avec surbrillance du jour présent et pastilles interactives au clic pour régulariser les jours passés.
+  * Filtre par catégorie (Toutes, Santé & Corps, Productivité, Mindset, Apprentissage, Style de vie) avec compteurs en temps réel.
+
+--------------------------------------------------------------------------------
+
+[V2.3.3] - 2026-10-10 (Thème Clair & Cohérence Visuelle Intégrale de Tous les Widgets du Tableau de Bord)
+--------------------------------------------------------------------------------
+1. Élimination des Blocs Noirs Hardcodés en Mode Clair sur le Dashboard :
+- Correction intégrale de l'incohérence visuelle où les widgets restaient sombres (zinc-900 / zinc-950) alors que la page et la barre latérale étaient en mode clair.
+- Carte principale de chaque widget : passage dynamique à des fonds `bg-white/80` et bordures `border-zinc-200` en mode clair, préservant les surfaces sombres `dark:bg-zinc-900/60` en mode nuit.
+- Horloge Double & Fuseaux Horaires : sous-cartes Paris & Tokyo avec dégradés clairs doux (`bg-zinc-50/90`), chiffres d'heures haute lisibilité (`text-zinc-900`) et bordures assorties.
+- Météo Détaillée & Prévisions : conteneur météo du jour et créneaux horaires 4h sur fonds clairs soignés, icônes contrastées et typographies adaptées.
+- Notes Rapides : harmonisation du tutoriel, des puces de mémos et de l'input d'ajout rapide.
+- To-do List : adaptation des cartes de tâches individuelles, des cases à cocher et du bouton d'ajout rapide sur fonds neutres clairs.
+- Progression Projet : cercles SVG de jauge (`stroke-zinc-200`) et pourcentage foncés haute lisibilité.
+- Calendriers : boutons d'onglets (Tous, Perso, Travail, Google), badge date du jour et cartes d'événements adaptés en mode clair.
+- Habitudes (Streak) : suppression de la couleur de fond noire absolue fixe (`#0e0e11`), adaptation de la grille de points heatmap et des bordures.
+- Budget Mini (Donut SVG) : adaptation complète des formats compact (small) et détaillé (medium/large) avec anneaux de jauge clairs et textes nets.
+- Lecteur Audio Multi-Services : sélecteurs d'onglets (Spotify, Deezer, YouTube Music, Zen), presets et modale de collage de liens en mode clair.
+- Widgets Focus Timer, Sprint 10 Jours, Calculatrice Express, Meme du Jour, Actualités et Flux RSS : mise à niveau systématique de tous les composants.
+
+--------------------------------------------------------------------------------
+
+[V2.3.2] - 2026-10-08 (Correctif Mode Clair : Tableau de Bord, Menus & Tiroir de Gestion des Widgets)
+--------------------------------------------------------------------------------
+1. Rendu Visuel Optimisé du Mode Clair sur le Tableau de Bord :
+- Correction du titre d'accueil (« Bonsoir, Nathan ») : couleur contrastée automatique en mode clair (fini le texte blanc invisible sur fond clair).
+- Refonte des boutons d'en-tête « Modifier widgets » et compteur de widgets (« 10 / 10 ») : passage sur des fonds blancs élégants avec bordures subtiles en mode clair au lieu de blocs noirs.
+- Adaptation intégrale du tiroir latéral « Menu des widgets » au mode clair (fonds, cartes, textes, aperçus miniatures).
+- Adaptation de la barre flottante de réorganisation des widgets en mode clair.
+
+--------------------------------------------------------------------------------
+
+[V2.3.1] - 2026-10-08 (Correctif Synchronisation Rétroactive & Envoi Automatique des Fichiers vers le Cloud)
+--------------------------------------------------------------------------------
+1. Résolution de la Non-Apparition des Fichiers Existants sur Tablette & Autres Navigateurs :
+- Correction d'une exception Firestore bloquante (valeur undefined interdite dans les champs) qui empêchait la sauvegarde des notes possédant des pièces jointes.
+- Détection et Synchronisation Automatique Rétroactive : dès l'ouverture d'une note sur l'appareil source (ex: PC), tous les fichiers locaux existants non encore synchronisés sont automatiquement découpés en fragments et téléversés en arrière-plan vers Cloud Firestore.
+- Nouveau bouton d'action manuelle « ☁️ Synchroniser vers le Cloud » dans l'en-tête « DOCUMENTS JOINTS » pour forcer ou relancer l'envoi immédiat avec retour visuel animé et toast de confirmation.
+- Badges de statut dynamiques sur chaque document joint : « ☁️ Cloud » pour les fichiers répliqués sur tous les appareils et « 💾 Local » pour les fichiers en attente de synchronisation.
+- Suppression du orderBy('i', 'asc') côté requête directe Firestore pour éliminer tout risque d'exigence d'index composite lors de la reconstitution des fragments de fichiers.
+
+--------------------------------------------------------------------------------
+
+[V2.3.0] - 2026-10-08 (Synchronisation Multi-Appareils Cloud des Fichiers & Pièces Jointes dans Notes)
+--------------------------------------------------------------------------------
+1. Résolution Définitive des Bugs de Synchronisation Multi-Appareils (PC <-> Tablette <-> Mobile) :
+- Identification et correction de la cause racine : la limite matérielle stricte de 1 Mo (1 048 576 octets) par document Cloud Firestore provoquait l'échec silencieux de l'enregistrement dès qu'un document ou une image dépassait ~800 Ko.
+- Nouvelle architecture de segmentation en sous-collections Cloud Firestore (/notes/{noteId}/attachmentChunks/{chunkId}) :
+  * Découpage transparent des fichiers volumineux en fragments sécurisés de ~700 Ko.
+  * Capacité d'importation et de réplication automatique jusqu'à 25 Mo par document (PDF, PowerPoint PPTX, Word DOCX, Excel XLSX, Images haute résolution).
+  * Le document principal de la note reste ultra-léger (< 10 Ko), garantissant une sauvegarde instantanée et sans blocage quota.
+
+2. Mise en Cache Permanent Haute Performance IndexedDB :
+- Élimination des erreurs QuotaExceededError de localStorage (limité à 5 Mo par domaine).
+- Stockage persistant et asynchrone des fichiers dans la base IndexedDB locale de chaque appareil.
+- Accès instantané à 0 ms de latence pour toutes les lectures et téléchargements répétés, y compris hors-connexion.
+
+3. Téléchargement à la Demande & Miniatures Instantanées :
+- Pour préserver la bande passante et la mémoire des tablettes et smartphones, les fichiers volumineux sont récupérés à la demande (au clic sur le document, le bouton Lire le PDF ou l'agrandissement d'image).
+- Génération automatique de miniatures ultralégères (< 10 Ko) pour les images : visibilité immédiate de l'aperçu sur tous les écrans sans attendre le téléchargement du fichier complet.
+- Nouveaux badges de statut de réplication en temps réel (Cloud / Local) et indicateur de chargement animé avec retour visuel clair.
+- Suppression synchronisée : la suppression d'un document joint nettoie automatiquement ses fragments distants sur Firestore ainsi que le cache local.
+
+--------------------------------------------------------------------------------
+
+[V2.2.0] - 2026-10-07 (Syntropy OS V2.2 — Nouvelle Couleur d'Accentuation Aether, Scrollbars Transparentes & Barre Latérale Épurée)
+--------------------------------------------------------------------------------
+1. Nouvelle Couleur d'Accentuation « Aether Céleste » (Cyan vers Violacé) :
+- Intégration de la palette inspirée du design system Aether (uiverse.io) : dégradé iridescent cyan céleste néon (#00d2ff) glissant subtilement vers l'indigo (#6366f1) et un violet fluorescent éclatant (#a855f7 / #9333ea).
+- Rendu harmonisé sur l'ensemble de l'interface Syntropy : boutons d'actions en dégradé cyan ➔ violacé, halos néon violets/cyans, bordures réactives, sélecteurs d'onglets, ombres lumineuses bicolores et sélection de texte.
+- Compatible avec les modes d'intensité néon (Vibrant, Discret / Atténué, Minimaliste / Éteint) et le fond Noir Pur OLED.
+
+2. Barres de Défilement (Scrollbars) 100% Transparentes & Épurées :
+- Remplacement des ascenseurs visuels par des scrollbars entièrement invisibles et transparentes sur l'ensemble de l'OS.
+- Défilement fluide préservé sur tous les navigateurs (Chrome, Edge, Firefox, Safari) avec micro-repère ultra-discret au survol.
+- Disparition de toute barre parasite sur les pages, widgets, listes de tâches, notes et panneaux de configuration.
+
+3. Barre Latérale Épurée (Retrait du Sélecteur de Thème Rapide) :
+- Retrait du bouton de bascule jour/nuit de la barre latérale pour alléger l'écran principal et éliminer les clics involontaires.
+- La sélection du thème (Sombre, Clair ou Détection Système Automatique) reste accessible dans la section Paramètres.
+
+--------------------------------------------------------------------------------
+[V2.1.0] - 2026-10-07 (Syntropy OS V2.1 — Widgets Pleine Largeur, Traçabilité Admin Multi-Comptes & Habitudes Compactes)
+--------------------------------------------------------------------------------
+1. Dimension de Widget « Pleine Largeur » (100% de la Feuille) :
+- Nouvelle option de taille 'full' (4 colonnes de large) disponible dans le tiroir de widgets et cyclable en 1 clic.
+- Permet aux widgets (Notes rapides, Lecteur audio, Calendrier, Budget) de s'étendre sur toute la largeur de l'écran.
+
+2. Panneau d'Administration : Traçabilité des Connexions Multi-Utilisateurs & Accès Firebase :
+- Tableau en temps réel de tous les comptes s'étant connectés à l'application (emails, photos, rôles, UID Firebase, date de dernière session).
+- Synchronisation persistante multi-comptes via Cloud Firestore (`system_users` et `system_login_history`).
+- Boutons d'accès directs officiels vers la console Firebase Auth et la base de données Firestore.
+
+3. Refonte Épurée du Module Habitudes (/habits) :
+- Retrait complet du libellé "HelloHabit" au profit de l'identité "Habitudes • Syntropy Streaks".
+- Compression optimisée de l'espace sur la page avec réduction des marges et grilles de heatmaps plus denses.
+
+4. Widget Notes Rapides Épuré :
+- Suppression des idées d'exemple préremplies ; initialisation à vide avec un encadré de tutoriel clair et intuitif.
+
+--------------------------------------------------------------------------------
+[V2.0.0] - 2026-10-07 (Syntropy OS V2.0 — Refonte Tableau de Bord Modulaire, Matrice Streaks HelloHabit & Déplacement Libre des Widgets)
+--------------------------------------------------------------------------------
+0. Architecture V2.0 & Harmonisation de l'Interface :
+- Version officielle 2.0.0 marquant le déploiement du nouveau tableau de bord modulaire et des extensions Daily Life.
+- Menu de navigation unifié : Habitudes et Budget adoptent rigoureusement la même police, les mêmes nuances et la même typographie que le reste du menu. Retrait du badge « V2 » à côté de l'en-tête « Daily Life ».
+- Liberté de mouvement & Drag & Drop fluide : ajout de boutons de déplacement direct (⬅️ ➡️) sur chaque widget en mode édition pour un positionnement immédiat, indicateur visuel d'insertion (ligne néon violette), poignée dédiée et neutralisation des clics parasites pendant le glissement.
+- Élimination des étirements excessifs : dimensions strictes des widgets (aucun widget ne force 4 colonnes), grille à hauteur constante 200px (1 col pour carré, 2 cols pour rectangle/large).
+- Suppression des mentions OneUI dans les noms des widgets (remplacées par « Horloge Double & Fuseaux » et « Météo Détaillée & Prévisions »).
+- Matrice de Streaks HelloHabit (2026 In-Review) : interface complète inspirée de HelloHabit avec badge de certification, chaque habitude dotée de sa propre couleur, son checkbox circulaire, son pourcentage d'accomplissement et sa grille horizontale individuelle de heatmap.
+- Graphiques Camembert (Donut) pour le Budget : graphiques SVG interactifs sur /budget et dans le widget d'accueil.
+
+1. Nouveau Domaine « Daily Life » (Décentrage Hors-Scolaire / Compagnon de Vie) :
+- Élargissement de Syntropy au-delà des cours académiques vers un compagnon de vie global.
+- Intégration d'un groupe dédié dans la barre latérale « Daily Life » orné du badge doré V2.
+- Accès rapide aux nouveaux espaces via la recherche globale (⌘K) et les widgets du tableau de bord.
+
+2. Système d'Habitudes & Sprints Renouvelables de 10 Jours (/habits) :
+- Méthode des cycles de 10 jours : découpe vos rituels en micro-sprints digestes pour éliminer la lassitude mentale et maximiser la régularité.
+- Tableau interactif J1 à J10 : cochez vos habitudes au fil des jours avec mise à jour instantanée et calcul des pourcentages de réussite.
+- Gestionnaire de rituels : créez et personnalisez vos habitudes (Santé, Mindset, Productivité, Apprentissage, Style de vie) avec émojis et couleurs d'accent.
+- Possibilité de clore un sprint et de lancer un nouveau cycle de 10 jours en 1 clic.
+
+3. Flamme de Régularité (Duolingo) & Matrice d'Activité (GitHub) :
+- Flamme animée Duolingo : compteur en direct de jours consécutifs avec record personnel et motivation quotidienne.
+- Matrice de contributions GitHub (12 semaines / 84 jours glissants) : intensité visuelle en 5 niveaux violets combinant habitudes cochées, tâches achevées et notes créées.
+- Infobulle interactive au survol affichant la date et le détail chiffré des accomplissements.
+
+4. Tracker de Budget & Finances Personnelles (/budget) :
+- Tableau de bord financier mensuel : Solde net, Total Revenus, Total Dépenses et jauge de plafond alloué.
+- Ventilation par catégories : Logement, Alimentation, Transports, Loisirs, Abonnements SaaS, Santé, Épargne, Autre avec barres visuelles proportionnelles.
+- Ajout express d'opérations (Dépenses / Revenus) avec montants, intitulés, catégories et dates.
+- Historique complet des transactions avec recherche textuelle et filtres par type et catégorie.
+
+5. 3 Nouveaux Widgets Dédiés pour le Tableau de Bord Modulaire :
+- Widget Flamme & Streaks : compteur de série en feu et mini-matrice 28 jours directement sur l'écran d'accueil.
+- Widget Sprint 10 Jours : consultation du jour en cours (J1-J10) avec cases à cocher rapides sans quitter le dashboard.
+- Widget Budget Mensuel : affichage compact du solde net, de la jauge d'utilisation du budget et des dépenses cumulées.
+- Disponibles dans le tiroir de personnalisation des widgets.
+
+--------------------------------------------------------------------------------
+[V1.17.0] - 2026-10-07 (Ébauche du Nouveau Tableau de Bord Modulaire — Prémices de la V2)
+--------------------------------------------------------------------------------
+1. Nouveau Tableau de Bord Modulaire & Grille Plein Écran (No-Scroll Desktop) :
+- Refonte complète de la page d'accueil calquée sur la nouvelle maquette Cyberpunk/Minimaliste Syntropy.
+- Affichage pleine page optimisé (100vh sans ascenseur vertical sur ordinateur, défilement fluide sur smartphone/tablette).
+- Grille réactive 4 colonnes avec matrice cyberpunk violette optionnelle (switch « Grille »).
+- Limite intelligente fixée à 10 widgets actifs simultanés pour conserver une lisibilité optimale et éviter la surcharge visuelle.
+
+2. Menu Latéral des Widgets (« Tiroir de Personnalisation ») :
+- Panneau coulissant depuis la droite accessible via « Modifier widgets » avec recherche instantanée.
+- Catalogue riche de 14 widgets spécialisés répartis par catégories.
+- Sélecteur de taille avant ajout : Carré (small), Rectangle (medium), Très grand (large).
+- Système de Drag & Drop pour réordonner les widgets à la volée ou permuter leur taille en un clic.
+- Bouton « Enregistrer » avec persistance locale (localStorage) et bouton « Réinitialiser » pour rétablir la maquette originale.
+
+3. Catalogue des Nouveaux Widgets Déployés :
+- Calendrier : Onglets Perso, Travail, Google avec événements horaires, pastilles colorées et ajout rapide.
+- Horloge : Cadran analogique SVG dynamique en temps réel avec aiguilles fluides + affichage digital géant et date.
+- Météo : Données en direct via l'API Open-Meteo pour Paris (température, nuages/soleil, mini/maxi, géolocalisation).
+- Notes rapides : Bloc d'idées avec puces dorées et ajout immédiat de pensées.
+- To-do list : Tâches prioritaires avec cases à cocher connectées, badges Haute/Moyenne/Basse et ajout direct.
+- Projets & tâches : Suivi des projets actifs avec barres de progression violines, statuts et avatars.
+- Progression projet : Jauge circulaire animée en SVG avec pourcentage global et ratio de tâches.
+- Minuteur focus : Minuteur Pomodoro 25:00 / 5:00 avec cadran circulaire et bascule automatique.
+- Citation du jour : Citation inspirante quotidienne, auteur, fond visuel paysage crépusculaire avec silhouette montagneuse et bouton de régénération.
+- Lecteur audio : Ambiance Midnight Focus Lofi avec synthèse binaurale zen via Web Audio API, Play/Pause et volume.
+- Flux RSS / Veille de Ressources : Veille automatique (Dev.to, HackerNews, Design) avec enregistrement direct dans la section Ressources.
+- Actualités : Dépêches d'innovation tech & sciences en temps réel.
+- Widget interactif : Calculatrice express intégrée.
+- Meme / GIF du jour : Dose d'humour quotidienne régénérable au clic.
+
+--------------------------------------------------------------------------------
+[V1.16.3] - 2026-10-07 (Correction Majeure LatexRenderer : Support Intégral des Listes à Puces, Cases à Cocher Interactives et Tableaux)
+--------------------------------------------------------------------------------
+1. Restauration Complète des Puces & Listes Numérotées :
+- Rendu vectoriel moderne des listes à puces (- , * , +) avec puces rondes violines élégantes adaptées à la baseline du texte.
+- Prise en charge des listes ordonnées numérotées (1. , 2. ) avec numérotation stylisée mono.
+- Support natif de l'indentation hiérarchique (sous-puces et listes imbriquées jusqu'à 6 niveaux).
+
+2. Cases à Cocher Interactives (Tâches / To-do Lists) :
+- Rendu visuel soigné des listes de tâches (- [ ], - [x], * [ ], * [x]).
+- Boîtes à cocher violettes stylisées avec icône de coche vectorielle pour les éléments validés, et bordures subtiles pour les éléments en attente.
+- Interactivité directe : cliquer sur une case à cocher dans l'aperçu ou l'écran partagé bascule instantanément l'état dans la note avec sauvegarde automatique !
+- Traitement propre du texte validé (barré délicat et atténuation esthétique).
+
+3. Enrichissements Markdown & Formules :
+- Support complet des formules LaTeX `$formule$` et `$$bloc$$` à l'intérieur même des puces et cases à cocher.
+- Ajout du rendu des tableaux Markdown (| Col 1 | Col 2 |) avec en-têtes et lignes alternées.
+- Support des liens Markdown [texte](url) et images ![alt](url) dans le flux de lecture.
+
+--------------------------------------------------------------------------------
+[V1.16.2] - 2026-10-07 (Corrections Visuelles : Doublons '+' & H1-H3, Repositionnement Bas & Élongation de la Poignée de Volet)
+--------------------------------------------------------------------------------
+1. Élimination des Doublons Visuels :
+- Bouton de création de note : suppression du double '+' (+ + Note) en conservant l'icône Plus vectorielle et le libellé propre « Note » (+ Note ⌄).
+- Boutons de niveaux de titres : suppression des chiffres redondants « H1 1 », « H2 2 », « H3 3 » pour afficher directement les icônes de titres épurées [H1 | H2 | H3].
+
+2. Poignée de Bordure Rétractable Améliorée (Repliage Volet Dossiers) :
+- Repositionnement ergonomique en bas du séparateur vertical (bottom-10 au lieu du haut).
+- Allongement élégant de la poignée en hauteur (h-16 / 64px avec coins arrondis doux) pour une préhension et un clic immédiats sans collision avec les filtres supérieurs.
+
+--------------------------------------------------------------------------------
+[V1.16.1] - 2026-10-07 (Refonte Ergonomique & Résolution des Chevauchements sur Mobile dans la Page Notes)
+--------------------------------------------------------------------------------
+1. Barre Supérieure de l'Éditeur Mobile Dégagée & Fluide :
+- Suppression complète des superpositions d'éléments sur smartphone (< 768px).
+- Navigation propre : Bouton retour « < Notes » et sélecteur de dossier compact à gauche.
+- Commandes d'action à droite ultra-légères : commutateurs compacts [✏️ | 👁️] (icônes seules sur mobile pour libérer l'espace), trombone [📎], épingle [📌], et corbeille [🗑️].
+- Voyant de synchronisation discret (point vert 🟢 ou jaune pulsant 🟡) au lieu du badge texte de 100px.
+
+2. Barre d'Outils de Formatage Markdown & LaTeX Monoligne Défilante :
+- Remplacement du retour à la ligne anarchique sur 4 à 5 lignes par une barre unique horizontale à défilement tactile fluide (swipe au doigt).
+- Correction du glitch visuel en Mode Clair : suppression du fond sombre forcé sur le groupe H1/H2/H3 et rétablissement d'un contraste parfait sur toutes les icônes.
+- Boutons Modèles, Tutoriel et [∑ LaTeX] intégrés de façon compacte sans repousser le texte de la note.
+
+3. Métadonnées Contextuelles & Marge de Défilement Basse :
+- Bouton de conversion rapide [Classique <-> Manuscrit] repositionné dans la rangée de métadonnées au-dessus du titre sur mobile.
+- Ajout d'une marge de défilement inférieure (pb-32) pour éviter que les dernières lignes de la note ne soient masquées par la barre de navigation basse.
+
+--------------------------------------------------------------------------------
+[V1.16.0] - 2026-10-07 (Suite LaTeX Avancée : Live Popover, Snippets Obsidian, LaTeX sur Stylet & Numérotation d'Équations)
+--------------------------------------------------------------------------------
+1. Aperçu Flottant en Direct (Live LaTeX Popover) :
+- Détection automatique et réactive de la position du curseur dans les formules ($...$ ou $$...$$).
+- Infobulle flottante élégante en bas à droite de l'éditeur affichant en temps réel le rendu KaTeX.
+- Diagnostic en direct de la syntaxe : indicateur vert "Valide" ou retour bienveillant si la formule est incomplète ou comporte une accolade manquante.
+
+2. Frappe Ultra-Rapide & Snippets LaTeX (Style Obsidian / Vim-LaTeX) :
+- Expansion instantanée par la touche Tab :
+  * /frac -> \frac{a}{b} avec sélection immédiate du numérateur
+  * /sqrt -> \sqrt{x}, /root -> \sqrt[n]{x}
+  * /sum -> \sum_{i=1}^{n}, /prod -> \prod_{i=1}^{n}
+  * /int -> \int_{a}^{b} f(x) \, dx
+  * /lim -> \lim_{x \to \infty}
+  * /mat2 et /mat3 -> matrices 2x2 et 3x3 préformatées
+  * /cases -> système d'équations avec grande accolade
+  * /vec, /norm, /partial, /align, /real, /complex, /nat, /forall, /exists, /in
+  * Lettres grecques rapides : /alpha, /beta, /gamma, /delta, /theta, /lambda, /pi, /omega, /infty
+- Encapsulation intelligente par $ : si du texte est sélectionné, taper $ l'entoure automatiquement ($texte$).
+- Auto-fermeture de bloc : taper $$ puis Entrée génère un bloc centré multiligne avec curseur au centre.
+- Raccourci clavier rapide : Alt + X ou Ctrl + Shift + L pour ouvrir la modale d'insertion.
+
+3. Formules LaTeX dans la Prise de Note Manuscrite (Stylet) :
+- Nouvel outil "∑ LaTeX" disponible dans la barre d'outils du stylet.
+- Modale dédiée (InkLatexModal) avec sélection d'exemples fréquents, rendu KaTeX direct et choix de taille (Compact, Normal, Grand).
+- Les formules s'insèrent sous forme de blocs dactylographiés positionnés dans l'espace virtuel mondial du canvas.
+- Déplacement fluide au doigt ou au stylet (Drag & Drop), boutons d'édition rapide et de suppression.
+- Résistant au zoom et au pan (reste ancré aux coordonnées exactes parmi les schémas au stylet).
+- Intégration complète lors de l'export PNG et vectoriel SVG (balises foreignObject KaTeX).
+
+4. Numérotation Automatique des Équations & Références Croisées :
+- Support complet des blocs mathématiques multilignes $$ ... $$.
+- Numérotation automatique AMS-LaTeX avec badges discrets alignés à droite : (1), (2)...
+- Prise en charge des étiquettes personnalisées \tag{...} et des labels \label{eq:nom}.
+- Références croisées interactives : \eqref{eq:nom}, \ref{eq:nom} ou (Éq. 1) transformés en liens cliquables dans le texte markdown qui font défiler la page en douceur avec une surbrillance néon temporaire vers l'équation.
+
+--------------------------------------------------------------------------------
+[V1.15.2] - 2026-10-05 (Synchronisation Automatique en Direct vers le Serveur en Ligne & Déploiement Continu)
+--------------------------------------------------------------------------------
+1. Surveillance Active & Déploiement en Temps Réel (Synchro_Auto_En_Ligne.bat) :
+- Création d'un module de surveillance continue basé sur FileSystemWatcher (scripts/watch-and-deploy.ps1).
+- Détection instantanée de chaque modification de code dans le projet.
+- Compilation de production et déploiement automatique sur Firebase Hosting (https://second-brain-os-e6a83.web.app) en continu.
+- Miroir automatique des dossiers et anti-rebond intelligent pour grouper les modifications rapides.
+
+2. Optimisation & Sécurisation du Script de Déploiement Manuel (Deployer_Syntropy_En_Ligne.bat) :
+- Synchronisation préalable automatique des fichiers sources vers second-brain-os.
+- Nettoyage préventif du cache .next pour éliminer les corruptions de compilation.
+- Déploiement sécurisé sur les serveurs Firebase Hosting et archivage de l'historique Git.
+
+3. Résolution des Conflits de Compilation & Exclusion Propre dans tsconfig.json :
+- Correction du typage notesCount sur ParaStats dans DataContext et Sidebar.
+- Exclusion de second-brain-os et out dans le tsconfig.json racine afin d'éviter la double compilation et d'accélérer le build.
+- Indicateur visuel d'état de sauvegarde en direct [🟢 Synchronisé] dans les notes.
+
+--------------------------------------------------------------------------------
+[V1.15.1] - 2026-10-05 (Fusion du Menu Notes, Création Intuitive Multi-Formats & Repositionnement du Repliage)
+--------------------------------------------------------------------------------
+1. Fusion Unifiée de la Navigation Latérale :
+- Suppression des deux entrées distinctes « Notes Classiques » et « Notes Manuscrites » de la barre latérale gauche (Sidebar).
+- Création d'une entrée unique et intuitive « Notes » (/notes, icône BookOpen) affichant le total cumulé des notes dans l'espace de savoir.
+
+2. Création Intuitive de Notes avec Choix de Format au Clic :
+- Conservation de l'emplacement privilégié du bouton « + Note » en haut de la colonne des notes.
+- Nouveau menu popover interactif déclenché au clic sur « + Note » permettant de choisir instantanément son format :
+  * 📝 Note Texte & Markdown : format classique avec formules LaTeX ($...$, $$...$$), tableaux, listes et typographie enrichie.
+  * 🖊️ Note Manuscrite (Stylet) : canevas vectoriel fluide, surligneurs, outils de dessin et écriture libre.
+- Fermeture automatique du popover lors d'un clic extérieur.
+
+3. Repositionnement & Visibilité Maximale du Bouton de Réduction des Dossiers :
+- Déplacement du bouton de réduction directement dans la barre d'en-tête de la section « Dossiers » avec libellé explicite « ◀ Réduire ».
+- Ajout d'une poignée / onglet de bordure rétractable style Notion / VS Code le long de la ligne de séparation verticale pour plier ou déplier les dossiers d'un simple clic sans chercher dans l'interface.
+- Suppression du sous-filtre redondant « Toutes / Texte / Stylet » pour libérer la vue et maximiser la clarté.
+
+--------------------------------------------------------------------------------
+[V1.15.0] - 2026-10-05 (Mode Focus Plein Écran, Épuration des Dossiers, Modèles Concrets & Outils d'Écriture)
+--------------------------------------------------------------------------------
+1. Épuration Radicale de la Liste des Notes :
+- Retrait définitif du bouton encombrant "Toutes les notes" qui polluait la visibilité.
+- Affichage filtré strictement par dossier sélectionné ou "Notes sans dossier".
+- Lorsque aucun dossier n'est sélectionné, l'application présente une vue d'accueil sobre invitant à choisir un dossier ou à faire une recherche globale sans dump massif de notes.
+
+2. Mode Focus & Volet Réductible (Plein Écran) :
+- Ajout d'un bouton de repliage (`PanelLeftClose`) dans l'en-tête du volet gauche permettant de masquer complètement la colonne des dossiers/notes.
+- L'espace de prise de note et d'édition Markdown occupe désormais 100% de la largeur de l'écran pour une concentration maximale.
+- Bouton de réouverture rapide (`PanelLeftOpen` "Dossiers") accessible à tout moment dans l'en-tête supérieur de l'éditeur ou dans la vue d'accueil.
+
+3. Refonte Complète des Modèles de Notes Utiles :
+- Remplacement des modèles académiques de base par 6 modèles concrets axés sur la productivité quotidienne :
+  * 📖 Fiche de Synthèse & Lecture (Livre, article, vidéo, thèse centrale, 3 idées maîtresses, citations et plan d'action).
+  * 🤝 Compte-Rendu de Réunion & Plan d'Action (ordre du jour, synthèse des échanges, arbitrage des décisions et tableau Qui/Quoi/Pour Quand).
+  * ☀️ Journal Quotidien & Standup / Daily Log (Focus du jour The Big 3, notes au fil de l'eau, blocages et bilan du soir/gratitude).
+  * 💡 Brainstorming & Idéation de Projet (définition du défi, boîte à idées divergente, matrice Impact vs Effort et plan d'action immédiat).
+  * 🛠️ Procédure Opérationnelle & Guide Pas-à-Pas / SOP (objectifs, prérequis, étapes séquentielles numérotées, pièges fréquents et DoD).
+  * 🖊️ Note Hybride Syntropy (alliage de théorie dactylographiée et surface vectorielle manuscrite au stylet).
+
+4. Outils d'Écriture Enrichis dans la Barre Markdown :
+- Tailles de titres multiples : Boutons dédiés H1 (`# `), H2 (`## `) et H3 (`### `) pour une hiérarchisation claire des documents.
+- Nouveaux styles typographiques avec rendu haute fidélité immédiat :
+  * Soulignage : balise `<u>texte</u>` avec filet indigo souligné et espacé.
+  * Texte barré : `~~texte~~` avec style d'atténuation.
+  * Surlignage : `==texte==` ou `<mark>texte</mark>` avec fond jaune ambré transparent.
+- Éléments structurels additionnels :
+  * Liste ordonnée / numérotée : `1. ` avec pastille numérotée dans le visualiseur.
+  * Ligne séparatrice horizontale : `\n---\n` avec filet discret pour rythmer la lecture.
+- Rendu synchronisé dans le visualiseur LaTeX et Markdown (`LatexRenderer`).
+
+--------------------------------------------------------------------------------
+[V1.14.0] - 2026-10-05 (Import Étendu PowerPoints/Tableurs & Console d'Administration Avancée)
+--------------------------------------------------------------------------------
+1. Importation Universelle de Documents dans les Notes :
+- Prise en charge complète des Présentations et Tableurs :
+  * Présentations : PowerPoint (.pptx, .ppt) et diaporamas avec icône dédiée 📽️ Presentation ambrée.
+  * Tableurs : Excel (.xlsx, .xls) et formats tabulaires (.csv, .tsv, .ods) avec icône 📊 FileSpreadsheet émeraude.
+  * Documents Textuels : Word (.docx, .doc, .odt, .rtf) avec icône 📄 FileText bleue.
+- Génération d'Aperçus Intelligents Intégrés :
+  * Tableurs CSV/TSV/XLSX : Détection et conversion automatique en tableau Markdown propre avec en-têtes et lignes.
+  * Présentations PPTX : Détection du décompte des diapositives et extraction structurée des titres et points clés.
+  * Documents Word DOCX : Extraction native des paragraphes et titres formatés dans le corps de la note.
+- Gestion Optimisée des Pièces Jointes :
+  * Badges visuels distincts dans la liste des pièces jointes (Diapo, Tableur, Doc, PDF, Image).
+  * Téléchargement en un clic du fichier binaire source conservé en haute fidélité.
+
+2. Épuration de la Barre Latérale & Centralisation Cloud Firestore :
+- Retrait du badge "Cloud Firestore" / "Mode Local" au-dessus du bouton Paramètres dans la barre latérale pour libérer l'espace visuel principal.
+- Conservation de l'indicateur discret de synchronisation en haut de l'interface principale.
+- Centralisation exhaustive du statut de synchronisation Cloud Firestore dans les Paramètres :
+  * Fiche détaillée de persistance avec ID projet (`second-brain-os`).
+  * Indicateur d'écouteurs temps réel et statut du stockage local de secours.
+
+3. Console d'Administration Avancée 👑 dans les Paramètres :
+- Nouvel onglet dédié "Administration 👑" réservé aux comptes accrédités :
+  * Télémétrie en direct : métriques des collections Firestore et statut de persistance.
+  * Gestion des Rôles & Accréditations : ajout et révocation dynamique d'e-mails administrateurs (avec protection du compte Root fondateur).
+  * Outils de Maintenance BDD : resynchronisation globale forcée, vérification d'intégrité et nettoyage des orphelins.
+  * Drapeaux Système (Feature Flags) : Mode Maintenance, bascule Stylet/Ink, moteur LaTeX et logs de débogage.
+  * Journal d'Audit Système : traçabilité des opérations sensibles avec filtres, export JSON et réinitialisation.
+
+--------------------------------------------------------------------------------
+[V1.13.1] - 2026-10-04 (Épuration Visuelle & Correction des Bugs d'Affichage dans Notes)
+--------------------------------------------------------------------------------
+Décharge Visuelle Radicale & Ergonomie Minimaliste Haute Fidélité :
+- En-tête de la Liste des Notes (Volet Gauche) :
+  * Titre adaptatif épuré selon la sélection active ("Notes Classiques", "Notes Manuscrites" ou "Notes & Savoirs").
+  * Élimination des boutons encombrants sur plusieurs lignes : regroupement en une seule ligne compacte avec bouton principal `+ Note` (`+ Texte` ou `+ Manuscrit`) et icônes discrètes pour les modèles (`LayoutTemplate`) et l'import de documents (`UploadCloud`).
+  * Suppression de la bannière imposante de 45px "Importer un document" qui mangeait la hauteur utile.
+  * Switcher d'affichage compact et propre sous forme de pilule (`Toutes`, `📝 Texte`, `🖊️ Stylet`) sans superposition ni débordement de texte.
+- Correction du Bug d'Affichage des Dossiers (Badges tronqués) :
+  * Remplacement des emojis fragiles sous police monospace (qui affichaient "4 " ou "2 " tronqués) par un compteur élégant et des puces séparatrices fiables (`4 • 1 🖊️`).
+- En-tête Unifié de l'Éditeur (Barre Unique ~44px façon Notion / Obsidian) :
+  * Réduction des 4 rangées d'outils empilées à une seule barre fine et moderne :
+    - À gauche : sélecteur de dossier épuré, bouton de sous-dossier, badge de format interactif (`📝 Classique` ou `🖊️ Manuscrit` avec conversion en un clic), et épingle.
+    - À droite : bascule de mode d'affichage compacte (`[Édition] [Double] [Aperçu]` ou `[🖊️ Canvas] [📄 Texte]`), trombone d'attachement, indicateur de sauvegarde discret et corbeille.
+  * Déplacement des métadonnées de note (Catégorie PARA et Projet lié) en ligne inline Notion au-dessus du titre, éliminant les sélecteurs encombrants de la barre d'outils supérieure.
+  * Suppression du fil d'Ariane rougeoyant redondant au profit d'une barre de métadonnées fine et sobre.
+
+--------------------------------------------------------------------------------
+[V1.13.0] - 2026-10-04 (Distinction Complète : Notes Classiques & Notes Manuscrites)
+--------------------------------------------------------------------------------
+Séparation de Premier Ordre entre Notes Classiques (Texte) et Notes Manuscrites (Stylet) :
+- Navigation & Menus Dédoublés :
+  * Barre Latérale (Desktop Sidebar) :
+    - "Notes Classiques" (icône BookOpen bleu indigo, compteur en temps réel stats.classicNotesCount, lien /notes?type=classic).
+    - "Notes Manuscrites" (icône PenTool violette, compteur stats.inkNotesCount, lien /notes?type=ink, halo néon violet).
+  * Barre Basse Mobile (Mobile Bottom Nav) :
+    - Onglet "Notes" (/notes?type=classic) et onglet dédié "Manuscrit" (/notes?type=ink) avec pastille indicatrice violette.
+  * Synchronisation URL instantanée :
+    - Gestion dynamique du paramètre `?type=classic|ink` sans rechargement de page ni désynchronisation.
+- Présentation et Organisation dans les Dossiers & Vues de Notes :
+  * Vue Dossier & "Toutes les notes" avec Double Catégorie :
+    - Regroupement automatique en 2 sections visuelles distinctes avec en-têtes collants ("sticky headers") :
+      • 📝 Notes Classiques (${count})
+      • 🖊️ Notes Manuscrites (${count})
+    - Arborescence des Dossiers : affichage récursif du décompte par type par dossier (`X 📝 • Y 🖊️`).
+  * Contrôle Segmenté Rapide :
+    - Switcher 3 positions en tête de liste : "Toutes (${total})", "📝 Classiques (${classicCount})", "🖊️ Manuscrites (${inkCount})".
+  * Cartes de Notes Spécialisées :
+    - Notes Manuscrites : contour et lueur violette subtile, badge `🖊️ Manuscrit`, indication de tracé vectoriel.
+    - Notes Classiques : badge `📝 Texte`, extrait du contenu markdown.
+- Création & Édition Spécialisée :
+  * Actions de création directe : boutons dédiés "+ Texte" (indigo) et "+ Manuscrit" (dégradé violet/indigo).
+  * En-tête de l'éditeur :
+    - Badge d'identification de format ("Note Classique" vs "Note Manuscrite").
+    - Action de conversion sécurisée avec confirmation ("Passer en texte" <-> "Passer en manuscrit").
+    - Commandes d'affichage adaptées : canvas stylet vectoriel prioritaire pour les notes manuscrites, modes Édition / Split / Présentation pour les notes classiques.
+- Tableau de Bord (Dashboard) :
+  * Carte métrique Notes enrichie avec ventilation directe cliquable (`X 📝 • Y 🖊️`).
+  * Cartes des dernières notes modifiées avec badges de format distincts (Manuscrit vs Texte).
+
+--------------------------------------------------------------------------------
+[V1.12.0] - 2026-10-04 (Système de Modèles de Notes Structurés — Cornell, Révisions, TP & Projets)
+--------------------------------------------------------------------------------
+Bibliothèque & Sélecteur de Modèles de Notes dans Notes & Savoirs (/notes) :
+- Modèles Structurés Clés en Main :
+  * 🎓 Méthode Cornell : en-tête complet, objectifs, colonne questions/mots-clés, notes détaillées, encadré de résumé final et prochaines actions.
+  * 🧠 Fiche de Révision & Synthèse d'Examen : concepts clés, théorèmes indispensables avec formules KaTeX, méthode type de résolution en 3 étapes, pièges fréquents et questions flashcard d'auto-évaluation.
+  * 🔬 Compte-Rendu de TP / TD / Laboratoire : problématique, matériel, équations différentielles théoriques, tableau expérimental complet de mesures et incertitudes, analyse et conclusion.
+  * 🚀 Fiche de Projet & Plan d'Action : cadrage SMART, jalons (milestones J+X), to-do list concrète et liens utiles.
+  * 📖 Fiche de Lecture & Étude de Document : thèse centrale, idées maîtresses, citations fortes, critique et liaisons avec le Second Brain.
+  * 🤝 Compte-Rendu de Réunion & Travail de Groupe : ordre du jour, échanges, décisions arrêtées et plan d'action (Qui fait Quoi pour Quand).
+  * 🖊️ Note Hybride (Texte & Stylet) : alternance de cadre théorique dactylographié et dessin vectoriel au stylet.
+- Modale Interactive & Prévisualisation en Direct (`NoteTemplateModal`) :
+  * Filtres par catégories ("Tous", "🎓 Études & Cours", "🚀 Projets & Action", "📖 Recherche", "🤝 Réunions").
+  * Moteur de recherche instantané par titre, résumé ou tags.
+  * Double panneau : liste à gauche et prévisualisation formatée KaTeX / Markdown brut à droite.
+  * Deux modes d'application : "Créer avec ce modèle" ou "Appliquer à cette note" (remplacement propre avec pré-remplissage du titre et fusion intelligente des tags).
+- Démarrage Rapide Instantané :
+  * Bannière de suggestions rapides affichée automatiquement sur toute note neuve ou vierge pour insérer un modèle en un seul clic.
+  * Boutons d'accès directs "📑 Modèles" dans l'en-tête de la liste des notes et dans la barre d'outils de formatage de l'éditeur.
+
+--------------------------------------------------------------------------------
+[V1.11.2] - 2026-10-04 (Correction Menu Rétracté & Optimisation Ergonomique Mobile)
+--------------------------------------------------------------------------------
+Correction Graphique Sidebar Repliée & Proportions Écrans Mobiles :
+- Barre Latérale Repliée (Sidebar) :
+  * Correction du débordement / écrasement du bouton d'agrandissement (chevron `>`) : réorganisation verticale propre des boutons Paramètres et Agrandir (`w-10 h-10` centrés).
+  * Alignement parfait et centrage des icônes de recherche, navigation, statut Cloud/Local et nouveautés en mode rétracté.
+  * Bouton profil et avatar désormais carrés et réguliers (`w-10 h-10`) sans déformation ovale.
+- Proportions & Responsive Mobile (< md) :
+  * Barre basse de navigation mobile rééquilibrée sur 5 onglets réguliers (Accueil, Tâches, Notes, Calendrier, Paramètres) sans encombrement inutile (suppression du doublon "Chercher").
+  * Prise en compte de la barre de sécurité iOS (`env(safe-area-inset-bottom)`).
+  * Padding de contenu optimisé (`p-3`/`p-4` sur mobile au lieu de `p-6` rigide) sur toutes les vues (Dashboard, Tâches, Calendrier, Paramètres) pour maximiser l'espace utile sur smartphones.
+  * Vue grille du Calendrier mensuel adaptée aux petits écrans (cellules et en-têtes de jours redimensionnés sans rognage).
+
+--------------------------------------------------------------------------------
+[V1.11.1] - 2026-10-04 (Couleur de Base du Stylet Adaptée à la Feuille — Syntropy Stylus)
+--------------------------------------------------------------------------------
+Amélioration Ergonomique du Stylet & Contraste Automatique (/notes -> Mode Manuscrit) :
+- Couleur de Base Dynamique (Noir / Blanc) au lieu du violet par défaut :
+  * Feuille claire (Blanc ou Jauni / Crème) : le stylo démarre désormais automatiquement en Noir Encre (#18181b).
+  * Feuille sombre (Noir OLED ou Ardoise) : le stylo démarre désormais automatiquement en Blanc Pur (#ffffff).
+- Réactivité au Changement de Papier :
+  * Si l'utilisateur bascule la couleur de la feuille en cours d'écriture, la couleur de base du stylet s'adapte instantanément pour préserver la lisibilité (Noir <-> Blanc).
+- Palette de Couleurs Réorganisée :
+  * Noir Encre et Blanc placés en tête de la palette rapide pour un accès immédiat.
+- Gestion Intelligente des Outils :
+  * Sélectionner le surligneur bascule automatiquement vers le jaune transparent, et revenir au stylo bille ou à la plume rétablit la couleur de base appropriée.
+
+--------------------------------------------------------------------------------
+[V1.11.0] - 2026-10-04 (Arborescence & Sous-Dossiers Hiérarchiques — Notes & Connaissances)
+--------------------------------------------------------------------------------
+Sous-Dossiers de Dossiers et Arborescence Récursive dans Notes & Savoirs (/notes) :
+- Support complet des dossiers imbriqués à plusieurs niveaux :
+  * Possibilité de créer des sous-dossiers dans n'importe quel dossier parent, à l'infini (propriété `parentId`).
+  * Création rapide via le bouton `+` directement sur la ligne de chaque dossier dans l'accordéon latéral.
+  * Modale de création enrichie avec sélecteur de dossier parent ("Emplacement / Dossier parent") et pré-sélection automatique.
+- Arborescence Latérale Dynamique (Tree View) :
+  * Affichage hiérarchique indenté avec chevrons d'expansion / repli (`ChevronDown` / `ChevronRight`).
+  * Auto-expansion automatique des branches parentes au chargement et lors de la sélection d'une note ou d'un sous-dossier.
+  * Compteurs cumulés intelligents : affichage du nombre de notes directes et du total avec tous les sous-dossiers descendants au survol.
+  * Filtrage récursif : cliquer sur un dossier parent affiche toutes les notes de ce dossier ainsi que celles de l'ensemble de ses sous-dossiers.
+- Fil d'Ariane Interactif (Breadcrumb) dans l'Éditeur :
+  * Chemin complet cliquable affiché au-dessus du titre de la note (`📁 Racine / 📁 Sous-dossier / ...`).
+  * Chaque étape du fil d'Ariane permet de filtrer instantanément les notes sur ce niveau de dossier.
+- Sélecteur de Dossier Hiérarchique :
+  * Affichage indenté avec symboles `↳ 📁` dans le menu déroulant de classement de note.
+  * Bouton `+` adjacent pour créer un sous-dossier direct dans le dossier actuellement sélectionné.
+- Suppression Sécurisée et Cascade Propre :
+  * Suppression récursive de tous les sous-dossiers descendants lors de la suppression d'un dossier parent.
+  * Protection intégrale des notes : aucune note n'est supprimée, elles sont automatiquement requalifiées en "Sans dossier".
+  * Synchronisation temps réel LocalStorage et Cloud Firestore (batch write atomique).
+
+--------------------------------------------------------------------------------
+[V1.10.0] - 2026-10-04 (Syntropy Stylus & Star Canvas — Prise de Notes Manuscrite au Stylet)
+--------------------------------------------------------------------------------
+Module Stylus & Star Canvas pour Ordinateurs Tactiles & Tablettes :
+- Intégration dans la barre d'action de l'éditeur de notes (/notes) :
+  * Nouveau bouton réactif `🖊️ Manuscrit` / `Stylet` à côté d'Édition, Double et Présentation.
+  * Basculement instantané entre éditeur Markdown textuel et surface d'écriture manuscrite vectorielle sans perte de contenu.
+- Composant Vectoriel Haute Précision `StylusCanvas` (PointerEvents) :
+  * Support optimisé Apple Pencil, S-Pen et stylets universels avec rejet actif de la paume (Palm Rejection).
+  * 3 types de plumes : Stylo Bille (net & fluide), Stylo Plume Calligraphique (sensible à la pression et à la vitesse), Surligneur (semi-transparent).
+  * Gomme intelligente : mode effacement par pixel ou effacement du trait entier.
+  * Outil Lasso : sélection à main levée pour déplacer, redimensionner à l'échelle ou supprimer des tracés.
+  * Reconnaissance de formes géométriques assistée (rectangles, cercles/ellipses, lignes droites avec magnétisme d'axes, flèches orientées).
+  * Palette de couleurs rapide (Violet Synaptique #a855f7, Cyan néon, Vert émeraude, Jaune surligneur, Blanc, Rouge) + sélecteur couleur libre.
+  * Sélecteur d'épaisseur : Fin, Moyen, Épais.
+  * Modes d'arrière-plan : Fond sombre uniforme (zinc-950), Ligné, ou Grille de points (Dot grid).
+  * Navigation tactile : Zoom et défilement à deux doigts (pinch-to-zoom & pan) sur surface de travail infinie, mode Plein Écran dédié.
+  * Export direct haute fidélité aux formats PNG et SVG vectoriel.
+- Persistance Cloud Firestore Robuste :
+  * Encodage compact (deltas entiers compressés gzip/base64) inline dans la note Firestore.
+  * Segmentation automatique en sous-collection `notes/{id}/inkChunks` si le tracé vectoriel dépasse 800 Ko (protection contre la limite de 1 Mo Firestore).
+  * Protection contre le dépassement de quota LocalStorage en mode dégradé hors-ligne.
+
+--------------------------------------------------------------------------------
+[V1.9.0] - 2026-10-04 (Option d'Atténuation de l'Effet Néon & Confort Visuel)
+--------------------------------------------------------------------------------
+Contrôle de l'Intensité Néon & Luminescence (/settings -> Apparence & UI) :
+- Ajout d'une option dédiée pour réduire ou désactiver les reflets et halos néon de l'interface :
+  * Mode "Discret / Atténué" (Recommandé) : diminue l'effet néon de 75%, adoucit les halos, estompe les animations clignotantes et applique des ombres subtiles pour reposer les yeux lors de longues sessions de travail.
+  * Mode "Minimaliste / Éteint" : élimine totalement les halos et lueurs colorées, désactive les anneaux lumineux et convertit toutes les ombres en ombres neutres et douces (style Notion / Linear ultra-épuré).
+  * Mode "Vibrant / Élevé" : conserve l'ambiance néon cyberpunk complète avec halos lumineux intenses et reflets saturés.
+- Studio de Démonstration en Direct (Live Accent Studio) :
+  * Prévisualisation instantanée du rendu néon sur les boutons, badges, pastilles de statut et textes d'accentuation directement dans les paramètres.
+- Application dynamique globale :
+  * Variables CSS réactives (`--accent-glow`, `--accent-subtle`), atténuation des ombres colorées, limitation du clignotement `animate-ping` et synchronisation instantanée LocalStorage & Cloud Firestore.
+
+--------------------------------------------------------------------------------
+[V1.8.7] - 2026-10-04 (Option de Suppression Globale des Événements & Diagnostic Google Agenda)
+--------------------------------------------------------------------------------
+Option de Nettoyage & Suppression Globale des Événements :
+- Ajout d'une option de suppression groupée pour vider l'ensemble des événements du calendrier en un seul clic :
+  * Bouton `Vider (X)` rouge disponible dans la barre d'outils supérieure du Calendrier (`/calendar`) lorsque des événements sont présents.
+  * Bouton `Supprimer tous les événements` intégré au pied de page de la modale de synchronisation (`CalendarSyncModal`).
+  * Boîte de dialogue de confirmation sécurisée avec rappel du nombre d'événements concernés avant suppression définitive.
+  * Nettoyage intégral et simultané du cache LocalStorage et des documents Cloud Firestore.
+
+Diagnostic et Validation en Direct des URLs Google Agenda :
+- Détection immédiate des liens web non compatibles (ex: `https://calendar.google.com/calendar/u/0?cid=...`) avec affichage d'un encadré explicatif en temps réel sous le champ de saisie.
+- Guide visuel renforcé montrant la différence entre le lien web de partage et l'« Adresse secrète au format iCal » (`/basic.ics`).
+- Intégration de 3 serveurs proxy CORS de secours (`corsproxy.io`, `allorigins.win`, `codetabs.com`) avec support JSON pour fiabiliser la récupération des flux iCal privés.
+
+--------------------------------------------------------------------------------
+[V1.8.6] - 2026-10-04 (Événements Simples, Import iCal .ics & Synchronisation Google Agenda)
+--------------------------------------------------------------------------------
+Création & Gestion Complète d'Événements Simples :
+- Ajout direct d'événements dans le Calendrier (`/calendar`) indépendamment des projets PARA ou des tâches :
+  * Bouton rapide `+ Événement` dans l'en-tête du calendrier et dans le volet du jour sélectionné.
+  * Création interactive par double-clic sur n'importe quel jour de la grille mensuelle.
+  * Formulaire complet (`EventModal`) :
+    - Titre de l'événement et bascule "Toute la journée" (All-Day).
+    - Sélecteurs de date et d'heure de début et de fin.
+    - Emplacement / lien de visioconférence avec icône de géolocalisation.
+    - Palette de pastilles de couleurs pour différencier vos rendez-vous.
+    - Champ de notes et description détaillée.
+    - Catégorisation PARA facultative pour relier un événement à un Domaine ou une Ressource.
+  * Modification et suppression en un clic avec mise à jour instantanée (Optimistic UI) et persistance Firestore / local.
+
+Système de Synchronisation iCalendar (.ics / RFC 5545) :
+- Importation facile de fichiers .ics :
+  * Zone de glisser-déposer (Drag & Drop) et explorateur de fichiers compatible avec les exports Apple Calendrier, Google Agenda (.zip/.ics) et Outlook.
+  * Parser RFC 5545 robuste intégrant le déroulement de lignes (Line Unfolding), le décodage des caractères accentués et la conversion UTC vers heure locale.
+  * Déduplication automatique des événements réimportés grâce aux identifiants uniques externes (`externalId`).
+- Exportation .ics en un clic :
+  * Génération instantanée d'un fichier `.ics` complet téléchargeable regroupant tous vos événements et tâches avec date d'échéance.
+
+Intégration & Synchronisation Google Agenda (Flux Webcal) :
+- Onglet dédié Google Agenda avec tutoriel pas à pas :
+  * Instructions claires pour récupérer l'« Adresse secrète au format iCal » dans les paramètres de votre agenda Google.
+  * Prise en charge des flux en ligne sécurisés avec contournement automatique des restrictions CORS côté navigateur via proxies multi-niveaux.
+  * Gestionnaire d'abonnements : visualisation des flux connectés, statut de synchronisation, nombre d'événements importés et bouton d'actualisation manuelle "Tout actualiser".
+
+Affichage Unifié & Widget Tableau de Bord :
+- Grille mensuelle enrichie : affichage des badges horaires et pastilles de couleur des événements, projets et tâches.
+- Vue Agenda chronologique : liste unifiée et ordonnée de tous les événements et jalons avec calcul du délai relatif ("Aujourd'hui", "Dans 3 j", etc.).
+- Widget Calendrier d'accueil (`CalendarWidget`) : intégration des puces d'événements et affichage du planning de la journée sélectionnée.
+
+--------------------------------------------------------------------------------
+[V1.8.5] - 2026-10-04 (Correction & Nettoyage du Contour du Logo Syntropy)
+--------------------------------------------------------------------------------
+Élimination de l'Effet de Double Bordure et Ombre Asymétrique sur le Logo :
+- Correction complète du bug visuel autour de l'icône du cerveau (Logo en haut à gauche) :
+  * Suppression de l'ombre portée directionnelle (`shadow-lg shadow-purple-900/40`) qui créait un décrochage asymétrique et un halo violet décalé vers le bas et la droite.
+  * Remplacement de l'anneau Tailwind (`ring-1`) et des espacements parasites par une véritable bordure CSS fine, homogène et 100% symétrique (`border border-purple-500/30`).
+  * La bordure épouse désormais parfaitement et sans aucun jeu les coins arrondis (`rounded-xl overflow-hidden`) de l'image.
+  * Harmonisation appliquée sur la Sidebar desktop, l'en-tête mobile, le tableau de bord d'accueil, la modale de nouveautés et la modale d'authentification.
+
+--------------------------------------------------------------------------------
+[V1.8.4] - 2026-10-04 (Correction Intégrale de la Palette Blanc Minimaliste & Contraste Texte)
+--------------------------------------------------------------------------------
+Lisibilité Maximale de la Palette "Blanc Minimaliste" :
+- Correction complète du bug où le texte, les badges et les coches devenaient noirs et invisibles sur fond sombre :
+  * En mode sombre (Dark Mode) avec Blanc Minimaliste :
+    - Tous les textes d'accentuation, pastilles et libellés néon passent à un blanc éclatant (#ffffff) haute visibilité.
+    - Correction du badge "Statut & Badge Néon" et "Texte Accent" dans l'aperçu en direct.
+    - Coche de sélection (Checkmark) : icône noire contrastée sur cercle blanc pour une lisibilité parfaite (élimination du blanc sur blanc).
+    - Titres "Zinc / Anthracite" et "Noir Pur OLED" désormais affichés en blanc franc (#ffffff) net.
+    - Pastille "Éco-Énergie & Contraste Max" dotée d'un vert émeraude vibrant et élégant (#10b981) indépendant de la palette d'accent.
+  * En mode clair (Light Mode) avec Blanc Minimaliste :
+    - Textes d'accentuation en noir charbon (#18181b) haute lisibilité sur surfaces blanches.
+  * Harmonisation des classes sombres pour toutes les palettes (Cyan, Émeraude, Ambre, Rose, Monochrome, Violet) pour empêcher tout écrasement accidentel des couleurs en mode sombre.
+
+--------------------------------------------------------------------------------
+[V1.8.3] - 2026-10-04 (Rétablissement & Activation Intégrale du Mode Noir Pur OLED #000000)
+--------------------------------------------------------------------------------
+Retour & Fonctionnement Parfait du Mode Noir Pur OLED :
+- Restauration complète du sélecteur de style de fond sombre dans Paramètres > Apparence :
+  * Deux nuances au choix lorsque le thème sombre est actif :
+    - Zinc / Anthracite (#09090b) : fond gris foncé feutré, adouci et moderne avec contrastes doux.
+    - Noir Pur OLED (#000000) : noir absolu coupant physiquement l'alimentation des pixels sur écrans OLED / AMOLED pour une économie d'énergie maximale et des contrastes tranchants.
+- Architecture Technique Robuste :
+  * Intégration réactive dans `SettingsContext` avec prise en compte immédiate lors du clic (mise à jour directe des attributs `data-dark-bg="oled"` et de la classe `.oled`).
+  * Tokens Tailwind CSS v4 dynamiques : redéfinition directe de `--color-zinc-950: #000000` et `--color-zinc-900: #09090b` assurant la propagation automatique à tous les conteneurs natifs.
+  * Pré-hydratation immédiate dans `layout.tsx` pour éliminer tout clignotement au démarrage ou au rafraîchissement.
+  * Cartes de sélection avec aperçu interactif miniature et pastille d'état "Éco-Énergie & Contraste Max".
+
+--------------------------------------------------------------------------------
+[V1.8.2] - 2026-10-04 (Correction Intégrale Mode Clair, Bouton Paramètres & Retrait OLED)
+--------------------------------------------------------------------------------
+Lisibilité Maximale & Correction du Mode Clair :
+- Résolution complète du problème où le texte devenait invisible et les conteneurs restaient sombres :
+  * Refonte de tous les panneaux de l'écran Paramètres avec adaptation dynamique selon le thème actif.
+  * En mode clair :
+    - Surfaces blanches lumineuses (`bg-white`) et bordures contrastées nettes (`border-zinc-200`) remplaçant les aplats gris foncés.
+    - Tous les textes secondaires, descriptions, titres et libellés passent en typographie foncée haute lisibilité (`text-zinc-900` et `text-zinc-600`).
+    - Onglets supérieurs avec fond clair distinctif (`bg-zinc-100`) et surbrillance nette sur l'onglet actif.
+    - Cartes d'options (Thème, Palette Néon, Typographie, Densité, PARA, Données, Profil) dotées d'un contraste parfait sans texte fantôme.
+
+Bouton Paramètres Dédié sur l'Écran Principal :
+- Remplacement du bouton bascule clair/sombre en bas de la barre latérale (Sidebar) par un accès direct aux Paramètres (`/settings`) :
+  * Icône d'engrenage animée et lien direct vers le panneau de configuration complet.
+  * Remplacement également sur la barre supérieure de navigation mobile.
+  * Le choix du thème (Clair, Sombre, Automatique) est désormais géré proprement et de manière centralisée dans les Paramètres d'Apparence.
+
+Retrait Temporaire du Mode Noir Pur OLED :
+- Suppression des options et classes de surcharge OLED afin de garantir une stabilité et une homogénéité totales du design system :
+  * Le mode sombre standard haute précision (Anthracite / Zinc `#09090b` façon Notion / VS Code) assure un confort visuel optimal sans conflits de styles.
+
+Harmonisation Complète des Couleurs d'Accentuation (Néon) :
+- Correction du bug où certaines parties de l'interface restaient violettes lors du changement de couleur :
+  * Redéfinition dynamique des tokens Tailwind CSS (`--color-purple-*` et `--color-indigo-*`) selon la palette sélectionnée (Rose, Cyan, Émeraude, Ambre, Monochrome).
+  * Prise en charge des textes en mode clair (`text-purple-600`, `text-purple-700`), badges du logo (`OS`), icônes d'en-tête, encadrés d'aperçu et pastilles de notification.
+
+--------------------------------------------------------------------------------
+[V1.8.1] - 2026-10-04 (Correctif & Activation Intégrale du Noir Pur OLED #000000)
+--------------------------------------------------------------------------------
+Activation Immédiate du Style Noir Pur OLED :
+- Correction complète du bug où le choix entre "Zinc / Anthracite (#09090b)" et "Noir Pur OLED (#000000)" ne présentait aucune différence visuelle :
+  * Redéfinition des tokens Tailwind CSS v4 (--color-zinc-950, --color-zinc-900, --color-zinc-800, etc.) sous l'état OLED.
+  * Application réactive en direct des classes d'arrière-plan, de cartes et de bordures sous [data-dark-bg="oled"] et la classe .oled.
+  * En mode OLED :
+    - Le fond complet de l'application (AppShell, pages, sidebar, modales) bascule sur un noir 100% absolu (#000000), éteignant physiquement les pixels sur écrans AMOLED/OLED.
+    - Les surfaces de cartes passent à un anthracite profond (#09090b) pour un contraste et une lisibilité parfaits.
+    - Les bordures s'affinent à (#1a1a20) pour une démarcation nette sans éblouissement.
+  * En mode Zinc :
+    - Préservation du thème doux et feutré d'origine (#09090b pour le fond et #18181b pour les cartes) façon Notion & VS Code.
+- Interface & Paramètres :
+  * Double pastille visuelle dans les sélecteurs de paramètres (Fond externe vs Surface interne de carte).
+  * Ajout d'un bloc de démonstration en direct ("Contraste actif en direct") comparant le fond et la surface en temps réel.
+  * Script de pré-hydratation dans l'en-tête HTML pour empêcher tout clignotement lors du rechargement de page.
+
+--------------------------------------------------------------------------------
+[V1.8.0] - 2026-10-04 (Mise à Jour Automatique en Temps Réel & Zéro Rafraîchissement Manuel)
+--------------------------------------------------------------------------------
+Réactivité Instantanée & Élimination du Rafraîchissement Manuel :
+- Correction complète du bug obligeant l'utilisateur à appuyer sur F5 ou à actualiser la page pour voir les nouveaux éléments ajoutés :
+  * Mises à jour optimistes (Optimistic UI) : toute création ou modification de note, tâche, projet ou dossier se répercute instantanément dans l'interface (0ms de latence) sans attendre le retour réseau de la base de données.
+  * Synchronisation locale synchrone : persistance duale immédiate dans le stockage local et bus d'événements réactif unifié.
+  * Préservation intelligente des éléments récents lors des snapshots Firestore pour éviter tout clignotement ou disparition temporaire.
+  * Détection et exclusion des identifiants supprimés afin d'empêcher toute réapparition fantôme.
+- Notes & Connaissances :
+  * La création d'une nouvelle note ("+ Nouvelle note" ou via glisser-déposer de PDF/images) sélectionne et ouvre immédiatement l'éditeur avec son contenu sans écran blanc.
+  * Les nouveaux dossiers créés s'affichent instantanément dans l'arborescence et les filtres.
+- Projets & Tâches (PARA) :
+  * Les tâches créées ou basculées (À faire / En cours / Terminé) se déplacent en direct dans le Kanban et le Tableau de bord.
+- Sécurisation des règles Cloud Firestore :
+  * Autorisations complètes garanties pour les collections /folders et /users pour une synchronisation cloud sans rejet de permission.
+
+--------------------------------------------------------------------------------
+[V1.7.0] - 2026-10-03 (Centre de Paramètres Avancé & Personnalisation Ultime)
+--------------------------------------------------------------------------------
+Écran de Paramètres Dédié (/settings) :
+- Ajout d'un centre de contrôle complet accessible depuis la barre latérale (Sidebar) et le menu mobile, structuré en 5 onglets thématiques :
+
+1. Apparence & Personnalisation (UI / UX) :
+- Mode de thème : Clair, Sombre ou Automatique (détection réactive du thème OS de l'ordinateur/smartphone via matchMedia).
+- Nuancier Néon Accent : 6 couleurs d'accentuation haute fidélité (Violet Synaptique, Cyan Électrique, Vert Émeraude, Orange Ambre, Rose Magenta, Blanc Minimaliste) avec prévisualisation interactive en direct.
+- Style de fond sombre : bascule entre "Noir Pur OLED" (#000000, idéal pour économiser la batterie des écrans mobiles/OLED) et "Zinc / Anthracite" (#09090b).
+- Typographie système & éditeur : choix entre "Sans-serif moderne" (Inter), "Serif style livre/Notion" (Merriweather/Georgia), ou "Monospace technique" (JetBrains Mono).
+- Densité de l'affichage : mode "Compact" (pour visualiser un maximum de tâches et de notes à l'écran) vs mode "Aéré" (espacements généreux et confort de lecture).
+
+2. Éditeur de Notes & Markdown :
+- Mode d'ouverture par défaut : choisissez si vos fiches s'ouvrent en "Édition simple", en "Côte-à-côte (Édition + LaTeX)" ou en "Présentation / Lecture".
+- Compteur de métriques : affichage dynamique sous chaque note du nombre de mots, de caractères et estimation du temps de lecture en minutes.
+- Délai de sauvegarde automatique : configurable à la volée (Instantané 500ms, Standard 2s, Calme 5s).
+- Liens bidirectionnels & Backlinks : détection automatique des connexions inter-notes ([[Titre de la note]], dossiers ou tags communs) et section de navigation rapide au bas de chaque note.
+
+3. Organisation & Méthode PARA :
+- Vue au démarrage : page d'atterrissage personnalisée (Tableau de bord, Tâches & Projets, Notes & Savoirs, Calendrier).
+- Premier jour de la semaine : bascule instantanée entre Lundi et Dimanche sur le calendrier mensuel et les widgets.
+- Filtre des catégories vides : masque automatiquement les sections Projets, Domaines, Ressources ou Archives sans élément dans la barre latérale.
+- Priorité par défaut des tâches : pré-sélection automatique de la priorité (Basse, Moyenne, Haute) lors de la création d'une nouvelle tâche.
+
+4. Gestion des Données & Confidentialité :
+- Exportation complète en 1 clic :
+  * Format Archive Markdown (.zip) : structure arborescente par dossier avec toutes vos fiches .md prêtes pour Obsidian ou Logseq.
+  * Format Sauvegarde JSON (.json) : instantané intégral de toutes vos données (projets, tâches, notes, dossiers).
+- Importation intelligente : glissez-déposez des fichiers Markdown (.md) issus d'Obsidian ou Notion, ou restaurez un fichier de sauvegarde JSON complet.
+- Statut de synchronisation Cloud Firestore : badge en direct indiquant l'état de synchronisation avec la base Cloud Firestore (En ligne / Hors-ligne / Invité).
+
+5. Profil & Ambiance :
+- Nom de salutation personnalisé : modifiez le prénom affiché sur le tableau de bord (ex: "Bon après-midi, Nathan").
+- Identité & Sécurité : consultation de la session utilisateur connectée et de l'identifiant unique.
+
+--------------------------------------------------------------------------------
+[V1.6.0] - 2026-10-03 (Navigation 1-Clic, Dossiers Thématiques & Importation de Documents PDF/Images)
+--------------------------------------------------------------------------------
+Navigation Instantanée en 1 Clic (Correction Bug Double-Clic) :
+- Élimination complète du problème imposant un double-clic pour ouvrir "Notes & Connaissances" :
+  * Déclenchement immédiat de la navigation Next.js Router (router.push) dès le premier clic sur les liens.
+  * Activation du préchargement préventif (prefetch=true) sur l'ensemble de la Sidebar et de la barre mobile.
+  * Suppression de select-none bloquant les micro-mouvements de souris sur le conteneur latéral.
+  * Stabilisation des transitions d'icônes (transition-colors au lieu de scale-jump sous le pointeur).
+
+Organisation par Dossiers Thématiques & Classeurs :
+- Système complet de dossiers pour structurer la base de connaissances et de cours :
+  * Création de dossiers personnalisés avec choix de couleurs vives (Indigo, Violet, Rose, Émeraude, Ambre, Cyan, Bleu, Corail).
+  * Section accordéon "Dossiers" dans le volet gauche avec compteurs dynamiques de notes par dossier.
+  * Filtres rapides : "Toutes les notes", "Sans dossier", ou filtrage par dossier sélectionné.
+  * Sélecteur de dossier directement intégré dans l'en-tête de la note avec sauvegarde automatique instantanée (Firestore & LocalStorage).
+  * Possibilité de supprimer un dossier en conservant intactes les notes associées.
+
+Importation de Documents (PDF, Images, etc.) & Lecteur Intégré :
+- Capacité d'importer et d'attacher n'importe quel document à vos notes :
+  * Support complet des PDF, images (PNG, JPG, WEBP, GIF, SVG) et fichiers texte (.txt, .md).
+  * Bouton "Importer un document" dans la barre latérale : génère automatiquement une nouvelle note dédiée avec le document joint.
+  * Bouton "Joindre Doc" dans la barre d'outils de chaque note pour attacher un ou plusieurs fichiers complémentaires.
+  * Glisser-Déposer (Drag & Drop) réactif : déposez un fichier directement sur l'éditeur pour l'attacher instantanément avec retour visuel animé.
+  * Lecteur de PDF intégré interactif : visualisez vos PDF pleine page directement dans la note avec commandes de zoom, pages et impression.
+  * Galerie de pièces jointes sous forme de cartes élégantes :
+    - Indicateur de format (badge rouge PDF, vignette image, fichier).
+    - Bouton "Lire le PDF" pour basculer le lecteur intégré.
+    - Bouton "+" pour insérer une image directement dans le texte Markdown de la note.
+    - Visualiseur d'image plein écran en modal.
+    - Téléchargement du fichier original en 1 clic.
+    - Suppression propre avec mise à jour du stockage.
+
+Identité Visuelle & Logo :
+- Intégration du nouveau logo officiel Syntropy : constellation neurale et synapses lumineuses violettes sur fond sombre, déployé sur le favicon, la Sidebar, l'écran de chargement et le profil.
+
+--------------------------------------------------------------------------------
+[V1.5.0] - 2026-10-03 (Accès Sécurisé Obligatoire, Tuto LaTeX & Pop-up Nouveautés)
+--------------------------------------------------------------------------------
+Accès Sécurisé Obligatoire (Auth Gate) :
+- Verrouillage systématique de l'accès à l'application pour les utilisateurs non authentifiés :
+  * Obligation de se connecter via Email/mot de passe ou Google Sign-In (1 clic) avant de pouvoir voir ou interagir avec les écrans.
+  * Modal d'authentification non dismissible au lancement pour protéger les données personnelles.
+  * Écran de chargement élégant avec pulsation néon pendant la vérification de session.
+
+Tutoriel & Guide Pratique LaTeX :
+- Ajout d'un guide interactif complet (LatexTutorialModal) intégré aux Notes & Connaissances :
+  * Explication claire des syntaxes $...$ (formule en ligne) et $$...$$ (bloc d'équation centré).
+  * Exemples pratiques de fractions, racines, sommes, intégrales, lettres grecques, vecteurs et matrices.
+  * Bouton d'action directe "Créer une note exemple avec ce tutoriel" : génère instantanément une fiche pratique complète dans votre base de notes pour expérimenter le rendu KaTeX en temps réel.
+  * Raccourci d'accès "∑ Tuto" dans le volet latéral et dans la barre d'outils de rédaction.
+
+Pop-Up Nouveautés de Version (What's New) :
+- Affichage automatique d'une pop-up d'accueil dès la connexion d'un utilisateur :
+  * Présentation dynamique des dernières avancées (moteur LaTeX KaTeX, calendrier des projets, système multi-utilisateurs et synchronisation cloud Firebase).
+  * Mémorisation locale (localStorage) évitant de ré-afficher la pop-up à chaque rafraîchissement si la version a déjà été consultée.
+  * Bouton rapide "Découvrir Syntropy" pour accéder directement à l'espace de travail.
+
+--------------------------------------------------------------------------------
+[V1.4.0] - 2026-10-03 (Prise de Notes Simplifiée, Moteur LaTeX KaTeX & Calendrier des Projets)
+--------------------------------------------------------------------------------
+Prise de Notes Simplifiée & Mode Rédacteur Zen :
+- Refonte de l'écran Notes & Savoirs pour une expérience d'écriture fluide et épurée (suppression de la lourdeur visuelle).
+- Barre d'outils d'action rapide à portée de clic :
+  * Formatage instantané : Gras, Italique, Titre H2, Checklist interactive, Liste à puces, Citation, Bloc de code.
+  * Bouton d'insertion magique "Insérer LaTeX".
+- Trois modes de consultation/rédaction :
+  * "Édition" : zone de frappe simple, spacieuse et sans distractions.
+  * "Double" : affichage en deux volets avec rendu LaTeX calculé en direct.
+  * "Présentation" : mise en page de haute voltige type document imprimé ou publication académique.
+
+Moteur LaTeX & Formules Mathématiques KaTeX :
+- Intégration complète de KaTeX (@types/katex et styles officiels katex.min.css).
+- Interprétation des formules mathématiques en ligne avec $...$ (ex: $E = mc^2$) et en blocs centrés avec $$...$$.
+- Assistant interactif de formules (LatexHelperModal) classé par domaines :
+  * Algèbre & Général (fractions, racines, puissances, indices, ensembles).
+  * Analyse & Calcul (intégrales, sommes, limites, dérivées partielles).
+  * Physique & Sciences (lois de Newton, équivalence masse-énergie, vecteurs).
+  * Lettres Grecques & Symboles (alpha, bêta, gamma, oméga, infini, approximations).
+  * Matrices & Systèmes d'équations.
+- Rendu typographique ultra-net (Computer Modern TeX), idéal pour les cours d'ingénierie et fiches scientifiques.
+
+Calendrier des Projets & Échéances :
+- Calendrier entièrement connecté aux projets et à leurs dates limites (deadlines) :
+  * Chaque projet planifié apparaît sur le calendrier avec sa couleur d'identification distinctive.
+  * Détection automatique des retards, des livraisons du jour et des jours restants ("Dans 3 jours", "Aujourd'hui", "En retard").
+- Widget Calendrier sur l'Écran d'Accueil (Tableau de Bord) :
+  * Mini-grille mensuelle interactive avec pastilles de couleur sur les dates d'échéance.
+  * Inspection en un clic des projets et tâches prévus pour la date sélectionnée.
+  * Liste des prochaines échéances de projets avec badge dynamique.
+  * Raccourci vers la vue calendrier complète.
+- Menu Dédié "Calendrier" (/calendar) :
+  * Ajout dans la barre latérale (Sidebar) et dans la barre de navigation mobile.
+  * Vue Grille Mensuelle complète avec navigation mois par mois et raccourci "Aujourd'hui".
+  * Vue Agenda / Chronologique listant tous les projets ordonnés par date de rendu.
+  * Volet latéral d'inspection de la date sélectionnée avec possibilité de planifier un projet directement à cette date.
+  * Filtre par catégorie PARA (Projets, Domaines, Ressources, Archives).
+
+--------------------------------------------------------------------------------
+[V1.3.0] - 2026-10-03 (Système Multi-Utilisateurs, Comptes Email & Google Sign-In)
+--------------------------------------------------------------------------------
+Gestion des Comptes & Authentification Multi-Utilisateurs :
+- Activation officielle de Firebase Authentication sur le projet Cloud de production "second-brain-os-e6a83".
+- Prise en charge complète de deux méthodes d'authentification :
+  * Email + Mot de passe : inscription sécurisée avec nom d'utilisateur et mot de passe chiffré.
+  * Google Sign-In (1 clic) : connexion instantanée via pop-up Google OAuth avec photo et nom de profil synchronisés.
+- Modal d'authentification dédiée (AuthModal) :
+  * Basculement fluide entre "Se connecter" et "Créer un compte".
+  * Traduction et affichage des messages d'erreur en français clair et convivial.
+  * Bouton Google officiel avec logo vectoriel multicolore.
+  * Bouton d'affichage/masquage du mot de passe.
+  * Respect strict des thèmes sombre et clair.
+
+Cloisonnement des Données Personnelles :
+- Isolation totale des tâches, projets et notes par identifiant utilisateur (userId).
+- Les flux temps réel Firestore ne synchronisent désormais que les éléments appartenant à l'utilisateur connecté.
+- Chaque utilisateur bénéficie d'un espace de stockage et de travail 100% privé, sans risque de voir les notes d'autrui.
+- Support multi-utilisateurs sur un même appareil ou sur des appareils distincts (ordinateur, smartphone).
+
+Interface Utilisateur & Expérience Connectée :
+- Sidebar latérale : ajout du widget de profil utilisateur (avatar ou initiale colorée, nom/email, bouton de déconnexion rapide).
+- Navigation mobile : ajout de l'icône de profil cliquable dans la barre d'en-tête mobile.
+- Tableau de bord : salutation personnalisée dynamique avec le prénom de l'utilisateur connecté ("Bon après-midi, Nathan").
+- Gestion de session persistante : l'utilisateur reste connecté entre les visites.
+
+--------------------------------------------------------------------------------
+[V1.2.1] - 2026-10-03 (Correctif Mode Clair & Lisibilité Haute Fidélité)
+--------------------------------------------------------------------------------
+Refonte Complète des Contrastes & Prise en Charge Mode Clair :
+- Résolution du bug d'affichage où les textes, titres et cartes devenaient invisibles en mode clair.
+- Tableau de Bord :
+  * Titre de salutation ("Bon après-midi, Nathan"), date et sous-titres reconfigurés avec une couleur sombre à fort contraste (text-zinc-900 / text-zinc-600).
+  * Cartes de métriques (Tâches réalisées, en cours, projets, notes) avec fonds blancs purs, bordures zinc-200 et compteurs bien lisibles.
+  * Tâches Prioritaires : cases à cocher avec bordure visible, titres sombres nets et badges de priorité pastel contrastés.
+  * Projets Actifs : titres en noir/anthracite sur cartes claires et barres de progression sur fond zinc-200.
+  * Dernières Notes : cartes avec fond clair, bordures nettes et aperçu lisible sans éblouissement.
+- Projets & Tâches (PARA) :
+  * En-tête, filtres de catégorie PARA et cartes dossiers/projets ajustés en mode clair.
+  * Colonnes Kanban et cartes de tâches : titres contrastés, chevrons et boutons de déplacement haute lisibilité.
+  * Vue Liste : statut de case à cocher, titres et badges parfaitement visibles.
+- Base de Connaissances & Notes :
+  * Barre latérale des notes, filtres par tags et note sélectionnée avec contraste renforcé.
+  * Éditeur Markdown (@uiw/react-md-editor) harmonisé pour le mode clair (barre d'outils claire, texte noir, fond blanc).
+  * Menus déroulants de sélection de projet et de catégorie avec fond blanc et bordure zinc-300.
+- Modales & Recherche Globale :
+  * Modales de création de tâche et de projet (TaskModal, ProjectModal) avec champs de saisie (inputs, select, textarea) adaptés en fond clair avec texte zinc-900.
+  * Recherche globale (Cmd/Ctrl + K) : résultats de recherche (notes, tâches, projets) avec typographie foncée et icônes d'action contrastées.
+- Intégration Tailwind CSS v4 :
+  * Configuration de la variante @custom-variant dark dans globals.css pour une alternance parfaite des styles selon la classe .dark.
+
+--------------------------------------------------------------------------------
+[V1.2.0] - 2026-10-03 (Intégration Cloud Firebase 100% & Déploiement Mobile)
+--------------------------------------------------------------------------------
+Intégration Cloud Firebase 100% & Données Temps Réel :
+- Rattachement complet au projet Firebase Cloud de production : "second-brain-os-e6a83" (evris-syntropy-os).
+- Déploiement et activation de Cloud Firestore :
+  * Règles de sécurité (firestore.rules) compilées et publiées en production.
+  * Index composites (firestore.indexes.json) déployés.
+  * Configuration des clés d'API et identifiants SDK Web dans .env.local, .env.production et src/lib/firebase.ts.
+  * Synchronisation multi-appareils automatique : toutes vos modifications sur téléphone sont sauvegardées instantanément dans le Cloud.
+
+Déploiement Mondial & Accès Mobile (Firebase Hosting) :
+- Hébergement Cloud mondial avec certificat SSL/HTTPS sécurisé automatique.
+- L'application est désormais accessible publiquement depuis votre smartphone, tablette ou n'importe quel PC :
+  * URL Principale : https://second-brain-os-e6a83.web.app
+  * URL Alternative : https://second-brain-os-e6a83.firebaseapp.com
+- Possibilité d'ajouter Syntropy en "Application sur l'écran d'accueil" de votre téléphone (PWA ready).
+
+Ergonomie Smartphone & Responsive Design :
+- En-tête mobile dédié : logo Syntropy, statut de synchronisation Cloud en direct, recherche globale et thème.
+- Barre de navigation basse (Bottom Nav Bar) optimisée pour le pouce avec compteurs de badges (Tâches en attente, Total notes).
+- Vue Notes adaptée aux petits écrans : sélection fluide d'une note avec bouton de retour dédié à la liste.
+
+--------------------------------------------------------------------------------
+[V1.1.0] - 2026-10-03 (Rebranding Syntropy, Nouveau Logo & Épuration)
+--------------------------------------------------------------------------------
+Identité Visuelle & Rebranding :
+- Renommage officiel de l'application en "Syntropy" (Syntropy OS) à travers toute l'application :
+  * Sidebar, métadonnées HTML (titre de l'onglet, description, favicon), pages Tâches, Projets, Modales.
+  * Mise à jour de la documentation technique et des modèles de données.
+- Intégration du nouveau logo officiel :
+  * Cerveau géométrique stylisé avec nœuds synaptiques luminescents violets sur fond sombre épuré.
+  * Déployé dans public/logo.png et public/logo.jpg.
+  * Intégré au header de la Sidebar avec halo violet dynamique (ring-purple-500/30).
+  * Intégré en favicon/icône de navigateur dans layout.tsx.
+  * Intégré au badge d'état système du Tableau de bord.
+
+Épuration & Focus Utilisateur :
+- Retrait complet de la section des citations motivantes sur le Tableau de bord :
+  * Suppression des composants et imports associés pour un affichage plus sobre et professionnel.
+  * Remplacement par un widget épuré de statut système ("Syntropy OS • Active • Système synchronisé").
+  * Gain d'espace vertical pour une visualisation immédiate des métriques et des tâches prioritaires.
+
+Lanceurs Bureau Dédiés :
+- Création des lanceurs actualisés au nom de Syntropy directement sur le Bureau Windows :
+  * "Syntropy.lnk" (Raccourci Windows prêt à l'emploi)
+  * "Lancer_Syntropy.bat" (Script batch autonome avec bannière Syntropy)
+
+--------------------------------------------------------------------------------
+[V1.0.2] - 2026-10-03 (Lanceur Bureau & Normalisation Firebase)
+--------------------------------------------------------------------------------
+Ergonomie & Accès Direct :
+- Création d'un lanceur rapide en un clic directement sur votre Bureau Windows :
+  * "Second Brain OS.lnk" (Raccourci avec icône dédiée)
+  * "Lancer_Second_Brain_OS.bat" (Script batch autonome qui démarre le serveur et ouvre automatiquement le navigateur sur http://localhost:3000)
+- Fichier source conservé à la racine : c:\PROJET ASSISTANT - JARVIS\Lancer_Second_Brain_OS.bat
+
+Correctifs Firebase :
+- Résolution de l'erreur Firebase CLI "Invalid project id: Second-brain-OS".
+  * L'identifiant projet a été normalisé en minuscules strictes ("second-brain-os")
+    dans .firebaserc, firebase.json, .env.local et src/lib/firebase.ts conformément
+    aux exigences de l'API Google Cloud / Firebase.
+  * La commande "firebase login" et les commandes CLI s'exécutent désormais sans blocage.
+
+--------------------------------------------------------------------------------
+[V1.0.1] - 2026-10-03 (Configuration Firebase & Résolution Serveur)
+--------------------------------------------------------------------------------
+Firebase Suite & Déploiement :
+- Ajout de la configuration Firebase complète à la racine :
+  * firebase.json (Hosting, Cloud Firestore, Emulators)
+  * .firebaserc (Projet par défaut : second-brain-os)
+  * firestore.rules (Règles de sécurité Cloud Firestore pour tasks, projects et notes)
+  * firestore.indexes.json (Index composites et optimisations de requêtes)
+- Résolution du problème d'exécution du serveur local (binaire Next.js fusionné à la racine).
+- Support du lancement via émulateurs Firebase (npx -y firebase-tools@latest emulators:start)
+  ou serveur Next.js de développement standard (npm run dev).
+
+--------------------------------------------------------------------------------
+[V1.0.0] - 2026-10-03 (Version Initiale)
+--------------------------------------------------------------------------------
+Architecture & Fondation :
+- Création du plan directeur d'architecture (PLAN.md) et du journal des versions (patchnote.txt).
+- Initialisation de la stack Next.js 14+ (App Router), TypeScript et Tailwind CSS.
+- Mise en place du Design System inspiré d'Obsidian et Notion :
+  * Thème sombre raffiné (zinc-950, zinc-900, bordures zinc-800, texte zinc-100).
+  * Bascule native Mode Sombre / Mode Clair avec persistance dans le LocalStorage.
+- Intégration Firebase Cloud Firestore & Firebase Auth :
+  * Module d'initialisation src/lib/firebase.ts avec détection de configuration.
+  * Fichier modèle .env.example pour le projet "second-brain-os".
+  * Mode Dégradé (Fallback) automatique : l'application fonctionne immédiatement à 100%
+    grâce à un jeu de données mock et une persistance locale fluide si les identifiants
+    Firebase ne sont pas renseignés dans .env.local.
+
+Navigation & Ergonomie :
+- Sidebar latérale rétractable avec icônes Lucide, informations utilisateur, statut
+  de synchronisation en temps réel (Cloud vs Hors-ligne/Mock) et bouton de bascule de thème.
+- Modal de recherche globale (Global Search) accessible via raccourci clavier (Cmd/Ctrl + K).
+
+Module 1 : Dashboard Quotidien (/):
+- Salutation dynamique personnalisée en fonction de l'heure du jour avec date du jour.
+- Citation motivante inspirante quotidienne.
+- Cartes de métriques globales : Projets actifs, Tâches complétées, Tâches en attente, Total notes.
+- Widget "Tâches prioritaires du jour" avec complétion rapide en un clic.
+- Aperçu des "Dernières notes modifiées" avec tags et accès direct.
+- Synthèse d'avancement des projets actifs.
+
+Module 2 : Projets & Tâches - Méthode PARA (/tasks):
+- Organisation structurée selon la méthode PARA :
+  * Projets (objectifs avec échéance)
+  * Domaines (sphères de responsabilité pérennes)
+  * Ressources (thématiques d'intérêt et matériel)
+  * Archives (éléments inactifs conservés)
+- Commutateur de vue :
+  * Vue Liste : organisation détaillée, tri, filtres et cases à cocher interactives.
+  * Vue Kanban : colonnes interactives (À faire, En cours, Terminé) avec déplacement rapide.
+- Filtres avancés par priorité (Urgente, Haute, Moyenne, Basse), statut et catégorie.
+- Modals de création et de modification pour les tâches et les projets.
+
+Module 3 : Notes & Connaissances (/notes):
+- Interface à panneaux façon Obsidian :
+  * Sidebar interne avec explorateur de notes, filtres par tags cliquables et recherche temps réel.
+  * Éditeur Markdown dynamique en temps réel (@uiw/react-md-editor) avec prévisualisation.
+  * Sauvegarde automatique continue et synchronisation en direct.
+================================================================================
