@@ -57,6 +57,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
 import AdminUpdateSection from '@/components/settings/AdminUpdateSection';
+import { APP_VERSION } from '@/lib/version';
 
 interface AdminControlPanelProps {
   isDark: boolean;
@@ -81,7 +82,10 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
   const [copiedUid, setCopiedUid] = useState<string | null>(null);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
-  // État Moteur Desktop Native Windows V2.5.0
+  // Version dynamique du logiciel (synchronisée avec package.json et le runtime Electron)
+  const [appVersion, setAppVersion] = useState<string>(APP_VERSION);
+
+  // État Moteur Desktop Native Windows
   const [isDesktopApp, setIsDesktopApp] = useState(false);
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);
   const [localBackupFolder, setLocalBackupFolder] = useState('');
@@ -101,14 +105,23 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
       const electron = (window as any).electronAPI;
       if (electron?.isDesktop) {
         setIsDesktopApp(true);
+        if (electron.getAppVersion) {
+          electron.getAppVersion().then((ver: string) => {
+            if (ver) setAppVersion(ver);
+          }).catch(() => {});
+        }
         electron.getAutoStart().then((res: boolean) => setAutoStartEnabled(Boolean(res))).catch(() => {});
         if (electron.onUpdateStatus) {
           const cleanup = electron.onUpdateStatus((data: any) => {
             setUpdateStatus(data);
+            if (data?.currentVersion) {
+              setAppVersion(data.currentVersion);
+            }
             if (data.status === 'downloaded') {
-              onNotification(`Mise à jour v${data.version} prête à être installée !`, 'success');
+              onNotification(`Mise à jour v${data.version || appVersion} prête à être installée !`, 'success');
             } else if (data.status === 'not-available') {
-              onNotification('Syntropy OS est déjà à jour (V2.6.1) !', 'info');
+              const activeVer = data.currentVersion || data.version || appVersion;
+              onNotification(`Syntropy OS est déjà à jour (v${activeVer}) !`, 'info');
             }
           });
           return () => {
@@ -119,7 +132,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
       const savedFolder = localStorage.getItem('syntropy_local_backup_folder') || '';
       setLocalBackupFolder(savedFolder);
     }
-  }, []);
+  }, [appVersion]);
 
   const handleCheckForUpdates = async () => {
     setIsCheckingUpdates(true);
@@ -130,10 +143,10 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
         setIsCheckingUpdates(false);
         setUpdateStatus({
           status: 'not-available',
-          version: '2.6.1',
+          version: appVersion,
           message: 'En session Web : Syntropy OS fonctionne avec la dernière version cloud synchronisée.',
         });
-        onNotification('Syntropy OS est à jour sur le cloud !', 'info');
+        onNotification(`Syntropy OS est à jour sur le cloud (v${appVersion}) !`, 'info');
       }, 900);
       return;
     }
@@ -175,12 +188,12 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
     if (electron?.openDistFolder) {
       const res = await electron.openDistFolder();
       if (res?.success) {
-        onNotification("Installateur Syntropy-OS-Setup-2.6.1.exe révélé dans l'Explorateur Windows !", "success");
+        onNotification(`Installateur Syntropy-OS-Setup-${appVersion}.exe révélé dans l'Explorateur Windows !`, "success");
         return;
       }
     }
 
-    const localPath = "C:\\PROJET ASSISTANT - JARVIS\\dist\\Syntropy-OS-Setup-2.6.1.exe";
+    const localPath = `C:\\PROJET ASSISTANT - JARVIS\\dist\\Syntropy-OS-Setup-${appVersion}.exe`;
     const githubReleaseUrl = "https://github.com/Neysann/second-brain-os/releases/latest";
 
     // Copie du chemin local dans le presse-papier
@@ -201,7 +214,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
       'info'
     );
     refreshLogs();
-    onNotification("Chemin local copié dans le presse-papier ! L'exécutable est disponible dans dist/Syntropy-OS-Setup-2.6.1.exe", "info");
+    onNotification(`Chemin local copié dans le presse-papier ! L'exécutable est disponible dans dist/Syntropy-OS-Setup-${appVersion}.exe`, "info");
   };
 
   const handleOpenDistFolder = async () => {
@@ -213,7 +226,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
         return;
       }
     }
-    onNotification("Installateur disponible dans c:\\PROJET ASSISTANT - JARVIS\\dist\\Syntropy-OS-Setup-2.6.1.exe", "info");
+    onNotification(`Installateur disponible dans c:\\PROJET ASSISTANT - JARVIS\\dist\\Syntropy-OS-Setup-${appVersion}.exe`, "info");
   };
 
   const handleToggleAutoStart = async () => {
@@ -274,7 +287,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
       const fileName = `syntropy-backup-${new Date().toISOString().split('T')[0]}_${Date.now()}.json`;
       const fullBackup = {
         app: 'Syntropy OS',
-        version: '2.6.1',
+        version: appVersion,
         exportedAt: new Date().toISOString(),
         user: user ? { uid: user.uid, email: user.email } : null,
         stats: { notesCount: notes.length, tasksCount: tasks.length, projectsCount: projects.length },
@@ -339,7 +352,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
     if (!electron?.showNotification) {
       if ('Notification' in window) {
         if (Notification.permission === 'granted') {
-          new Notification('Syntropy OS V2.6.1', { body: 'Notification test du navigateur (Desktop non actif).' });
+          new Notification(`Syntropy OS v${appVersion}`, { body: 'Notification test du navigateur (Desktop non actif).' });
         } else {
           Notification.requestPermission();
         }
@@ -348,7 +361,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
       return;
     }
     await electron.showNotification({
-      title: 'Syntropy OS V2.6.1 — Session Focus',
+      title: `Syntropy OS v${appVersion} — Session Focus`,
       body: 'Session Pomodoro terminée ! Actionnez les boutons interactifs pour valider ou reporter.',
     });
     onNotification('Notification native Windows Toast envoyée avec succès !');
@@ -618,7 +631,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
       </div>
 
       {/* ======================================================== */}
-      {/* 2. MOTEUR DESKTOP NATIVE WINDOWS (V2.5.0) & TÉLÉCHARGEMENT */}
+      {/* 2. MOTEUR DESKTOP NATIVE WINDOWS & TÉLÉCHARGEMENT */}
       {/* ======================================================== */}
       <div
         className={`p-6 sm:p-8 rounded-3xl border relative overflow-hidden transition-all shadow-xl ${
@@ -639,7 +652,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className={`text-lg font-black tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                  Application Desktop Native Windows (V2.6.1)
+                  Application Desktop Native Windows (v{appVersion})
                 </h3>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/40 uppercase tracking-wider">
                   Desktop Engine
@@ -681,7 +694,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
                   Package d'Installation Officiel Windows (.exe)
                 </h4>
                 <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-zinc-800 text-zinc-300 border border-zinc-700">
-                  Syntropy-OS-Setup-2.6.1.exe
+                  Syntropy-OS-Setup-{appVersion}.exe
                 </span>
               </div>
               <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'} max-w-xl leading-relaxed`}>
@@ -703,7 +716,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
                 className="px-6 py-3.5 rounded-xl text-xs font-black tracking-wide bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white shadow-xl shadow-purple-600/30 flex items-center justify-center gap-2.5 cursor-pointer transition-all transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Download className="w-4 h-4" />
-                <span>Télécharger Syntropy-OS-Setup-2.6.1.exe</span>
+                <span>Télécharger Syntropy-OS-Setup-{appVersion}.exe</span>
                 <span className="px-1.5 py-0.5 rounded text-[9px] bg-purple-950/60 border border-purple-400/40 font-mono text-purple-200">
                   Admin Only
                 </span>

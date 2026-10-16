@@ -28,6 +28,7 @@ import { useData } from '@/context/DataContext';
 import { useAuth } from '@/context/AuthContext';
 import { useSettings } from '@/context/SettingsContext';
 import { isSiteAdmin } from '@/lib/admin';
+import { APP_VERSION } from '@/lib/version';
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -201,7 +202,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               Accès Réservé aux Administrateurs
             </span>
             <h1 className="text-xl font-black tracking-tight text-zinc-100">
-              Syntropy OS Desktop (V2.5.0)
+              Syntropy OS Desktop (v{APP_VERSION})
             </h1>
             <p className="text-xs text-zinc-400 leading-relaxed">
               Cette application Windows native (.exe) nécessite des droits d'administrateur système pour démarrer sur ce poste.

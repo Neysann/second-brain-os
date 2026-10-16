@@ -247,7 +247,7 @@ function setupSystemTray(appUrl) {
   }
 
   tray = new Tray(trayImage);
-  tray.setToolTip('Syntropy OS V2.5.0 (Desktop Engine)');
+  tray.setToolTip(`Syntropy OS v${app.getVersion()} (Desktop Engine)`);
 
   const contextMenu = Menu.buildFromTemplate([
     {

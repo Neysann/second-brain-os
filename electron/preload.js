@@ -1,12 +1,18 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
+let appVersion = '2.6.2';
+try {
+  const pkg = require('../package.json');
+  if (pkg && pkg.version) appVersion = pkg.version;
+} catch (e) {}
+
 /**
  * API Electron sécurisée exposée au renderer Next.js
  */
 contextBridge.exposeInMainWorld('electronAPI', {
   isDesktop: true,
   platform: process.platform,
-  version: '2.5.0',
+  version: appVersion,
 
   // Fenêtre & Contrôles
   minimizeWindow: () => ipcRenderer.invoke('minimize-window'),

@@ -14,6 +14,7 @@ import {
   ArrowRight,
   ShieldCheck,
 } from 'lucide-react';
+import { APP_VERSION } from '@/lib/version';
 
 export interface UpdateInfoState {
   status:
@@ -67,11 +68,11 @@ export default function AdminUpdateSection({
   onNotification,
   onLogAction,
 }: AdminUpdateSectionProps) {
-  const [currentAppVersion, setCurrentAppVersion] = useState<string>('2.6.1');
+  const [currentAppVersion, setCurrentAppVersion] = useState<string>(APP_VERSION);
   const [isDesktopApp, setIsDesktopApp] = useState<boolean>(false);
   const [updateState, setUpdateState] = useState<UpdateInfoState>({
     status: 'idle',
-    currentVersion: '2.6.1',
+    currentVersion: APP_VERSION,
   });
   const [isChecking, setIsChecking] = useState<boolean>(false);
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
@@ -159,7 +160,7 @@ export default function AdminUpdateSection({
           message:
             'En session Web : Syntropy OS fonctionne avec la dernière version cloud synchronisée.',
         });
-        onNotification?.('Syntropy OS Web est à jour !', 'info');
+        onNotification?.(`Syntropy OS Web est à jour (v${currentAppVersion}) !`, 'info');
       }, 700);
       return;
     }
@@ -372,7 +373,7 @@ export default function AdminUpdateSection({
                   <>
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     <span className="text-xs font-mono font-bold text-emerald-400">
-                      🎉 Mise à jour v{updateState.version || '2.6.1'} prête à être installée !
+                      🎉 Mise à jour v{updateState.version || currentAppVersion} prête à être installée !
                     </span>
                   </>
                 )}

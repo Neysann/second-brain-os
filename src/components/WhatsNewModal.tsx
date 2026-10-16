@@ -28,8 +28,9 @@ import {
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
+import { CURRENT_VERSION } from '@/lib/version';
 
-export const CURRENT_VERSION = '2.6.1';
+export { CURRENT_VERSION };
 
 interface WhatsNewModalProps {
   forceOpen?: boolean;

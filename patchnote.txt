@@ -2,7 +2,7 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
-#### [V2.7.0] - 2026-10-16 (Design System Uiverse Aether, Rouge Rubis Velours, Thème Mix Multichrome & Aurores Boréales Dynamiques)
+#### [V2.6.2] - 2026-10-16 (Design System Uiverse Aether, Rouge Rubis Velours, Thème Mix & Suivi Dynamique de Version)
 --------------------------------------------------------------------------------
 1. Thème d'Accentuation Uiverse Aether (Inspiré de https://uiverse.io/design/systems/aether) :
 - Reproduction fidèle de la signature visuelle du Design System Aether : noir mat profond (#06070a), réfraction prismatique iridescente Cyan (#06b6d4), Magenta électrique (#ec4899) et Ambre (#f59e0b).
@@ -29,6 +29,11 @@ SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 - Tous les 8 thèmes d'accentuation (Violet, Aether, Mix, Cyan, Émeraude, Ambre, Rouge, Monochrome) sont désormais immédiatement sélectionnables dans les Paramètres sans aucun filtre restrictif.
 - Prise en charge des pastilles en dégradé CSS (propriété `background` au lieu de `backgroundColor`) avec anneau de focus adapté et lueur néon correspondante.
 - Prévisualisation haute fidélité en temps réel réagissant instantanément aux dégradés complexes et aux nouvelles ambiances lumineuses.
+
+5. Suivi Dynamique Universel de Version & Résolution des Messages Figés :
+- Suppression définitive de tout numéro de version codé en dur dans les popups, toasts et boutons d'action.
+- Le message « Syntropy OS est déjà à jour (vX.X.X) ! » reflète désormais en direct la version réelle du moteur logiciel en cours d'exécution (via `electron.getAppVersion()` sur Desktop ou `package.json` sur le Web).
+- Synchronisation centralisée de la version dans `src/lib/version.ts`, l'infobulle du System Tray Windows (`tray.setToolTip`), le script `preload.js` et les liens de téléchargement d'installateurs NSIS.
 
 #### [V2.6.0] - 2026-10-16 (Transparence des surfaces, Effet Liquid Glass iOS, Contrôles Précis & Aperçu en Direct)
 --------------------------------------------------------------------------------
