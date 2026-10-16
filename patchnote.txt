@@ -2,6 +2,12 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.4] - 2026-10-16 (Correction Critique du Hook React #310 dans AppShell & Stabilité du Rendu Desktop)
+--------------------------------------------------------------------------------
+1. Résolution de l'Erreur React #310 (« Rendered more hooks than during previous render ») :
+- Déplacement du hook `useMemo` de calcul de la palette d'aurore boréale (`auroraColors`) au tout début du composant racine `AppShell` avant tout branchement conditionnel ou écran de chargement d'authentification.
+- Strict respect des règles fondamentales des Hooks React pour garantir un ordre d'exécution invariable lors de toutes les phases d'hydratation et de rendu, tant sur le Web que dans l'exécutable natif Windows.
+
 #### [V2.6.3] - 2026-10-16 (Fiabilisation du Moteur Desktop, Reconnexion Auto & Élimination de l'Erreur au Lancement)
 --------------------------------------------------------------------------------
 1. Élimination Définitive de l'Écran d'Erreur Chromium (« This page couldn't load ») :
