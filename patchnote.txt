@@ -2,6 +2,34 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.7.0] - 2026-10-16 (Design System Uiverse Aether, Rouge Rubis Velours, Thème Mix Multichrome & Aurores Boréales Dynamiques)
+--------------------------------------------------------------------------------
+1. Thème d'Accentuation Uiverse Aether (Inspiré de https://uiverse.io/design/systems/aether) :
+- Reproduction fidèle de la signature visuelle du Design System Aether : noir mat profond (#06070a), réfraction prismatique iridescente Cyan (#06b6d4), Magenta électrique (#ec4899) et Ambre (#f59e0b).
+- Boutons et actions primaires habillés d'un dégradé électro-luminescent avec bordures chromatiques et halo diffus.
+- Pastille de sélection Aether avec dégradé tricolore en direct et reflets néon dans la section Apparence.
+- Aurore boréale céleste immersive projetant 4 orbes spectraux : Cyan Céleste, Indigo Spectral, Magenta Iridescent et Ambre Topaze.
+
+2. Remplacement du Rose par un Rouge Rubis Feutré & Élégant :
+- Suppression du rose magenta criard au profit d'un Rouge Rubis velouté et feutré (#e03148, hover #c92a3f, texte #f87171).
+- Teinte chaleureuse, noble et non agressive évitant l'effet d'alerte ou d'erreur système tout en conservant une grande lisibilité et un style haut de gamme.
+- Rétrocompatibilité totale : migration transparente des profils utilisateurs existants de 'rose' vers 'red' dès la pré-hydratation du layout sans perte de configuration.
+- Ambiance atmosphérique dédiée : orbes rubis velours, carmin noble, ambre doux et grenat feutré.
+
+3. Thème « Mix » Multichrome Harmonieux & Cohérent :
+- Déploiement d'une orchestration multichrome intelligente où chaque composant et type de bouton adopte une teinte d'accentuation en accord avec sa fonction sémantique :
+  * Actions principales & CTA de premier plan : Dégradé fluide Violet Synaptique (#7c3aed) -> Indigo (#6366f1) -> Cyan Céleste (#06b6d4).
+  * Validation, productivité & tâches achevées : Émeraude naturelle (#10b981).
+  * Planning, calendrier & alertes d'attention : Ambre doré (#f59e0b).
+  * Actions critiques, suppressions & déconnexion : Rouge Rubis velouté (#e03148).
+- Arrière-plan dynamique « Quadri-Aurore » : harmonie des 4 orbes (Violet, Cyan, Émeraude, Ambre-Rubis) se fondant avec élégance sans saturation visuelle.
+- Sélecteur de pastille avec dégradé multichrome à 4 étapes (#8b5cf6 -> #06b6d4 -> #10b981 -> #e03148).
+
+4. Refonte du Carrousel d'Accentuation & Amélioration de l'Aperçu en Direct :
+- Tous les 8 thèmes d'accentuation (Violet, Aether, Mix, Cyan, Émeraude, Ambre, Rouge, Monochrome) sont désormais immédiatement sélectionnables dans les Paramètres sans aucun filtre restrictif.
+- Prise en charge des pastilles en dégradé CSS (propriété `background` au lieu de `backgroundColor`) avec anneau de focus adapté et lueur néon correspondante.
+- Prévisualisation haute fidélité en temps réel réagissant instantanément aux dégradés complexes et aux nouvelles ambiances lumineuses.
+
 #### [V2.6.0] - 2026-10-16 (Transparence des surfaces, Effet Liquid Glass iOS, Contrôles Précis & Aperçu en Direct)
 --------------------------------------------------------------------------------
 1. Section « Transparence des surfaces » (Paramètres → Apparence & UI) :

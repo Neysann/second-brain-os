@@ -113,14 +113,23 @@ const NEON_INTENSITY_OPTIONS: {
   },
 ];
 
-const ACCENT_OPTIONS: { id: AccentColor; name: string; shortName: string; hex: string; desc: string }[] = [
-  { id: 'purple', name: 'Violet Synaptique', shortName: 'Violet', hex: '#8b5cf6', desc: 'Ambiance néon cyberpunk classique Syntropy' },
-  { id: 'cyan', name: 'Bleu Cyan', shortName: 'Bleu', hex: '#3b82f6', desc: 'Énergique et haute clarté visuelle' },
-  { id: 'emerald', name: 'Vert Émeraude', shortName: 'Vert', hex: '#10b981', desc: 'Concentration, sérénité & productivité' },
-  { id: 'amber', name: 'Orange Ambre', shortName: 'Ambre', hex: '#f59e0b', desc: 'Chaleureux, dynamique et stimulant' },
-  { id: 'rose', name: 'Rose Magenta', shortName: 'Rose', hex: '#ec4899', desc: 'Vibrant, audacieux et créatif' },
-  { id: 'monochrome', name: 'Monochrome Minimaliste', shortName: 'Monochrome', hex: '#6b7280', desc: 'Épuré, sobre et focalisé sur le contenu' },
-  { id: 'aether', name: 'Aether Céleste', shortName: 'Aether', hex: '#a855f7', desc: 'Dégradé cyan céleste vers violet néon iridescent (Aether UI)' },
+const ACCENT_OPTIONS: {
+  id: AccentColor;
+  name: string;
+  shortName: string;
+  hex: string;
+  colorHex: string;
+  desc: string;
+  isGradient?: boolean;
+}[] = [
+  { id: 'purple', name: 'Violet Synaptique', shortName: 'Violet', hex: '#8b5cf6', colorHex: '#8b5cf6', desc: 'Ambiance néon cyberpunk classique Syntropy' },
+  { id: 'aether', name: 'Aether (Uiverse)', shortName: 'Aether', hex: 'linear-gradient(135deg, #06b6d4 0%, #ec4899 50%, #f59e0b 100%)', colorHex: '#06b6d4', isGradient: true, desc: 'Design System Uiverse Aether : réfraction iridescente Cyan-Magenta-Ambre sur noir profond' },
+  { id: 'mix', name: 'Harmonie Mix (Multichrome)', shortName: 'Mix', hex: 'linear-gradient(135deg, #8b5cf6 0%, #06b6d4 33%, #10b981 66%, #e03148 100%)', colorHex: '#8b5cf6', isGradient: true, desc: 'Mélange cohérent et harmonieux des accents selon la fonction de chaque bouton' },
+  { id: 'cyan', name: 'Bleu Cyan', shortName: 'Bleu', hex: '#06b6d4', colorHex: '#06b6d4', desc: 'Énergique et haute clarté visuelle' },
+  { id: 'emerald', name: 'Vert Émeraude', shortName: 'Vert', hex: '#10b981', colorHex: '#10b981', desc: 'Concentration, sérénité & productivité' },
+  { id: 'amber', name: 'Orange Ambre', shortName: 'Ambre', hex: '#f59e0b', colorHex: '#f59e0b', desc: 'Chaleureux, dynamique et stimulant' },
+  { id: 'red', name: 'Rouge Rubis', shortName: 'Rouge', hex: '#e03148', colorHex: '#e03148', desc: 'Rouge velours noble et feutré, chaleureux et non agressif' },
+  { id: 'monochrome', name: 'Monochrome Minimaliste', shortName: 'Monochrome', hex: '#71717a', colorHex: '#71717a', desc: 'Épuré, sobre et focalisé sur le contenu' },
 ];
 
 const DARK_BG_OPTIONS: { id: DarkBgStyle; name: string; hex: string; desc: string; badge: string }[] = [
@@ -477,11 +486,11 @@ export default function SettingsPage() {
         const blurPx = isReduced ? 0 : Math.round((effectiveTrans / 45) * 20);
         const alpha = isReduced ? 1 : Math.max(0.45, 1 - (effectiveTrans / 100));
         const cardAlpha = isReduced ? 1 : Math.max(0.55, 1 - (effectiveTrans * 0.75 / 100));
-        const activeAccent = ACCENT_OPTIONS.find((c) => c.id === settings.accentColor) || ACCENT_OPTIONS[0];
-        const activeAccentHex = activeAccent.hex;
+        const activeAccent = ACCENT_OPTIONS.find((c) => c.id === settings.accentColor || (c.id === 'red' && settings.accentColor === 'rose')) || ACCENT_OPTIONS[0];
+        const activeAccentHex = activeAccent.colorHex;
         const previewIsDark = effectiveTheme === 'dark';
 
-        const MAIN_ACCENTS = ACCENT_OPTIONS.filter((c) => c.id !== 'aether');
+        const MAIN_ACCENTS = ACCENT_OPTIONS;
 
         return (
           <div className="space-y-8 animate-in fade-in duration-200">
@@ -666,7 +675,7 @@ export default function SettingsPage() {
 
                   <div className="flex items-center justify-between gap-1 overflow-x-auto pb-1 pt-1">
                     {MAIN_ACCENTS.map((color) => {
-                      const isSelected = settings.accentColor === color.id;
+                      const isSelected = settings.accentColor === color.id || (color.id === 'red' && settings.accentColor === 'rose');
                       return (
                         <button
                           key={color.id}
@@ -685,9 +694,13 @@ export default function SettingsPage() {
                                 : 'hover:scale-105 opacity-85 hover:opacity-100'
                             }`}
                             style={{
-                              backgroundColor: color.hex,
-                              boxShadow: isSelected ? `0 0 12px ${color.hex}60` : undefined,
-                              ['--tw-ring-color' as any]: color.hex,
+                              background: color.hex,
+                              boxShadow: isSelected
+                                ? color.isGradient
+                                  ? '0 0 14px rgba(6, 182, 212, 0.6)'
+                                  : `0 0 12px ${color.colorHex}60`
+                                : undefined,
+                              ['--tw-ring-color' as any]: color.colorHex,
                             }}
                           >
                             {isSelected && (

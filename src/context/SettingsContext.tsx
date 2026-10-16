@@ -166,7 +166,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
 
     // B. Couleur d'accentuation
-    const accent = settings.accentColor || 'purple';
+    const rawAccent = settings.accentColor || 'purple';
+    const accent = rawAccent === 'rose' ? 'red' : rawAccent;
     root.setAttribute('data-accent', accent);
     body.setAttribute('data-accent', accent);
 
@@ -233,11 +234,13 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const accentRgbMap: Record<string, string> = {
       purple: '139, 92, 246',
-      aether: '168, 85, 247',
+      aether: '6, 182, 212',
       cyan: '6, 182, 212',
       emerald: '16, 185, 129',
       amber: '245, 158, 11',
-      rose: '244, 63, 94',
+      red: '224, 49, 72',
+      rose: '224, 49, 72',
+      mix: '139, 92, 246',
       monochrome: '228, 228, 231',
     };
     const accentRgb = accentRgbMap[accent] || '139, 92, 246';

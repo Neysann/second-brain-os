@@ -86,38 +86,38 @@
     --accent-text: #a78bfa;
   }
 
-  /* Palette AETHER Céleste (Inspirée de Uiverse Aether Design System : Cyan céleste vers Violet éthéré) */
+  /* Palette AETHER (Uiverse Aether Official Design System : Réfraction iridescente Cyan-Magenta-Ambre sur Noir Profond) */
   [data-accent="aether"] {
-    --color-purple-50: #f5f3ff;
-    --color-purple-100: #ede9fe;
-    --color-purple-200: #ddd6fe;
-    --color-purple-300: #c4b5fd;
-    --color-purple-400: #a78bfa;
-    --color-purple-500: #8b5cf6;
-    --color-purple-600: #7c3aed;
-    --color-purple-700: #6d28d9;
-    --color-purple-800: #5b21b6;
-    --color-purple-900: #4c1d95;
-    --color-purple-950: #2e1065;
+    --color-purple-50: #f0fdfa;
+    --color-purple-100: #ccfbf1;
+    --color-purple-200: #99f6e4;
+    --color-purple-300: #5eead4;
+    --color-purple-400: #2dd4bf;
+    --color-purple-500: #06b6d4;
+    --color-purple-600: #0891b2;
+    --color-purple-700: #0e7490;
+    --color-purple-800: #155e75;
+    --color-purple-900: #164e63;
+    --color-purple-950: #083344;
 
-    --color-indigo-50: #f0fdfa;
-    --color-indigo-100: #ccfbf1;
-    --color-indigo-200: #99f6e4;
-    --color-indigo-300: #67e8f9;
-    --color-indigo-400: #38bdf8;
-    --color-indigo-500: #00d2ff;
-    --color-indigo-600: #0284c7;
-    --color-indigo-700: #0369a1;
-    --color-indigo-800: #075985;
-    --color-indigo-900: #0c4a6e;
-    --color-indigo-950: #082f49;
+    --color-indigo-50: #fdf4ff;
+    --color-indigo-100: #fae8ff;
+    --color-indigo-200: #f5d0fe;
+    --color-indigo-300: #f0abfc;
+    --color-indigo-400: #e879f9;
+    --color-indigo-500: #d946ef;
+    --color-indigo-600: #c026d3;
+    --color-indigo-700: #a21caf;
+    --color-indigo-800: #86198f;
+    --color-indigo-900: #701a75;
+    --color-indigo-950: #4a044e;
 
-    --accent-primary: #00d2ff;
-    --accent-hover: #a855f7;
-    --accent-glow: rgba(168, 85, 247, 0.45);
-    --accent-subtle: rgba(139, 92, 246, 0.16);
-    --accent-text: #c084fc;
-    --accent-aether-gradient: linear-gradient(135deg, #00d2ff 0%, #6366f1 45%, #a855f7 75%, #c084fc 100%);
+    --accent-primary: #06b6d4;
+    --accent-hover: #0891b2;
+    --accent-glow: rgba(6, 182, 212, 0.45);
+    --accent-subtle: rgba(6, 182, 212, 0.15);
+    --accent-text: #38bdf8;
+    --accent-aether-gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 30%, #ec4899 70%, #f59e0b 100%);
   }
 
   [data-accent="cyan"] {
@@ -216,36 +216,72 @@
     --accent-text: #fbbf24;
   }
 
+  /* Palette ROUGE RUBIS VELOURS (Élégant, feutré, chaleureux et non agressif) */
+  [data-accent="red"],
   [data-accent="rose"] {
-    --color-purple-50: #fff1f2;
-    --color-purple-100: #ffe4e6;
-    --color-purple-200: #fecdd3;
-    --color-purple-300: #fda4af;
-    --color-purple-400: #fb7185;
-    --color-purple-500: #f43f5e;
-    --color-purple-600: #e11d48;
-    --color-purple-700: #be123c;
-    --color-purple-800: #9f1239;
-    --color-purple-900: #881337;
-    --color-purple-950: #4c0519;
+    --color-purple-50: #fef2f2;
+    --color-purple-100: #fee2e2;
+    --color-purple-200: #fecaca;
+    --color-purple-300: #fca5a5;
+    --color-purple-400: #f87171;
+    --color-purple-500: #e03148;
+    --color-purple-600: #c92a3f;
+    --color-purple-700: #b02135;
+    --color-purple-800: #931b2c;
+    --color-purple-900: #781724;
+    --color-purple-950: #460912;
 
-    --color-indigo-50: #fff1f2;
-    --color-indigo-100: #ffe4e6;
-    --color-indigo-200: #fecdd3;
-    --color-indigo-300: #fda4af;
-    --color-indigo-400: #fb7185;
-    --color-indigo-500: #f43f5e;
-    --color-indigo-600: #e11d48;
-    --color-indigo-700: #be123c;
-    --color-indigo-800: #9f1239;
-    --color-indigo-900: #881337;
-    --color-indigo-950: #4c0519;
+    --color-indigo-50: #fef2f2;
+    --color-indigo-100: #fee2e2;
+    --color-indigo-200: #fecaca;
+    --color-indigo-300: #fca5a5;
+    --color-indigo-400: #f87171;
+    --color-indigo-500: #e03148;
+    --color-indigo-600: #c92a3f;
+    --color-indigo-700: #b02135;
+    --color-indigo-800: #931b2c;
+    --color-indigo-900: #781724;
+    --color-indigo-950: #460912;
 
-    --accent-primary: #f43f5e;
-    --accent-hover: #e11d48;
-    --accent-glow: rgba(244, 63, 94, 0.35);
-    --accent-subtle: rgba(244, 63, 94, 0.12);
-    --accent-text: #fb7185;
+    --accent-primary: #e03148;
+    --accent-hover: #c92a3f;
+    --accent-glow: rgba(224, 49, 72, 0.32);
+    --accent-subtle: rgba(224, 49, 72, 0.12);
+    --accent-text: #f87171;
+  }
+
+  /* Palette HARMONIE MIX (Multichrome : Répartition équilibrée de tous les accents) */
+  [data-accent="mix"] {
+    --color-purple-50: #faf5ff;
+    --color-purple-100: #f3e8ff;
+    --color-purple-200: #e9d5ff;
+    --color-purple-300: #d8b4fe;
+    --color-purple-400: #c084fc;
+    --color-purple-500: #a855f7;
+    --color-purple-600: #8b5cf6;
+    --color-purple-700: #7c3aed;
+    --color-purple-800: #6d28d9;
+    --color-purple-900: #581c87;
+    --color-purple-950: #3b0764;
+
+    --color-indigo-50: #f0fdfa;
+    --color-indigo-100: #ccfbf1;
+    --color-indigo-200: #99f6e4;
+    --color-indigo-300: #67e8f9;
+    --color-indigo-400: #38bdf8;
+    --color-indigo-500: #06b6d4;
+    --color-indigo-600: #0284c7;
+    --color-indigo-700: #0369a1;
+    --color-indigo-800: #075985;
+    --color-indigo-900: #0c4a6e;
+    --color-indigo-950: #082f49;
+
+    --accent-primary: #8b5cf6;
+    --accent-hover: #7c3aed;
+    --accent-glow: rgba(139, 92, 246, 0.35);
+    --accent-subtle: rgba(139, 92, 246, 0.12);
+    --accent-text: #a78bfa;
+    --accent-mix-gradient: linear-gradient(135deg, #8b5cf6 0%, #6366f1 45%, #06b6d4 100%);
   }
 
   html.dark[data-accent="monochrome"],
@@ -438,26 +474,28 @@ html.light .w-md-editor-toolbar {
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   0. AETHER CÉLESTE (Dégradé Cyan Céleste vers Violet Fluo #00d2ff -> #a855f7)
+   0. AETHER (Uiverse Aether Official Design System : Réfraction Cyan-Magenta-Ambre)
    -------------------------------------------------------------------------- */
 [data-accent="aether"] .bg-purple-600,
 [data-accent="aether"] .bg-indigo-600,
 [data-accent="aether"] .bg-purple-500,
 [data-accent="aether"] .bg-indigo-500 {
-  background: linear-gradient(135deg, #00d2ff 0%, #6366f1 45%, #a855f7 80%, #9333ea 100%) !important;
+  background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 30%, #ec4899 70%, #f59e0b 100%) !important;
   color: #ffffff !important;
+  box-shadow: 0 4px 20px -2px rgba(6, 182, 212, 0.40), 0 0 15px rgba(236, 72, 153, 0.25) !important;
 }
 
 [data-accent="aether"] .hover\:bg-purple-500:hover,
 [data-accent="aether"] .hover\:bg-indigo-500:hover,
 [data-accent="aether"] .hover\:bg-purple-600:hover,
 [data-accent="aether"] .hover\:bg-indigo-600:hover {
-  background: linear-gradient(135deg, #38bdf8 0%, #4f46e5 45%, #9333ea 80%, #7e22ce 100%) !important;
+  background: linear-gradient(135deg, #22d3ee 0%, #60a5fa 30%, #f472b6 70%, #fbbf24 100%) !important;
+  box-shadow: 0 6px 25px rgba(6, 182, 212, 0.50), 0 0 20px rgba(236, 72, 153, 0.35) !important;
 }
 
 [data-accent="aether"] .bg-indigo-700,
 [data-accent="aether"] .bg-purple-700 {
-  background: linear-gradient(135deg, #0284c7 0%, #4338ca 45%, #7e22ce 100%) !important;
+  background: linear-gradient(135deg, #0891b2 0%, #2563eb 30%, #db2777 70%, #d97706 100%) !important;
   color: #ffffff !important;
 }
 
@@ -473,7 +511,7 @@ html.light .w-md-editor-toolbar {
 [data-accent="aether"] .hover\:text-purple-300:hover,
 [data-accent="aether"] .group:hover .group-hover\:text-purple-400,
 [data-accent="aether"] .group:hover .group-hover\:text-indigo-400 {
-  color: #c084fc !important;
+  color: #38bdf8 !important;
 }
 
 html.dark[data-accent="aether"] .text-purple-600,
@@ -482,7 +520,7 @@ html.dark[data-accent="aether"] .text-purple-700,
 html.dark[data-accent="aether"] .text-indigo-700,
 html.dark[data-accent="aether"] .dark\:text-purple-400,
 html.dark[data-accent="aether"] .dark\:text-indigo-400 {
-  color: #a855f7 !important;
+  color: #38bdf8 !important;
 }
 
 html.light[data-accent="aether"] .text-purple-600,
@@ -491,7 +529,7 @@ html.light[data-accent="aether"] .text-purple-700,
 html.light[data-accent="aether"] .text-indigo-700,
 html.light[data-accent="aether"] .hover\:text-purple-600:hover,
 html.light[data-accent="aether"] .hover\:text-indigo-600:hover {
-  color: #7c3aed !important;
+  color: #0284c7 !important;
 }
 
 [data-accent="aether"] .bg-purple-50,
@@ -1047,29 +1085,51 @@ html.light[data-accent="amber"] .hover\:text-indigo-600:hover {
 }
 
 /* --------------------------------------------------------------------------
-   4. ROSE MAGENTA (#f43f5e)
+   4. ROUGE RUBIS VELOURS (#e03148 - Noble, feutré, pas trop agressif)
    -------------------------------------------------------------------------- */
+[data-accent="red"] .bg-purple-600,
+[data-accent="red"] .bg-indigo-600,
+[data-accent="red"] .bg-purple-500,
+[data-accent="red"] .bg-indigo-500,
 [data-accent="rose"] .bg-purple-600,
 [data-accent="rose"] .bg-indigo-600,
 [data-accent="rose"] .bg-purple-500,
 [data-accent="rose"] .bg-indigo-500 {
-  background-color: #f43f5e !important;
+  background-color: #e03148 !important;
   color: #ffffff !important;
 }
 
+[data-accent="red"] .hover\:bg-purple-500:hover,
+[data-accent="red"] .hover\:bg-indigo-500:hover,
+[data-accent="red"] .hover\:bg-purple-600:hover,
+[data-accent="red"] .hover\:bg-indigo-600:hover,
 [data-accent="rose"] .hover\:bg-purple-500:hover,
 [data-accent="rose"] .hover\:bg-indigo-500:hover,
 [data-accent="rose"] .hover\:bg-purple-600:hover,
 [data-accent="rose"] .hover\:bg-indigo-600:hover {
-  background-color: #e11d48 !important;
+  background-color: #c92a3f !important;
 }
 
+[data-accent="red"] .bg-indigo-700,
+[data-accent="red"] .bg-purple-700,
 [data-accent="rose"] .bg-indigo-700,
 [data-accent="rose"] .bg-purple-700 {
-  background-color: #e11d48 !important;
+  background-color: #b02135 !important;
   color: #ffffff !important;
 }
 
+[data-accent="red"] .text-purple-400,
+[data-accent="red"] .text-indigo-400,
+[data-accent="red"] .text-purple-500,
+[data-accent="red"] .text-indigo-500,
+[data-accent="red"] .text-purple-300,
+[data-accent="red"] .text-indigo-300,
+[data-accent="red"] .hover\:text-indigo-400:hover,
+[data-accent="red"] .hover\:text-purple-400:hover,
+[data-accent="red"] .hover\:text-indigo-300:hover,
+[data-accent="red"] .hover\:text-purple-300:hover,
+[data-accent="red"] .group:hover .group-hover\:text-purple-400,
+[data-accent="red"] .group:hover .group-hover\:text-indigo-400,
 [data-accent="rose"] .text-purple-400,
 [data-accent="rose"] .text-indigo-400,
 [data-accent="rose"] .text-purple-500,
@@ -1082,39 +1142,65 @@ html.light[data-accent="amber"] .hover\:text-indigo-600:hover {
 [data-accent="rose"] .hover\:text-purple-300:hover,
 [data-accent="rose"] .group:hover .group-hover\:text-purple-400,
 [data-accent="rose"] .group:hover .group-hover\:text-indigo-400 {
-  color: #fb7185 !important;
+  color: #f87171 !important;
 }
 
+html.dark[data-accent="red"] .text-purple-600,
+html.dark[data-accent="red"] .text-indigo-600,
+html.dark[data-accent="red"] .text-purple-700,
+html.dark[data-accent="red"] .text-indigo-700,
+html.dark[data-accent="red"] .dark\:text-purple-400,
+html.dark[data-accent="red"] .dark\:text-indigo-400,
 html.dark[data-accent="rose"] .text-purple-600,
 html.dark[data-accent="rose"] .text-indigo-600,
 html.dark[data-accent="rose"] .text-purple-700,
 html.dark[data-accent="rose"] .text-indigo-700,
 html.dark[data-accent="rose"] .dark\:text-purple-400,
 html.dark[data-accent="rose"] .dark\:text-indigo-400 {
-  color: #fb7185 !important;
+  color: #f87171 !important;
 }
 
+html.light[data-accent="red"] .text-purple-600,
+html.light[data-accent="red"] .text-indigo-600,
+html.light[data-accent="red"] .text-purple-700,
+html.light[data-accent="red"] .text-indigo-700,
+html.light[data-accent="red"] .hover\:text-purple-600:hover,
+html.light[data-accent="red"] .hover\:text-indigo-600:hover,
 html.light[data-accent="rose"] .text-purple-600,
 html.light[data-accent="rose"] .text-indigo-600,
 html.light[data-accent="rose"] .text-purple-700,
 html.light[data-accent="rose"] .text-indigo-700,
 html.light[data-accent="rose"] .hover\:text-purple-600:hover,
 html.light[data-accent="rose"] .hover\:text-indigo-600:hover {
-  color: #e11d48 !important;
+  color: #b02135 !important;
 }
 
+[data-accent="red"] .bg-purple-50,
+[data-accent="red"] .bg-indigo-50,
+[data-accent="red"] .bg-purple-100,
+[data-accent="red"] .bg-indigo-100,
 [data-accent="rose"] .bg-purple-50,
 [data-accent="rose"] .bg-indigo-50,
 [data-accent="rose"] .bg-purple-100,
 [data-accent="rose"] .bg-indigo-100 {
-  background-color: #fff1f2 !important;
+  background-color: #fef2f2 !important;
 }
 
+[data-accent="red"] .border-purple-200,
+[data-accent="red"] .border-indigo-200,
 [data-accent="rose"] .border-purple-200,
 [data-accent="rose"] .border-indigo-200 {
-  border-color: #fecdd3 !important;
+  border-color: #fecaca !important;
 }
 
+[data-accent="red"] .border-purple-500,
+[data-accent="red"] .border-indigo-500,
+[data-accent="red"] .border-purple-600,
+[data-accent="red"] .border-indigo-600,
+[data-accent="red"] .border-purple-400,
+[data-accent="red"] .border-indigo-400,
+[data-accent="red"] .hover\:border-indigo-400:hover,
+[data-accent="red"] .hover\:border-purple-400:hover,
 [data-accent="rose"] .border-purple-500,
 [data-accent="rose"] .border-indigo-500,
 [data-accent="rose"] .border-purple-600,
@@ -1123,18 +1209,29 @@ html.light[data-accent="rose"] .hover\:text-indigo-600:hover {
 [data-accent="rose"] .border-indigo-400,
 [data-accent="rose"] .hover\:border-indigo-400:hover,
 [data-accent="rose"] .hover\:border-purple-400:hover {
-  border-color: #f43f5e !important;
+  border-color: #e03148 !important;
 }
 
+[data-accent="red"] .border-purple-500\/80,
 [data-accent="rose"] .border-purple-500\/80 {
-  border-color: rgba(244, 63, 94, 0.8) !important;
+  border-color: rgba(224, 49, 72, 0.8) !important;
 }
 
+[data-accent="red"] .border-purple-500\/60,
+[data-accent="red"] .border-indigo-500\/60,
 [data-accent="rose"] .border-purple-500\/60,
 [data-accent="rose"] .border-indigo-500\/60 {
-  border-color: rgba(244, 63, 94, 0.6) !important;
+  border-color: rgba(224, 49, 72, 0.6) !important;
 }
 
+[data-accent="red"] .border-purple-500\/40,
+[data-accent="red"] .border-indigo-500\/40,
+[data-accent="red"] .border-purple-500\/30,
+[data-accent="red"] .border-indigo-500\/30,
+[data-accent="red"] .border-purple-500\/20,
+[data-accent="red"] .border-indigo-500\/20,
+[data-accent="red"] .border-purple-800\/40,
+[data-accent="red"] .border-indigo-800\/40,
 [data-accent="rose"] .border-purple-500\/40,
 [data-accent="rose"] .border-indigo-500\/40,
 [data-accent="rose"] .border-purple-500\/30,
@@ -1143,9 +1240,16 @@ html.light[data-accent="rose"] .hover\:text-indigo-600:hover {
 [data-accent="rose"] .border-indigo-500\/20,
 [data-accent="rose"] .border-purple-800\/40,
 [data-accent="rose"] .border-indigo-800\/40 {
-  border-color: rgba(244, 63, 94, 0.35) !important;
+  border-color: rgba(224, 49, 72, 0.35) !important;
 }
 
+[data-accent="red"] .ring-purple-500\/30,
+[data-accent="red"] .ring-purple-500\/40,
+[data-accent="red"] .ring-purple-500\/50,
+[data-accent="red"] .ring-indigo-400\/50,
+[data-accent="red"] .ring-indigo-500\/50,
+[data-accent="red"] .ring-purple-500,
+[data-accent="red"] .ring-indigo-500,
 [data-accent="rose"] .ring-purple-500\/30,
 [data-accent="rose"] .ring-purple-500\/40,
 [data-accent="rose"] .ring-purple-500\/50,
@@ -1153,9 +1257,17 @@ html.light[data-accent="rose"] .hover\:text-indigo-600:hover {
 [data-accent="rose"] .ring-indigo-500\/50,
 [data-accent="rose"] .ring-purple-500,
 [data-accent="rose"] .ring-indigo-500 {
-  --tw-ring-color: rgba(244, 63, 94, 0.45) !important;
+  --tw-ring-color: rgba(224, 49, 72, 0.45) !important;
 }
 
+[data-accent="red"] .bg-purple-500\/10,
+[data-accent="red"] .bg-purple-500\/15,
+[data-accent="red"] .bg-indigo-500\/10,
+[data-accent="red"] .bg-indigo-500\/15,
+[data-accent="red"] .bg-purple-600\/10,
+[data-accent="red"] .bg-indigo-600\/10,
+[data-accent="red"] .hover\:bg-indigo-500\/10:hover,
+[data-accent="red"] .hover\:bg-purple-500\/10:hover,
 [data-accent="rose"] .bg-purple-500\/10,
 [data-accent="rose"] .bg-purple-500\/15,
 [data-accent="rose"] .bg-indigo-500\/10,
@@ -1164,37 +1276,120 @@ html.light[data-accent="rose"] .hover\:text-indigo-600:hover {
 [data-accent="rose"] .bg-indigo-600\/10,
 [data-accent="rose"] .hover\:bg-indigo-500\/10:hover,
 [data-accent="rose"] .hover\:bg-purple-500\/10:hover {
-  background-color: rgba(244, 63, 94, 0.12) !important;
+  background-color: rgba(224, 49, 72, 0.12) !important;
 }
 
+[data-accent="red"] .bg-purple-500\/20,
+[data-accent="red"] .bg-indigo-500\/20,
+[data-accent="red"] .bg-purple-600\/20,
+[data-accent="red"] .bg-indigo-600\/20,
+[data-accent="red"] .hover\:bg-indigo-600\/20:hover,
+[data-accent="red"] .hover\:bg-purple-600\/20:hover,
 [data-accent="rose"] .bg-purple-500\/20,
 [data-accent="rose"] .bg-indigo-500\/20,
 [data-accent="rose"] .bg-purple-600\/20,
 [data-accent="rose"] .bg-indigo-600\/20,
 [data-accent="rose"] .hover\:bg-indigo-600\/20:hover,
 [data-accent="rose"] .hover\:bg-purple-600\/20:hover {
-  background-color: rgba(244, 63, 94, 0.2) !important;
+  background-color: rgba(224, 49, 72, 0.20) !important;
 }
 
+[data-accent="red"] .bg-purple-950\/20,
+[data-accent="red"] .bg-indigo-950\/20,
+[data-accent="red"] .bg-purple-950\/30,
+[data-accent="red"] .bg-indigo-950\/30,
+[data-accent="red"] .hover\:bg-purple-950\/60:hover,
+[data-accent="red"] .hover\:bg-indigo-950\/60:hover,
 [data-accent="rose"] .bg-purple-950\/20,
 [data-accent="rose"] .bg-indigo-950\/20,
 [data-accent="rose"] .bg-purple-950\/30,
 [data-accent="rose"] .bg-indigo-950\/30,
 [data-accent="rose"] .hover\:bg-purple-950\/60:hover,
 [data-accent="rose"] .hover\:bg-indigo-950\/60:hover {
-  background-color: rgba(244, 63, 94, 0.16) !important;
+  background-color: rgba(224, 49, 72, 0.16) !important;
 }
 
+[data-accent="red"] .shadow-purple-600\/30,
+[data-accent="red"] .shadow-indigo-600\/30,
+[data-accent="red"] .shadow-purple-600\/20,
+[data-accent="red"] .shadow-indigo-600\/20,
 [data-accent="rose"] .shadow-purple-600\/30,
 [data-accent="rose"] .shadow-indigo-600\/30,
 [data-accent="rose"] .shadow-purple-600\/20,
 [data-accent="rose"] .shadow-indigo-600\/20 {
-  box-shadow: 0 10px 25px -5px rgba(244, 63, 94, 0.35), 0 8px 10px -6px rgba(244, 63, 94, 0.2) !important;
+  box-shadow: 0 10px 25px -5px rgba(224, 49, 72, 0.35), 0 8px 10px -6px rgba(224, 49, 72, 0.20) !important;
 }
 
+[data-accent="red"] ::selection,
 [data-accent="rose"] ::selection {
-  background-color: rgba(244, 63, 94, 0.35) !important;
+  background-color: rgba(224, 49, 72, 0.35) !important;
   color: #fff1f2 !important;
+}
+
+/* --------------------------------------------------------------------------
+   5. HARMONIE MIX (Multichrome : Répartition équilibrée et cohérente)
+   -------------------------------------------------------------------------- */
+[data-accent="mix"] .bg-purple-600,
+[data-accent="mix"] .bg-indigo-600,
+[data-accent="mix"] .bg-purple-500,
+[data-accent="mix"] .bg-indigo-500 {
+  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 50%, #06b6d4 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 18px -2px rgba(124, 58, 237, 0.35), 0 0 10px rgba(6, 182, 212, 0.25) !important;
+}
+
+[data-accent="mix"] .hover\:bg-purple-500:hover,
+[data-accent="mix"] .hover\:bg-indigo-500:hover,
+[data-accent="mix"] .hover\:bg-purple-600:hover,
+[data-accent="mix"] .hover\:bg-indigo-600:hover {
+  background: linear-gradient(135deg, #8b5cf6 0%, #4f46e5 50%, #0891b2 100%) !important;
+  box-shadow: 0 6px 22px rgba(124, 58, 237, 0.45), 0 0 14px rgba(6, 182, 212, 0.35) !important;
+}
+
+[data-accent="mix"] .bg-indigo-700,
+[data-accent="mix"] .bg-purple-700 {
+  background: linear-gradient(135deg, #6d28d9 0%, #4338ca 50%, #0e7490 100%) !important;
+  color: #ffffff !important;
+}
+
+[data-accent="mix"] .text-purple-400,
+[data-accent="mix"] .text-indigo-400,
+[data-accent="mix"] .text-purple-300,
+[data-accent="mix"] .text-indigo-300,
+[data-accent="mix"] .hover\:text-indigo-400:hover,
+[data-accent="mix"] .hover\:text-purple-400:hover {
+  color: #a78bfa !important;
+}
+
+html.dark[data-accent="mix"] .text-purple-600,
+html.dark[data-accent="mix"] .text-indigo-600,
+html.dark[data-accent="mix"] .dark\:text-purple-400,
+html.dark[data-accent="mix"] .dark\:text-indigo-400 {
+  color: #a78bfa !important;
+}
+
+[data-accent="mix"] .border-purple-500,
+[data-accent="mix"] .border-indigo-500,
+[data-accent="mix"] .border-purple-600,
+[data-accent="mix"] .border-indigo-600,
+[data-accent="mix"] .border-purple-400,
+[data-accent="mix"] .border-indigo-400 {
+  border-color: rgba(139, 92, 246, 0.6) !important;
+}
+
+[data-accent="mix"] .ring-purple-500,
+[data-accent="mix"] .ring-indigo-500 {
+  --tw-ring-color: rgba(139, 92, 246, 0.45) !important;
+}
+
+[data-accent="mix"] .shadow-purple-600\/30,
+[data-accent="mix"] .shadow-indigo-600\/30 {
+  box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.35), 0 0 15px rgba(6, 182, 212, 0.20) !important;
+}
+
+[data-accent="mix"] ::selection {
+  background-color: rgba(124, 58, 237, 0.35) !important;
+  color: #ffffff !important;
 }
 
 /* --------------------------------------------------------------------------

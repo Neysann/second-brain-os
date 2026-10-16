@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -245,6 +245,76 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     );
   }
 
+  // Palette dynamique des 4 orbes d'aurore boréale selon la couleur d'accentuation
+  const auroraColors = useMemo(() => {
+    const isDark = theme === 'dark';
+    const accent = settings.accentColor || 'purple';
+
+    switch (accent) {
+      case 'aether':
+        // Uiverse Aether Design System : Réfraction iridescente Cyan -> Magenta -> Ambre -> Indigo
+        return {
+          orb1: isDark ? 'rgba(6, 182, 212, 0.45)' : 'rgba(6, 182, 212, 0.25)',  // Cyan Céleste
+          orb2: isDark ? 'rgba(99, 102, 241, 0.38)' : 'rgba(99, 102, 241, 0.20)', // Indigo Spectral
+          orb3: isDark ? 'rgba(217, 70, 239, 0.40)' : 'rgba(217, 70, 239, 0.22)', // Magenta Iridescent
+          orb4: isDark ? 'rgba(245, 158, 11, 0.32)' : 'rgba(245, 158, 11, 0.18)', // Ambre / Or Topaze
+        };
+      case 'red':
+      case 'rose':
+        // Rouge Rubis velours feutré, chaud, noble et non agressif
+        return {
+          orb1: isDark ? 'rgba(224, 49, 72, 0.40)' : 'rgba(224, 49, 72, 0.22)',   // Rubis Feutré
+          orb2: isDark ? 'rgba(185, 28, 28, 0.32)' : 'rgba(185, 28, 28, 0.18)',   // Carmin Noble
+          orb3: isDark ? 'rgba(245, 158, 11, 0.22)' : 'rgba(245, 158, 11, 0.14)', // Ambre doux
+          orb4: isDark ? 'rgba(159, 18, 57, 0.30)' : 'rgba(159, 18, 57, 0.16)',   // Grenat velouté
+        };
+      case 'mix':
+        // Harmonie Multichrome équilibrée : Violet, Cyan, Émeraude, Ambre & Rubis
+        return {
+          orb1: isDark ? 'rgba(139, 92, 246, 0.42)' : 'rgba(139, 92, 246, 0.24)', // Violet Synaptique
+          orb2: isDark ? 'rgba(6, 182, 212, 0.36)' : 'rgba(6, 182, 212, 0.20)',  // Cyan Céleste
+          orb3: isDark ? 'rgba(16, 185, 129, 0.34)' : 'rgba(16, 185, 129, 0.18)', // Émeraude Fraîche
+          orb4: isDark ? 'rgba(245, 158, 11, 0.30)' : 'rgba(224, 49, 72, 0.18)',  // Ambre Doré & Rubis
+        };
+      case 'cyan':
+        return {
+          orb1: isDark ? 'rgba(6, 182, 212, 0.42)' : 'rgba(6, 182, 212, 0.24)',
+          orb2: isDark ? 'rgba(59, 130, 246, 0.38)' : 'rgba(59, 130, 246, 0.20)',
+          orb3: isDark ? 'rgba(14, 165, 233, 0.32)' : 'rgba(14, 165, 233, 0.18)',
+          orb4: isDark ? 'rgba(20, 184, 166, 0.30)' : 'rgba(20, 184, 166, 0.16)',
+        };
+      case 'emerald':
+        return {
+          orb1: isDark ? 'rgba(16, 185, 129, 0.40)' : 'rgba(16, 185, 129, 0.22)',
+          orb2: isDark ? 'rgba(20, 184, 166, 0.35)' : 'rgba(20, 184, 166, 0.18)',
+          orb3: isDark ? 'rgba(6, 182, 212, 0.28)' : 'rgba(6, 182, 212, 0.15)',
+          orb4: isDark ? 'rgba(5, 150, 105, 0.32)' : 'rgba(5, 150, 105, 0.16)',
+        };
+      case 'amber':
+        return {
+          orb1: isDark ? 'rgba(245, 158, 11, 0.40)' : 'rgba(245, 158, 11, 0.22)',
+          orb2: isDark ? 'rgba(234, 88, 12, 0.32)' : 'rgba(234, 88, 12, 0.18)',
+          orb3: isDark ? 'rgba(224, 49, 72, 0.25)' : 'rgba(224, 49, 72, 0.14)',
+          orb4: isDark ? 'rgba(251, 191, 36, 0.30)' : 'rgba(251, 191, 36, 0.16)',
+        };
+      case 'monochrome':
+        return {
+          orb1: isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.10)',
+          orb2: isDark ? 'rgba(228, 228, 231, 0.15)' : 'rgba(24, 24, 27, 0.08)',
+          orb3: isDark ? 'rgba(212, 212, 216, 0.14)' : 'rgba(39, 39, 42, 0.07)',
+          orb4: isDark ? 'rgba(161, 161, 170, 0.12)' : 'rgba(63, 63, 70, 0.06)',
+        };
+      case 'purple':
+      default:
+        return {
+          orb1: isDark ? 'rgba(139, 92, 246, 0.40)' : 'rgba(168, 85, 247, 0.22)',
+          orb2: isDark ? 'rgba(59, 130, 246, 0.35)' : 'rgba(59, 130, 246, 0.20)',
+          orb3: isDark ? 'rgba(236, 72, 153, 0.30)' : 'rgba(244, 63, 94, 0.16)',
+          orb4: isDark ? 'rgba(6, 182, 212, 0.28)' : 'rgba(6, 182, 212, 0.16)',
+        };
+    }
+  }, [theme, settings.accentColor]);
+
   return (
     <div
       className={`flex h-screen w-screen overflow-hidden relative ${
@@ -259,40 +329,32 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         }}
         aria-hidden="true"
       >
-        {/* Orbe 1 : Violet / Accent en haut à gauche */}
+        {/* Orbe 1 : Haut Gauche */}
         <div
           className="absolute -top-[12%] -left-[10%] w-[65vw] h-[65vw] rounded-full blur-[140px] pointer-events-none transition-all duration-700"
           style={{
-            background: theme === 'dark'
-              ? 'radial-gradient(circle, rgba(139, 92, 246, 0.40) 0%, rgba(139, 92, 246, 0) 70%)'
-              : 'radial-gradient(circle, rgba(168, 85, 247, 0.22) 0%, rgba(168, 85, 247, 0) 70%)',
+            background: `radial-gradient(circle, ${auroraColors.orb1} 0%, transparent 70%)`,
           }}
         />
-        {/* Orbe 2 : Bleu Ciel / Électrique en haut à droite */}
+        {/* Orbe 2 : Haut Droite */}
         <div
           className="absolute top-[8%] -right-[12%] w-[60vw] h-[60vw] rounded-full blur-[150px] pointer-events-none transition-all duration-700"
           style={{
-            background: theme === 'dark'
-              ? 'radial-gradient(circle, rgba(59, 130, 246, 0.35) 0%, rgba(59, 130, 246, 0) 70%)'
-              : 'radial-gradient(circle, rgba(59, 130, 246, 0.20) 0%, rgba(59, 130, 246, 0) 70%)',
+            background: `radial-gradient(circle, ${auroraColors.orb2} 0%, transparent 70%)`,
           }}
         />
-        {/* Orbe 3 : Rose / Magenta en bas au centre */}
+        {/* Orbe 3 : Bas Centre */}
         <div
           className="absolute -bottom-[18%] left-[25%] w-[55vw] h-[55vw] rounded-full blur-[160px] pointer-events-none transition-all duration-700"
           style={{
-            background: theme === 'dark'
-              ? 'radial-gradient(circle, rgba(236, 72, 153, 0.30) 0%, rgba(236, 72, 153, 0) 70%)'
-              : 'radial-gradient(circle, rgba(244, 63, 94, 0.16) 0%, rgba(244, 63, 94, 0) 70%)',
+            background: `radial-gradient(circle, ${auroraColors.orb3} 0%, transparent 70%)`,
           }}
         />
-        {/* Orbe 4 : Cyan Éthéré en bas à droite */}
+        {/* Orbe 4 : Bas Droite */}
         <div
           className="absolute bottom-[2%] -right-[8%] w-[50vw] h-[50vw] rounded-full blur-[130px] pointer-events-none transition-all duration-700"
           style={{
-            background: theme === 'dark'
-              ? 'radial-gradient(circle, rgba(6, 182, 212, 0.28) 0%, rgba(6, 182, 212, 0) 70%)'
-              : 'radial-gradient(circle, rgba(6, 182, 212, 0.16) 0%, rgba(6, 182, 212, 0) 70%)',
+            background: `radial-gradient(circle, ${auroraColors.orb4} 0%, transparent 70%)`,
           }}
         />
       </div>

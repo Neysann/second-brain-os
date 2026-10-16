@@ -33,7 +33,8 @@ export default function RootLayout({
                 if (s) {
                   var p = JSON.parse(s);
                   if (p.accentColor) {
-                    document.documentElement.setAttribute('data-accent', p.accentColor);
+                    var acc = p.accentColor === 'rose' ? 'red' : p.accentColor;
+                    document.documentElement.setAttribute('data-accent', acc);
                   }
                   if (p.theme === 'light') {
                     document.documentElement.classList.remove('dark');
