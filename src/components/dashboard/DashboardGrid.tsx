@@ -208,8 +208,8 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
                 config
               )} ${
                 isEditing
-                  ? 'border-purple-500/50 hover:border-purple-400 bg-white/90 dark:bg-zinc-900/90 shadow-lg ring-1 ring-purple-500/30'
-                  : 'bg-white/80 dark:bg-zinc-900/60 border-zinc-200/90 dark:border-zinc-800/80 hover:border-zinc-300 dark:hover:border-zinc-700/80 shadow-xs'
+                  ? 'border-purple-500/50 hover:border-purple-400 glass-card shadow-lg ring-1 ring-purple-500/30'
+                  : 'glass-card hover:border-zinc-300 dark:hover:border-zinc-700/80 shadow-xs'
               } ${isDraggingThis ? 'opacity-30 scale-95 border-dashed border-purple-400' : ''}`}
             >
               {/* Ligne visuelle violette indiquant l'endroit exact de dépose */}

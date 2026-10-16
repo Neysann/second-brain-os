@@ -555,8 +555,8 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({ isOpen
       <div
         className={`w-full max-w-2xl rounded-2xl shadow-2xl border overflow-hidden flex flex-col max-h-[82vh] transition-all transform animate-in zoom-in-95 duration-150 ${
           theme === 'dark'
-            ? 'bg-zinc-900/95 border-zinc-800 text-zinc-100 shadow-zinc-950/90'
-            : 'bg-white/98 border-zinc-200 text-zinc-900 shadow-2xl shadow-zinc-950/20'
+            ? 'glass-surface border-zinc-800 text-zinc-100 shadow-zinc-950/90'
+            : 'glass-surface border-zinc-200 text-zinc-900 shadow-2xl shadow-zinc-950/20'
         }`}
         onClick={(e) => e.stopPropagation()}
       >

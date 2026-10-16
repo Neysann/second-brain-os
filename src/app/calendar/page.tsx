@@ -473,7 +473,7 @@ export default function CalendarPage() {
       {/* 2. Barre d'outils : Navigation de Mois & Filtres */}
       <div
         className={`p-4 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors ${
-          theme === 'dark' ? 'bg-zinc-900/60 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-xs'
+          theme === 'dark' ? 'glass-card border-zinc-800/80' : 'glass-card border-zinc-200 shadow-xs'
         }`}
       >
         {/* Navigation Mois / Année */}
@@ -561,8 +561,8 @@ export default function CalendarPage() {
           <div
             className={`lg:col-span-8 p-2 sm:p-4 md:p-6 rounded-2xl border transition-all ${
               theme === 'dark'
-                ? 'bg-zinc-900/60 border-zinc-800/80 shadow-md shadow-black/20'
-                : 'bg-white border-zinc-200 shadow-xs'
+                ? 'glass-card border-zinc-800/80 shadow-md shadow-black/20'
+                : 'glass-card border-zinc-200 shadow-xs'
             }`}
           >
             {/* Jours de la semaine */}
@@ -704,8 +704,8 @@ export default function CalendarPage() {
           <div
             className={`lg:col-span-4 p-6 rounded-2xl border space-y-6 transition-all ${
               theme === 'dark'
-                ? 'bg-zinc-900/60 border-zinc-800/80 shadow-md shadow-black/20'
-                : 'bg-white border-zinc-200 shadow-xs'
+                ? 'glass-card border-zinc-800/80 shadow-md shadow-black/20'
+                : 'glass-card border-zinc-200 shadow-xs'
             }`}
           >
             <div>

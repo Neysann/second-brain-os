@@ -29,7 +29,7 @@ import {
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 
-export const CURRENT_VERSION = '2.6.0';
+export const CURRENT_VERSION = '2.6.1';
 
 interface WhatsNewModalProps {
   forceOpen?: boolean;

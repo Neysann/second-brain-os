@@ -299,7 +299,7 @@ export const WidgetDrawer: React.FC<WidgetDrawerProps> = ({
   const isFull = activeWidgetIds.length >= maxWidgets;
 
   return (
-    <div className="fixed inset-y-0 right-0 z-50 w-full max-w-sm sm:max-w-md bg-white/95 dark:bg-zinc-950/98 border-l border-zinc-200 dark:border-zinc-800 backdrop-blur-2xl shadow-2xl flex flex-col animate-in slide-in-from-right duration-250 select-none">
+    <div className="fixed inset-y-0 right-0 z-50 w-full max-w-sm sm:max-w-md glass-surface border-l shadow-2xl flex flex-col animate-in slide-in-from-right duration-250 select-none">
       {/* 1. En-tête */}
       <div className="p-4 sm:p-5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
         <div>

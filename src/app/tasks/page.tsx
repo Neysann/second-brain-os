@@ -383,8 +383,8 @@ export default function TasksPage() {
                 className={`rounded-2xl border p-4 flex flex-col min-h-[500px]
                   ${
                     theme === 'dark'
-                      ? 'bg-zinc-900/50 border-zinc-800/80 shadow-md shadow-black/20'
-                      : 'bg-zinc-100/60 border-zinc-200 shadow-sm'
+                      ? 'glass-surface border-zinc-800/80 shadow-md shadow-black/20'
+                      : 'glass-surface border-zinc-200 shadow-sm'
                   }`}
               >
                 {/* En-tête de la colonne */}
@@ -419,12 +419,7 @@ export default function TasksPage() {
                       return (
                         <div
                           key={task.id}
-                          className={`p-4 rounded-xl border transition-all group hover:border-indigo-500/40 cursor-pointer
-                            ${
-                              theme === 'dark'
-                                ? 'bg-zinc-950/80 hover:bg-zinc-900 border-zinc-800/80 shadow-sm'
-                                : 'bg-white hover:bg-zinc-50 border-zinc-200 shadow-sm'
-                            }`}
+                          className="p-4 rounded-xl border transition-all group glass-card hover:border-indigo-500/40 cursor-pointer shadow-sm"
                           onClick={() => openEditTask(task)}
                         >
                           <div className="flex items-start justify-between gap-2 mb-2">
@@ -533,8 +528,8 @@ export default function TasksPage() {
           className={`rounded-2xl border overflow-hidden
             ${
               theme === 'dark'
-                ? 'bg-zinc-900/60 border-zinc-800/80 shadow-md'
-                : 'bg-white border-zinc-200 shadow-sm'
+                ? 'glass-card border-zinc-800/80 shadow-md'
+                : 'glass-card border-zinc-200 shadow-sm'
             }`}
         >
           {filteredTasks.length === 0 ? (

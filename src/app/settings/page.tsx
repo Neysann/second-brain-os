@@ -475,8 +475,8 @@ export default function SettingsPage() {
         const isReduced = Boolean(settings.reduceTransparency);
         const effectiveTrans = isReduced ? 0 : transparency;
         const blurPx = isReduced ? 0 : Math.round((effectiveTrans / 45) * 20);
-        const alpha = isReduced ? 1 : 1 - (effectiveTrans / 100);
-        const cardAlpha = isReduced ? 1 : Math.min(1, 1 - (effectiveTrans * 0.45 / 100));
+        const alpha = isReduced ? 1 : Math.max(0.45, 1 - (effectiveTrans / 100));
+        const cardAlpha = isReduced ? 1 : Math.max(0.55, 1 - (effectiveTrans * 0.75 / 100));
         const activeAccent = ACCENT_OPTIONS.find((c) => c.id === settings.accentColor) || ACCENT_OPTIONS[0];
         const activeAccentHex = activeAccent.hex;
         const previewIsDark = effectiveTheme === 'dark';

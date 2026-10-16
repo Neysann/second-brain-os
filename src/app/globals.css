@@ -16,7 +16,7 @@
     --glass-blur: 16px;
     --glass-blur-raw: 16;
     --glass-surface-bg: rgba(255, 255, 255, 0.65);
-    --glass-card-bg: rgba(255, 255, 255, 0.85);
+    --glass-card-bg: rgba(255, 255, 255, 0.75);
     --glass-border: rgba(0, 0, 0, 0.08);
     --glass-accent-border: rgba(139, 92, 246, 0.18);
     --accent-rgb: 139, 92, 246;
@@ -32,7 +32,7 @@
 
     /* Liquid Glass / Surface Translucency Tokens Dark (V2.6) */
     --glass-surface-bg: rgba(18, 18, 24, 0.65);
-    --glass-card-bg: rgba(24, 24, 27, 0.85);
+    --glass-card-bg: rgba(24, 24, 27, 0.75);
     --glass-border: rgba(255, 255, 255, 0.09);
     --glass-accent-border: rgba(139, 92, 246, 0.22);
   }
@@ -1697,16 +1697,25 @@ html.neon-none .bg-gradient-to-br.from-purple-900\/30 {
 
 .glass-surface {
   background-color: var(--glass-surface-bg) !important;
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  border-color: var(--glass-border);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%) !important;
+  border-color: var(--glass-border) !important;
 }
 
 .glass-card {
   background-color: var(--glass-card-bg) !important;
-  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.75)) saturate(160%);
-  backdrop-filter: blur(calc(var(--glass-blur) * 0.75)) saturate(160%);
-  border-color: var(--glass-border);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.75)) saturate(160%) !important;
+  backdrop-filter: blur(calc(var(--glass-blur) * 0.75)) saturate(160%) !important;
+  border-color: var(--glass-border) !important;
+}
+
+.glass-card-hover {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-hover:hover {
+  border-color: var(--glass-accent-border) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 0 15px -3px var(--accent-glow) !important;
 }
 
 .glass-border-accent {

@@ -215,8 +215,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     root.style.setProperty('--glass-blur', `${effectiveBlur}px`);
     root.style.setProperty('--glass-blur-raw', `${effectiveBlur}`);
 
-    const alpha = 1 - (effectiveTransparency / 100);
-    const cardAlpha = Math.min(1, 1 - (effectiveTransparency * 0.45 / 100));
+    const alpha = isReduced ? 1 : Math.max(0.45, 1 - (effectiveTransparency / 100));
+    const cardAlpha = isReduced ? 1 : Math.max(0.55, 1 - (effectiveTransparency * 0.75 / 100));
 
     if (effectiveTheme === 'dark') {
       const isOled = settings.darkBgStyle === 'oled';

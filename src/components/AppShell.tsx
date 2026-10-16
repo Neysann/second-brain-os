@@ -247,10 +247,56 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   return (
     <div
-      className={`flex h-screen w-screen overflow-hidden ${
+      className={`flex h-screen w-screen overflow-hidden relative ${
         theme === 'dark' ? 'bg-zinc-950 text-zinc-100' : 'bg-zinc-50 text-zinc-900'
       }`}
     >
+      {/* 0. Fond d'ambiance Aurora / Mesh Gradient immersif Liquid Glass (macOS / iOS) */}
+      <div
+        className="fixed inset-0 pointer-events-none overflow-hidden z-0 transition-opacity duration-700 select-none"
+        style={{
+          opacity: settings.reduceTransparency ? 0 : 0.85,
+        }}
+        aria-hidden="true"
+      >
+        {/* Orbe 1 : Violet / Accent en haut à gauche */}
+        <div
+          className="absolute -top-[12%] -left-[10%] w-[65vw] h-[65vw] rounded-full blur-[140px] pointer-events-none transition-all duration-700"
+          style={{
+            background: theme === 'dark'
+              ? 'radial-gradient(circle, rgba(139, 92, 246, 0.40) 0%, rgba(139, 92, 246, 0) 70%)'
+              : 'radial-gradient(circle, rgba(168, 85, 247, 0.22) 0%, rgba(168, 85, 247, 0) 70%)',
+          }}
+        />
+        {/* Orbe 2 : Bleu Ciel / Électrique en haut à droite */}
+        <div
+          className="absolute top-[8%] -right-[12%] w-[60vw] h-[60vw] rounded-full blur-[150px] pointer-events-none transition-all duration-700"
+          style={{
+            background: theme === 'dark'
+              ? 'radial-gradient(circle, rgba(59, 130, 246, 0.35) 0%, rgba(59, 130, 246, 0) 70%)'
+              : 'radial-gradient(circle, rgba(59, 130, 246, 0.20) 0%, rgba(59, 130, 246, 0) 70%)',
+          }}
+        />
+        {/* Orbe 3 : Rose / Magenta en bas au centre */}
+        <div
+          className="absolute -bottom-[18%] left-[25%] w-[55vw] h-[55vw] rounded-full blur-[160px] pointer-events-none transition-all duration-700"
+          style={{
+            background: theme === 'dark'
+              ? 'radial-gradient(circle, rgba(236, 72, 153, 0.30) 0%, rgba(236, 72, 153, 0) 70%)'
+              : 'radial-gradient(circle, rgba(244, 63, 94, 0.16) 0%, rgba(244, 63, 94, 0) 70%)',
+          }}
+        />
+        {/* Orbe 4 : Cyan Éthéré en bas à droite */}
+        <div
+          className="absolute bottom-[2%] -right-[8%] w-[50vw] h-[50vw] rounded-full blur-[130px] pointer-events-none transition-all duration-700"
+          style={{
+            background: theme === 'dark'
+              ? 'radial-gradient(circle, rgba(6, 182, 212, 0.28) 0%, rgba(6, 182, 212, 0) 70%)'
+              : 'radial-gradient(circle, rgba(6, 182, 212, 0.16) 0%, rgba(6, 182, 212, 0) 70%)',
+          }}
+        />
+      </div>
+
       {/* Sidebar de navigation latérale (Écrans Desktop et Tablettes >= md) */}
       <Sidebar
         onOpenSearch={() => setIsSearchOpen(true)}
@@ -258,7 +304,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       />
 
       {/* Conteneur principal */}
-      <div className="flex-1 h-screen flex flex-col overflow-hidden relative">
+      <div className="flex-1 h-screen flex flex-col overflow-hidden relative z-10">
         {/* Barre d'en-tête mobile (< md) */}
         <header
           className={`flex md:hidden items-center justify-between px-3 sm:px-4 py-2 border-b z-20 select-none flex-shrink-0

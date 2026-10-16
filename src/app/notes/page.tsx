@@ -1385,8 +1385,8 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
         } flex-col border-r h-full overflow-hidden transition-all duration-200
           ${
             theme === 'dark'
-              ? 'bg-zinc-900/60 border-zinc-800/80 text-zinc-200'
-              : 'bg-zinc-50 border-zinc-200 text-zinc-800'
+              ? 'glass-surface border-zinc-800/80 text-zinc-200'
+              : 'glass-surface border-zinc-200 text-zinc-800'
           }`}
       >
         {/* En-tête volet gauche & Actions rapides */}
@@ -1865,7 +1865,7 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
             {/* Barre de Contrôles & Métadonnées supérieures — Ligne Unique Épurée */}
             <div
               className={`px-3 md:px-4 py-2 border-b flex items-center justify-between gap-1.5 md:gap-2.5 transition-colors ${
-                theme === 'dark' ? 'border-zinc-800/80 bg-zinc-950/60' : 'border-zinc-200 bg-white/80'
+                theme === 'dark' ? 'glass-surface border-zinc-800/80' : 'glass-surface border-zinc-200'
               }`}
             >
               {/* Gauche : Navigation retour / Dossiers & Sélecteur */}

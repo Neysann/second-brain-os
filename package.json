@@ -1,6 +1,6 @@
 {
   "name": "syntropy-os",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "build:win": "node scripts/convert-icons.js && next build && electron-builder --win nsis && powershell -NoProfile -Command \"Copy-Item -Path 'dist/Syntropy-OS-Setup-*.exe' -Destination 'public/' -Force; Copy-Item -Path 'dist/Syntropy-OS-Setup-*.exe' -Destination 'second-brain-os/public/' -Force\"",
     "start": "next start",
     "deploy": "next build && npx firebase-tools deploy --only hosting",
-    "release:tag": "powershell -Command \"$ver = (Get-Content package.json | ConvertFrom-Json).version; git tag -a \\\"v$ver\\\" -m \\\"Release v$ver\\\"; git push origin \\\"v$ver\\\"\"",
+    "release:tag": "node scripts/release-tag.js",
     "lint": "eslint"
   },
   "dependencies": {

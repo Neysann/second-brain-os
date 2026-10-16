@@ -180,7 +180,7 @@ export default function DashboardPage() {
                 window.dispatchEvent(new CustomEvent('open-command-palette'));
               }
             }}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-850 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300 transition-colors shadow-xs cursor-pointer group"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl glass-card hover:border-purple-500/40 text-xs font-semibold text-zinc-700 dark:text-zinc-300 transition-all shadow-xs cursor-pointer group"
             title="Ouvrir la palette universelle (Ctrl+K)"
           >
             <Search className="w-3.5 h-3.5 text-indigo-500 group-hover:scale-110 transition-transform" />
@@ -191,7 +191,7 @@ export default function DashboardPage() {
           </button>
 
           {/* Compteur de widgets */}
-          <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-600 dark:text-zinc-400 font-mono shadow-xs">
+          <div className="px-3 py-1.5 rounded-xl glass-card text-xs text-zinc-600 dark:text-zinc-400 font-mono shadow-xs">
             <span className="text-zinc-900 dark:text-zinc-200 font-bold">{widgets.length}</span>
             <span> / {MAX_WIDGETS} widgets</span>
           </div>
@@ -203,7 +203,7 @@ export default function DashboardPage() {
             className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 shadow-sm ${
               isEditing
                 ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-purple-600/30 ring-1 ring-purple-400'
-                : 'bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-850 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-200'
+                : 'glass-card hover:border-purple-500/40 text-zinc-700 dark:text-zinc-200'
             }`}
           >
             <SlidersHorizontal className="w-4 h-4 text-purple-600 dark:text-purple-400" />
