@@ -33,7 +33,20 @@ jobs:
       - name: Build Next.js Web App
         run: npm run build
 
-      - name: Build & Publish Release to GitHub
+      - name: Build Windows Executable
+        run: npx electron-builder --win nsis
+
+      - name: Publish Release to GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Syntropy OS ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            dist/*.exe
+            dist/latest.yml
+            dist/*.blockmap
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-builder --win nsis --publish always
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
