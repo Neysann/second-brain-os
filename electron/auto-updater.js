@@ -16,6 +16,17 @@ function setupAutoUpdater(mainWindow, getAppIcon) {
   autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.allowPrerelease = false;
 
+  // Configuration explicite et robuste du canal GitHub Releases
+  try {
+    autoUpdater.setFeedURL({
+      provider: 'github',
+      owner: 'Neysann',
+      repo: 'second-brain-os',
+    });
+  } catch (err) {
+    console.warn('[AutoUpdater] Avertissement setFeedURL:', err?.message || err);
+  }
+
   // Journalisation des étapes dans la console
   autoUpdater.logger = console;
 
