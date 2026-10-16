@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import {
   AppSettings,
   ThemeSetting,
@@ -43,13 +43,16 @@ export const DEFAULT_SETTINGS: AppSettings = {
 
   greetingName: '',
   showQuotesWidget: false,
+
+  surfaceTransparency: 35,
+  reduceTransparency: false,
 };
 
 interface SettingsContextType {
   settings: AppSettings;
   effectiveTheme: ThemeMode;
-  updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void;
-  updateMultipleSettings: (partial: Partial<AppSettings>) => void;
+  updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K], debounceCloud?: boolean) => void;
+  updateMultipleSettings: (partial: Partial<AppSettings>, debounceCloud?: boolean) => void;
   resetSettings: () => void;
   toggleTheme: () => void;
 }
@@ -199,23 +202,105 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     body.classList.remove('neon-vibrant', 'neon-subtle', 'neon-none');
     root.classList.add(`neon-${neon}`);
     body.classList.add(`neon-${neon}`);
-  }, [effectiveTheme, settings.accentColor, settings.darkBgStyle, settings.neonIntensity, settings.typography, settings.density]);
+
+    // G. Transparence des surfaces (Liquid Glass - V2.6)
+    const rawTransparency = typeof settings.surfaceTransparency === 'number' ? settings.surfaceTransparency : 35;
+    const isReduced = Boolean(settings.reduceTransparency);
+
+    // Si « Réduire les effets de transparence » est activé, surfaces opaques (0%) et flou désactivé (0px)
+    const effectiveTransparency = isReduced ? 0 : Math.max(0, Math.min(45, rawTransparency));
+    const effectiveBlur = isReduced ? 0 : Math.round((effectiveTransparency / 45) * 20);
+
+    root.style.setProperty('--glass-transparency', `${effectiveTransparency}%`);
+    root.style.setProperty('--glass-blur', `${effectiveBlur}px`);
+    root.style.setProperty('--glass-blur-raw', `${effectiveBlur}`);
+
+    const alpha = 1 - (effectiveTransparency / 100);
+    const cardAlpha = Math.min(1, 1 - (effectiveTransparency * 0.45 / 100));
+
+    if (effectiveTheme === 'dark') {
+      const isOled = settings.darkBgStyle === 'oled';
+      const baseRgb = isOled ? '0, 0, 0' : '18, 18, 24';
+      const cardRgb = isOled ? '10, 10, 12' : '24, 24, 27';
+      root.style.setProperty('--glass-surface-bg', `rgba(${baseRgb}, ${alpha})`);
+      root.style.setProperty('--glass-card-bg', `rgba(${cardRgb}, ${cardAlpha})`);
+      root.style.setProperty('--glass-border', `rgba(255, 255, 255, ${0.08 + (effectiveTransparency / 100) * 0.08})`);
+    } else {
+      root.style.setProperty('--glass-surface-bg', `rgba(255, 255, 255, ${alpha})`);
+      root.style.setProperty('--glass-card-bg', `rgba(255, 255, 255, ${cardAlpha})`);
+      root.style.setProperty('--glass-border', `rgba(0, 0, 0, ${0.06 + (effectiveTransparency / 100) * 0.04})`);
+    }
+
+    const accentRgbMap: Record<string, string> = {
+      purple: '139, 92, 246',
+      aether: '168, 85, 247',
+      cyan: '6, 182, 212',
+      emerald: '16, 185, 129',
+      amber: '245, 158, 11',
+      rose: '244, 63, 94',
+      monochrome: '228, 228, 231',
+    };
+    const accentRgb = accentRgbMap[accent] || '139, 92, 246';
+    root.style.setProperty('--accent-rgb', accentRgb);
+    root.style.setProperty('--glass-accent-border', `rgba(${accentRgb}, ${0.12 + (effectiveTransparency / 100) * 0.15})`);
+  }, [
+    effectiveTheme,
+    settings.accentColor,
+    settings.darkBgStyle,
+    settings.neonIntensity,
+    settings.typography,
+    settings.density,
+    settings.surfaceTransparency,
+    settings.reduceTransparency,
+  ]);
+
+  // Ref pour le debounce de la sauvegarde Firestore
+  const firestoreTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (firestoreTimeoutRef.current) {
+        clearTimeout(firestoreTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // 6. Sauvegarde des modifications
   const persistSettings = useCallback(
-    async (newSettings: AppSettings) => {
+    (newSettings: AppSettings, debounceCloud: boolean = true) => {
       setSettings(newSettings);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(newSettings));
         localStorage.setItem('second_brain_theme', newSettings.theme === 'auto' ? (systemIsDark ? 'dark' : 'light') : newSettings.theme);
         localStorage.setItem('syntropy_dark_bg_style', newSettings.darkBgStyle || 'zinc');
         localStorage.setItem('syntropy_neon_intensity', newSettings.neonIntensity || 'vibrant');
+        if (newSettings.surfaceTransparency !== undefined) {
+          localStorage.setItem('syntropy_surface_transparency', String(newSettings.surfaceTransparency));
+        }
+        if (newSettings.reduceTransparency !== undefined) {
+          localStorage.setItem('syntropy_reduce_transparency', String(newSettings.reduceTransparency));
+        }
 
-        // Sauvegarde Cloud Firestore si connecté
+        // Sauvegarde Cloud Firestore avec temporisation (debounce) pour éviter d'envoyer une requête à chaque frame du slider
         if (user && isFirebaseConfigured && db) {
+          if (firestoreTimeoutRef.current) {
+            clearTimeout(firestoreTimeoutRef.current);
+          }
           const firestore = db;
-          const ref = doc(firestore, 'users', user.uid, 'settings', 'general');
-          await setDoc(ref, newSettings, { merge: true });
+          const saveCloud = async () => {
+            try {
+              const ref = doc(firestore, 'users', user.uid, 'settings', 'general');
+              await setDoc(ref, newSettings, { merge: true });
+            } catch (err) {
+              console.error('Erreur lors de la sauvegarde des paramètres dans Firestore:', err);
+            }
+          };
+
+          if (debounceCloud) {
+            firestoreTimeoutRef.current = setTimeout(saveCloud, 700);
+          } else {
+            saveCloud();
+          }
         }
       } catch (err) {
         console.error('Erreur lors de la sauvegarde des paramètres:', err);
@@ -225,21 +310,27 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 
   const updateSetting = useCallback(
-    <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
-      persistSettings({
-        ...settings,
-        [key]: value,
-      });
+    <K extends keyof AppSettings>(key: K, value: AppSettings[K], debounceCloud?: boolean) => {
+      persistSettings(
+        {
+          ...settings,
+          [key]: value,
+        },
+        debounceCloud !== undefined ? debounceCloud : key === 'surfaceTransparency'
+      );
     },
     [settings, persistSettings]
   );
 
   const updateMultipleSettings = useCallback(
-    (partial: Partial<AppSettings>) => {
-      persistSettings({
-        ...settings,
-        ...partial,
-      });
+    (partial: Partial<AppSettings>, debounceCloud?: boolean) => {
+      persistSettings(
+        {
+          ...settings,
+          ...partial,
+        },
+        debounceCloud !== undefined ? debounceCloud : partial.surfaceTransparency !== undefined
+      );
     },
     [settings, persistSettings]
   );

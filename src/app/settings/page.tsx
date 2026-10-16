@@ -39,6 +39,20 @@ import {
   Server,
   ShieldAlert,
   Compass,
+  EyeOff,
+  Ban,
+  MapPin,
+  CloudSun,
+  Folder,
+  Flame,
+  Wallet,
+  Brain,
+  Search,
+  Plus,
+  UserCheck,
+  Archive,
+  ChevronRight,
+  LayoutDashboard,
 } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { useData } from '@/context/DataContext';
@@ -99,14 +113,14 @@ const NEON_INTENSITY_OPTIONS: {
   },
 ];
 
-const ACCENT_OPTIONS: { id: AccentColor; name: string; hex: string; desc: string }[] = [
-  { id: 'purple', name: 'Violet Synaptique', hex: '#8b5cf6', desc: 'Ambiance néon cyberpunk classique Syntropy' },
-  { id: 'aether', name: 'Aether Céleste', hex: '#a855f7', desc: 'Dégradé cyan céleste vers violet néon iridescent (Aether UI)' },
-  { id: 'cyan', name: 'Cyan Électrique', hex: '#06b6d4', desc: 'Énergique et haute clarté visuelle' },
-  { id: 'emerald', name: 'Vert Émeraude', hex: '#10b981', desc: 'Concentration, sérénité & productivité' },
-  { id: 'amber', name: 'Orange Ambre', hex: '#f59e0b', desc: 'Chaleureux, dynamique et stimulant' },
-  { id: 'rose', name: 'Rose Magenta', hex: '#f43f5e', desc: 'Vibrant, audacieux et créatif' },
-  { id: 'monochrome', name: 'Blanc Minimaliste', hex: '#e4e4e7', desc: 'Épuré, sobre et focalisé sur le contenu' },
+const ACCENT_OPTIONS: { id: AccentColor; name: string; shortName: string; hex: string; desc: string }[] = [
+  { id: 'purple', name: 'Violet Synaptique', shortName: 'Violet', hex: '#8b5cf6', desc: 'Ambiance néon cyberpunk classique Syntropy' },
+  { id: 'cyan', name: 'Bleu Cyan', shortName: 'Bleu', hex: '#3b82f6', desc: 'Énergique et haute clarté visuelle' },
+  { id: 'emerald', name: 'Vert Émeraude', shortName: 'Vert', hex: '#10b981', desc: 'Concentration, sérénité & productivité' },
+  { id: 'amber', name: 'Orange Ambre', shortName: 'Ambre', hex: '#f59e0b', desc: 'Chaleureux, dynamique et stimulant' },
+  { id: 'rose', name: 'Rose Magenta', shortName: 'Rose', hex: '#ec4899', desc: 'Vibrant, audacieux et créatif' },
+  { id: 'monochrome', name: 'Monochrome Minimaliste', shortName: 'Monochrome', hex: '#6b7280', desc: 'Épuré, sobre et focalisé sur le contenu' },
+  { id: 'aether', name: 'Aether Céleste', shortName: 'Aether', hex: '#a855f7', desc: 'Dégradé cyan céleste vers violet néon iridescent (Aether UI)' },
 ];
 
 const DARK_BG_OPTIONS: { id: DarkBgStyle; name: string; hex: string; desc: string; badge: string }[] = [
@@ -454,540 +468,1073 @@ export default function SettingsPage() {
       </div>
 
       {/* ======================================================== */}
-      {/* 1. APPARENCE & PERSONNALISATION                          */}
+      {/* 1. APPARENCE & PERSONNALISATION (V2.6 Liquid Glass UI)    */}
       {/* ======================================================== */}
-      {activeTab === 'appearance' && (
-        <div className="space-y-8 animate-in fade-in duration-200">
-          {/* A. Mode de Thème */}
-          <div className={`p-6 rounded-3xl border space-y-4 transition-colors ${
-            isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
-          }`}>
-            <div>
-              <h2 className={`text-base font-bold flex items-center gap-2 ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                <Sun className="w-4 h-4 text-amber-500" />
-                Mode de thème
-              </h2>
-              <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                Définissez l'ambiance lumineuse générale ou synchronisez-la sur votre système d'exploitation.
-              </p>
-            </div>
+      {activeTab === 'appearance' && (() => {
+        const transparency = typeof settings.surfaceTransparency === 'number' ? settings.surfaceTransparency : 35;
+        const isReduced = Boolean(settings.reduceTransparency);
+        const effectiveTrans = isReduced ? 0 : transparency;
+        const blurPx = isReduced ? 0 : Math.round((effectiveTrans / 45) * 20);
+        const alpha = isReduced ? 1 : 1 - (effectiveTrans / 100);
+        const cardAlpha = isReduced ? 1 : Math.min(1, 1 - (effectiveTrans * 0.45 / 100));
+        const activeAccent = ACCENT_OPTIONS.find((c) => c.id === settings.accentColor) || ACCENT_OPTIONS[0];
+        const activeAccentHex = activeAccent.hex;
+        const previewIsDark = effectiveTheme === 'dark';
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {[
-                { id: 'dark' as ThemeSetting, label: 'Sombre', icon: Moon, desc: 'Contraste reposant pour les yeux' },
-                { id: 'light' as ThemeSetting, label: 'Clair', icon: Sun, desc: 'Haute clarté en environnement lumineux' },
-                { id: 'auto' as ThemeSetting, label: 'Automatique', icon: Laptop, desc: 'Suit les réglages de votre appareil' },
-              ].map((item) => {
-                const Icon = item.icon;
-                const isSelected = settings.theme === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      updateSetting('theme', item.id);
-                      showNotification(`Thème réglé sur "${item.label}"`);
-                    }}
-                    className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer relative ${
-                      isSelected
-                        ? isDark
-                          ? 'bg-purple-500/15 border-purple-500 ring-2 ring-purple-500/30'
-                          : 'bg-purple-50 border-purple-500 ring-2 ring-purple-500/30 shadow-sm'
-                        : isDark
-                        ? 'bg-zinc-950/40 border-zinc-800/80 hover:border-zinc-700 text-zinc-300'
-                        : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300 text-zinc-800 hover:bg-zinc-100/60'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className={`p-2.5 rounded-xl ${
-                        isSelected
-                          ? 'bg-purple-600 text-white'
-                          : isDark
-                          ? 'bg-zinc-800 text-zinc-400'
-                          : 'bg-zinc-200 text-zinc-700'
-                      }`}>
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      {isSelected && <Check className="w-4 h-4 text-purple-600 dark:text-purple-400" />}
-                    </div>
-                    <div className="mt-4">
-                      <span className={`font-semibold text-sm block ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                        {item.label}
-                      </span>
-                      <span className={`text-[11px] block mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                        {item.desc}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+        const MAIN_ACCENTS = ACCENT_OPTIONS.filter((c) => c.id !== 'aether');
 
-          {/* B. Couleur d'accentuation */}
-          <div className={`p-6 rounded-3xl border space-y-4 transition-colors ${
-            isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
-          }`}>
-            <div>
-              <h2 className={`text-base font-bold flex items-center gap-2 ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                Couleur d'accentuation (Palette Néon)
-              </h2>
-              <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                Personnalise les boutons actifs, pastilles de statut, bordures néon et barres de progression.
-              </p>
-            </div>
+        return (
+          <div className="space-y-8 animate-in fade-in duration-200">
+            {/* Grille principale en 2 colonnes (Référence Visuelle V2.6) */}
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+              {/* =================================================== */}
+              {/* COLONNE GAUCHE (Contrôles et réglages)              */}
+              {/* =================================================== */}
+              <div className="xl:col-span-5 space-y-5">
+                {/* 1. Mode de thème */}
+                <div className={`p-5 rounded-3xl border space-y-4 transition-colors ${
+                  isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
+                }`}>
+                  <div>
+                    <h2 className={`text-sm font-bold flex items-center gap-2 ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+                      <Sun className="w-4 h-4 text-purple-400" />
+                      Mode de thème
+                    </h2>
+                    <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                      Choisissez l'apparence générale de l'application.
+                    </p>
+                  </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {ACCENT_OPTIONS.map((color) => {
-                const isSelected = settings.accentColor === color.id;
-                return (
-                  <button
-                    key={color.id}
-                    onClick={() => {
-                      updateSetting('accentColor', color.id);
-                      showNotification(`Palette d'accentuation réglée sur "${color.name}"`);
-                    }}
-                    style={
-                      isSelected
-                        ? {
-                            borderColor: color.hex,
-                            boxShadow:
-                              (settings.neonIntensity || 'vibrant') === 'none'
-                                ? 'none'
-                                : (settings.neonIntensity || 'vibrant') === 'subtle'
-                                ? `0 0 8px ${color.hex}25`
-                                : `0 0 20px ${color.hex}35`,
-                            backgroundColor: isDark ? `${color.hex}15` : `${color.hex}10`,
-                          }
-                        : undefined
-                    }
-                    className={`p-4 rounded-2xl border text-left flex items-start gap-3.5 transition-all cursor-pointer relative ${
-                      isSelected
-                        ? 'ring-2'
-                        : isDark
-                        ? 'bg-zinc-950/40 border-zinc-800/80 hover:border-zinc-700'
-                        : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100/60'
-                    }`}
-                  >
-                    <span
-                      className="w-6 h-6 rounded-full flex-shrink-0 shadow-md ring-2 ring-white/20 mt-0.5 relative flex items-center justify-center overflow-hidden"
-                      style={{
-                        background: color.id === 'aether'
-                          ? 'linear-gradient(135deg, #00d2ff 0%, #6366f1 45%, #a855f7 80%, #9333ea 100%)'
-                          : color.hex,
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {/* Carte Sombre */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateSetting('theme', 'dark');
+                        showNotification('Thème Sombre activé');
                       }}
+                      className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer relative flex flex-col justify-between ${
+                        settings.theme === 'dark'
+                          ? isDark
+                            ? 'ring-2 border-purple-500 bg-purple-500/10'
+                            : 'ring-2 border-purple-500 bg-purple-50'
+                          : isDark
+                          ? 'bg-zinc-950/40 border-zinc-800/80 hover:border-zinc-700'
+                          : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300'
+                      }`}
+                      style={settings.theme === 'dark' ? { borderColor: activeAccentHex } : undefined}
                     >
-                      {isSelected && (settings.neonIntensity || 'vibrant') !== 'none' && (
-                        <span
-                          className={`absolute -inset-1 rounded-full pointer-events-none ${
-                            (settings.neonIntensity || 'vibrant') === 'subtle'
-                              ? 'opacity-25 animate-pulse'
-                              : 'opacity-40 animate-ping'
-                          }`}
-                          style={{
-                            background: color.id === 'aether'
-                              ? 'linear-gradient(135deg, #00d2ff 0%, #a855f7 100%)'
-                              : color.hex,
-                          }}
-                        />
-                      )}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className={`font-semibold text-sm truncate ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                          {color.name}
-                        </span>
-                        {isSelected && (
+                      <div className="w-full h-14 rounded-xl bg-zinc-950 border border-zinc-800 p-1.5 flex gap-1 overflow-hidden mb-2 relative">
+                        <div className="w-1/3 h-full rounded-md bg-zinc-900 border border-zinc-800/80 p-0.5 flex flex-col gap-0.5">
+                          <div className="w-3 h-1 rounded" style={{ backgroundColor: activeAccentHex }} />
+                          <div className="w-full h-1 rounded bg-zinc-800" />
+                          <div className="w-3/4 h-1 rounded bg-zinc-800" />
+                        </div>
+                        <div className="flex-1 h-full rounded-md bg-zinc-900/50 p-1 flex flex-col gap-1">
+                          <div className="w-1/2 h-1 rounded bg-zinc-700" />
+                          <div className="w-full h-1.5 rounded bg-zinc-800/80" />
+                          <div className="w-4/5 h-1.5 rounded bg-zinc-800/80" />
+                        </div>
+                        {settings.theme === 'dark' && (
                           <div
-                            className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                            style={{ backgroundColor: color.hex }}
+                            className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full flex items-center justify-center text-white shadow-sm"
+                            style={{ backgroundColor: activeAccentHex }}
                           >
-                            <Check
-                              className="w-3.5 h-3.5"
-                              style={{ color: color.id === 'monochrome' ? '#09090b' : '#ffffff' }}
-                            />
+                            <Check className="w-2.5 h-2.5 stroke-[3]" />
                           </div>
                         )}
                       </div>
-                      <span className={`text-[11px] block mt-0.5 line-clamp-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                        {color.desc}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Studio de Démonstration en Direct (Live Accent Studio) */}
-            <div className={`mt-4 p-5 rounded-2xl border space-y-3 transition-colors ${
-              isDark ? 'bg-zinc-950/60 border-zinc-800/80' : 'bg-zinc-50 border-zinc-200'
-            }`}>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <span className={`text-xs font-semibold uppercase tracking-wider flex items-center gap-2 ${
-                  isDark ? 'text-zinc-400' : 'text-zinc-600'
-                }`}>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Aperçu en direct (Couleur & Effet Néon)
-                </span>
-                <span className={`text-[11px] font-mono ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                  Palette : <span className={`font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-900'}`}>{ACCENT_OPTIONS.find((c) => c.id === settings.accentColor)?.name}</span> • Néon : <span className={`font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-900'}`}>{NEON_INTENSITY_OPTIONS.find((n) => n.id === (settings.neonIntensity || 'vibrant'))?.name}</span>
-                </span>
-              </div>
-              <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                Chaque élément ci-dessous s'adapte instantanément à la couleur et à l'intensité néon choisie :
-              </p>
-              <div className="flex flex-wrap items-center gap-3 pt-1">
-                <button
-                  type="button"
-                  style={
-                    (settings.neonIntensity || 'vibrant') === 'none'
-                      ? { boxShadow: 'none' }
-                      : (settings.neonIntensity || 'vibrant') === 'subtle'
-                      ? { boxShadow: '0 4px 10px -2px rgba(0, 0, 0, 0.25)' }
-                      : undefined
-                  }
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white shadow-md shadow-purple-600/30 transition-all cursor-pointer flex items-center gap-2"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Bouton Actif Principal</span>
-                </button>
-
-                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
-                  (settings.neonIntensity || 'vibrant') === 'none'
-                    ? 'border-purple-500/25 bg-purple-500/10 text-purple-600 dark:text-purple-400'
-                    : (settings.neonIntensity || 'vibrant') === 'subtle'
-                    ? 'border-purple-500/35 bg-purple-500/10 text-purple-600 dark:text-purple-400'
-                    : 'border-purple-500/50 bg-purple-500/15 text-purple-600 dark:text-purple-400'
-                }`}>
-                  {(settings.neonIntensity || 'vibrant') !== 'none' && (
-                    <span className={`w-2 h-2 rounded-full bg-purple-500 flex-shrink-0 ${
-                      (settings.neonIntensity || 'vibrant') === 'subtle' ? 'opacity-30' : 'animate-ping'
-                    }`} />
-                  )}
-                  <span>Statut & Badge Néon</span>
-                </div>
-
-                <div className={`px-3 py-1.5 rounded-xl border text-xs font-semibold text-purple-600 dark:text-purple-400 ${
-                  isDark ? 'border-zinc-800 bg-zinc-900/80' : 'border-zinc-200 bg-white shadow-sm'
-                }`}>
-                  Texte Accent
-                </div>
-
-                <div className="p-2 rounded-xl border border-purple-500/40 bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                  <Palette className="w-4 h-4" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* C. Intensité de l'effet néon & Luminescence (Glow) */}
-          <div className={`p-6 rounded-3xl border space-y-4 transition-colors ${
-            isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
-          }`}>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <div>
-                <h2 className={`text-base font-bold flex items-center gap-2 ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                  <Zap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  Intensité de l'effet néon & Luminescence (Glow)
-                </h2>
-                <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                  Ajustez les halos lumineux, reflets et ombres colorées pour reposer vos yeux ou épurer l'interface.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className={`text-[11px] font-mono px-2.5 py-1 rounded-full border ${
-                  settings.neonIntensity === 'none'
-                    ? 'border-zinc-700 bg-zinc-800/60 text-zinc-300'
-                    : settings.neonIntensity === 'subtle'
-                    ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-400'
-                    : 'border-purple-500/40 bg-purple-500/15 text-purple-400 font-bold'
-                }`}>
-                  Actuel : {NEON_INTENSITY_OPTIONS.find((n) => n.id === (settings.neonIntensity || 'vibrant'))?.name}
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-              {NEON_INTENSITY_OPTIONS.map((opt) => {
-                const Icon = opt.icon;
-                const isSelected = (settings.neonIntensity || 'vibrant') === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    onClick={() => {
-                      updateSetting('neonIntensity', opt.id);
-                      showNotification(`Effet néon réglé sur "${opt.name}"`);
-                    }}
-                    className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer relative ${
-                      isSelected
-                        ? isDark
-                          ? 'bg-purple-500/15 border-purple-500 ring-2 ring-purple-500/30'
-                          : 'bg-purple-50 border-purple-500 ring-2 ring-purple-500/30 shadow-sm'
-                        : isDark
-                        ? 'bg-zinc-950/40 border-zinc-800/80 hover:border-zinc-700 text-zinc-300'
-                        : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300 text-zinc-800 hover:bg-zinc-100/60'
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className={`p-2.5 rounded-xl ${
-                          isSelected
-                            ? 'bg-purple-600 text-white'
-                            : isDark
-                            ? 'bg-zinc-800 text-zinc-400'
-                            : 'bg-zinc-200 text-zinc-700'
-                        }`}>
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                            opt.id === 'subtle'
-                              ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30'
-                              : opt.id === 'none'
-                              ? 'bg-zinc-700/40 text-zinc-300 border border-zinc-600/40'
-                              : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                          }`}>
-                            {opt.badge}
-                          </span>
-                          {isSelected && <Check className="w-4 h-4 text-purple-600 dark:text-purple-400" />}
-                        </div>
+                      <div>
+                        <span className={`text-xs font-bold block ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>Sombre</span>
+                        <span className={`text-[10px] block mt-0.5 line-clamp-2 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                          Interface sombre par défaut.
+                        </span>
                       </div>
+                    </button>
 
-                      <span className={`font-semibold text-sm block ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                        {opt.name}
-                      </span>
-                      <span className={`text-[11px] block mt-1 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                        {opt.desc}
-                      </span>
-                    </div>
+                    {/* Carte Clair */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateSetting('theme', 'light');
+                        showNotification('Thème Clair activé');
+                      }}
+                      className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer relative flex flex-col justify-between ${
+                        settings.theme === 'light'
+                          ? isDark
+                            ? 'ring-2 border-purple-500 bg-purple-500/10'
+                            : 'ring-2 border-purple-500 bg-purple-50'
+                          : isDark
+                          ? 'bg-zinc-950/40 border-zinc-800/80 hover:border-zinc-700'
+                          : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300'
+                      }`}
+                      style={settings.theme === 'light' ? { borderColor: activeAccentHex } : undefined}
+                    >
+                      <div className="w-full h-14 rounded-xl bg-white border border-zinc-200 p-1.5 flex gap-1 overflow-hidden mb-2 relative">
+                        <div className="w-1/3 h-full rounded-md bg-purple-50 border border-purple-100 p-0.5 flex flex-col gap-0.5">
+                          <div className="w-3 h-1 rounded" style={{ backgroundColor: activeAccentHex }} />
+                          <div className="w-full h-1 rounded bg-zinc-200" />
+                          <div className="w-3/4 h-1 rounded bg-zinc-200" />
+                        </div>
+                        <div className="flex-1 h-full rounded-md bg-zinc-50 p-1 flex flex-col gap-1">
+                          <div className="w-1/2 h-1 rounded bg-zinc-400" />
+                          <div className="w-full h-1.5 rounded bg-zinc-200" />
+                          <div className="w-4/5 h-1.5 rounded bg-zinc-200" />
+                        </div>
+                        {settings.theme === 'light' && (
+                          <div
+                            className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full flex items-center justify-center text-white shadow-sm"
+                            style={{ backgroundColor: activeAccentHex }}
+                          >
+                            <Check className="w-2.5 h-2.5 stroke-[3]" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <span className={`text-xs font-bold block ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>Clair</span>
+                        <span className={`text-[10px] block mt-0.5 line-clamp-2 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                          Interface claire et épurée.
+                        </span>
+                      </div>
+                    </button>
 
-                    <div className="mt-4 pt-3 border-t border-inherit flex items-center justify-between text-[11px]">
-                      <span className="opacity-75">{opt.tagline}</span>
-                      <span className="font-mono text-[10px] opacity-60">
-                        {opt.id === 'none' ? '0% Glow' : opt.id === 'subtle' ? '25% Glow' : '100% Glow'}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+                    {/* Carte Automatique */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateSetting('theme', 'auto');
+                        showNotification('Thème Automatique activé');
+                      }}
+                      className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer relative flex flex-col justify-between ${
+                        settings.theme === 'auto'
+                          ? isDark
+                            ? 'ring-2 border-purple-500 bg-purple-500/10'
+                            : 'ring-2 border-purple-500 bg-purple-50'
+                          : isDark
+                          ? 'bg-zinc-950/40 border-zinc-800/80 hover:border-zinc-700'
+                          : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300'
+                      }`}
+                      style={settings.theme === 'auto' ? { borderColor: activeAccentHex } : undefined}
+                    >
+                      <div className="w-full h-14 rounded-xl border border-zinc-700/60 overflow-hidden mb-2 relative flex">
+                        <div className="w-1/2 h-full bg-zinc-950 p-1 flex flex-col justify-between">
+                          <Moon className="w-3 h-3 text-purple-400" />
+                          <div className="space-y-0.5">
+                            <div className="w-full h-0.5 bg-zinc-800 rounded" />
+                            <div className="w-2/3 h-0.5 bg-zinc-800 rounded" />
+                          </div>
+                        </div>
+                        <div className="w-1/2 h-full bg-white p-1 flex flex-col justify-between border-l border-zinc-700/40">
+                          <Sun className="w-3 h-3 text-amber-500 ml-auto" />
+                          <div className="space-y-0.5">
+                            <div className="w-full h-0.5 bg-zinc-200 rounded" />
+                            <div className="w-2/3 h-0.5 bg-zinc-200 rounded" />
+                          </div>
+                        </div>
+                        {settings.theme === 'auto' && (
+                          <div
+                            className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full flex items-center justify-center text-white shadow-sm"
+                            style={{ backgroundColor: activeAccentHex }}
+                          >
+                            <Check className="w-2.5 h-2.5 stroke-[3]" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <span className={`text-xs font-bold block ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>Automatique</span>
+                        <span className={`text-[10px] block mt-0.5 line-clamp-2 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                          Suit les paramètres de votre système.
+                        </span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
 
-          {/* D. Style de fond sombre (OLED vs Zinc) */}
-          <div className={`p-6 rounded-3xl border space-y-5 transition-colors ${
-            isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
-          }`}>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <div>
-                <h2 className={`text-base font-bold flex items-center gap-2 ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                  <Moon className="w-4 h-4 text-purple-500" />
-                  Nuance du thème sombre
-                </h2>
-                <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                  Choisissez l'intensité du noir lorsque le mode sombre est activé
-                </p>
-              </div>
+                {/* 2. Couleur d'accentuation */}
+                <div className={`p-5 rounded-3xl border space-y-4 transition-colors ${
+                  isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
+                }`}>
+                  <div>
+                    <h2 className={`text-sm font-bold flex items-center gap-2 ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+                      <Palette className="w-4 h-4 text-purple-400" />
+                      Couleur d'accentuation
+                    </h2>
+                    <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                      Personnalisez la couleur principale de Syntropy.
+                    </p>
+                  </div>
 
-              {!isDark && (
-                <span className="inline-flex items-center text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
-                  Visible en Mode Sombre
-                </span>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {DARK_BG_OPTIONS.map((opt) => {
-                const isSelected = (settings.darkBgStyle || 'zinc') === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    onClick={() => updateSetting('darkBgStyle', opt.id)}
-                    className={`relative p-4 rounded-2xl border text-left transition-all group flex flex-col justify-between ${
-                      isSelected
-                        ? 'border-purple-500 bg-purple-500/5 ring-2 ring-purple-500/20'
-                        : isDark
-                        ? 'border-zinc-800/80 hover:border-zinc-700 bg-zinc-900/40 hover:bg-zinc-900/70'
-                        : 'border-zinc-200 hover:border-zinc-300 bg-zinc-50/50 hover:bg-zinc-100/60'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-8 h-8 rounded-xl border border-zinc-700/60 shadow-inner flex items-center justify-center relative overflow-hidden"
-                          style={{ backgroundColor: opt.hex }}
+                  <div className="flex items-center justify-between gap-1 overflow-x-auto pb-1 pt-1">
+                    {MAIN_ACCENTS.map((color) => {
+                      const isSelected = settings.accentColor === color.id;
+                      return (
+                        <button
+                          key={color.id}
+                          type="button"
+                          onClick={() => {
+                            updateSetting('accentColor', color.id);
+                            showNotification(`Couleur d'accentuation réglée sur "${color.shortName}"`);
+                          }}
+                          className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none flex-1 min-w-[50px]"
+                          title={color.name}
                         >
                           <div
-                            className="absolute -right-1 -bottom-1 w-4 h-4 rounded-full border border-zinc-600"
-                            style={{ backgroundColor: opt.id === 'oled' ? '#09090b' : '#18181b' }}
-                          />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className={`text-sm font-semibold ${
+                            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                               isSelected
-                                ? isDark ? 'text-white font-bold' : 'text-zinc-950 font-bold'
-                                : isDark ? 'text-zinc-200' : 'text-zinc-800'
-                            }`}>
-                              {opt.name}
-                            </span>
-                            <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-medium ${
-                              opt.id === 'oled'
-                                ? 'bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 border border-emerald-500/30'
-                                : isDark
-                                ? 'bg-zinc-800 text-zinc-300 border border-zinc-700'
-                                : 'bg-zinc-200 text-zinc-700 border border-zinc-300'
-                            }`}>
-                              {opt.badge}
-                            </span>
+                                ? 'ring-2 ring-offset-2 ring-offset-zinc-950 scale-105 shadow-md'
+                                : 'hover:scale-105 opacity-85 hover:opacity-100'
+                            }`}
+                            style={{
+                              backgroundColor: color.hex,
+                              boxShadow: isSelected ? `0 0 12px ${color.hex}60` : undefined,
+                              ['--tw-ring-color' as any]: color.hex,
+                            }}
+                          >
+                            {isSelected && (
+                              <div className="w-2.5 h-2.5 rounded-full bg-white shadow-sm" />
+                            )}
                           </div>
-                          <span className="text-[11px] font-mono text-zinc-500">
-                            {opt.hex}
+                          <span
+                            className={`text-[11px] transition-colors ${
+                              isSelected
+                                ? isDark
+                                  ? 'text-zinc-100 font-bold'
+                                  : 'text-zinc-900 font-bold'
+                                : isDark
+                                ? 'text-zinc-400 group-hover:text-zinc-200'
+                                : 'text-zinc-500 group-hover:text-zinc-800'
+                            }`}
+                          >
+                            {color.shortName}
                           </span>
-                        </div>
-                      </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                      {isSelected && (
-                        <div
-                          className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm"
-                          style={{
-                            backgroundColor: settings.accentColor === 'monochrome' ? '#ffffff' : (ACCENT_OPTIONS.find(c => c.id === settings.accentColor)?.hex || '#8b5cf6'),
-                            color: settings.accentColor === 'monochrome' ? '#09090b' : '#ffffff',
-                          }}
-                        >
-                          <Check className="w-3.5 h-3.5 stroke-[3]" />
-                        </div>
-                      )}
-                    </div>
-
-                    <p className={`text-xs leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                      {opt.desc}
+                {/* 3. Transparence des surfaces (Liquid Glass - V2.6) */}
+                <div className={`p-5 rounded-3xl border space-y-4 transition-colors ${
+                  isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
+                }`}>
+                  <div>
+                    <h2 className={`text-sm font-bold flex items-center gap-2 ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+                      <Sparkles className="w-4 h-4 text-purple-400" />
+                      Transparence des surfaces
+                    </h2>
+                    <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                      Ajustez le niveau de transparence et de flou des éléments en verre.
                     </p>
+                  </div>
 
-                    {/* Aperçu visuel en miniature */}
-                    <div className="mt-3.5 pt-3 border-t border-zinc-200 dark:border-zinc-800/60 flex items-center gap-2">
-                      <div
-                        className="flex-1 h-6 rounded-lg border border-zinc-800 flex items-center px-2 gap-1.5"
-                        style={{ backgroundColor: opt.hex }}
-                      >
-                        <div
-                          className="h-3 w-8 rounded text-[9px] font-mono flex items-center justify-center text-zinc-400"
-                          style={{ backgroundColor: opt.id === 'oled' ? '#09090b' : '#18181b' }}
-                        >
-                          card
-                        </div>
-                        <div className="h-1.5 flex-1 rounded bg-zinc-800/80" />
-                        <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  {/* Slider & Badge */}
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center gap-3">
+                      <div className="relative flex-1 flex items-center">
+                        <input
+                          type="range"
+                          min={0}
+                          max={45}
+                          step={1}
+                          value={transparency}
+                          onChange={(e) => updateSetting('surfaceTransparency', Number(e.target.value))}
+                          aria-label="Transparence des surfaces"
+                          aria-valuemin={0}
+                          aria-valuemax={45}
+                          aria-valuenow={transparency}
+                          className="w-full h-2 rounded-lg appearance-none cursor-pointer focus:outline-none"
+                          style={{
+                            background: `linear-gradient(to right, ${activeAccentHex} 0%, ${activeAccentHex} ${(transparency / 45) * 100}%, ${isDark ? '#27272a' : '#e4e4e7'} ${(transparency / 45) * 100}%, ${isDark ? '#27272a' : '#e4e4e7'} 100%)`,
+                          }}
+                        />
+                      </div>
+                      <div className={`px-3 py-1 rounded-xl text-xs font-bold font-mono min-w-[54px] text-center ${
+                        isDark ? 'bg-zinc-800 text-zinc-100 border border-zinc-700/80' : 'bg-zinc-100 text-zinc-900 border border-zinc-300'
+                      }`}>
+                        {transparency} %
                       </div>
                     </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
-          {/* D. Typographie & Densité */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Typographie */}
-            <div className={`p-6 rounded-3xl border space-y-4 transition-colors ${
-              isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
-            }`}>
-              <div>
-                <h2 className={`text-base font-bold flex items-center gap-2 ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                  <Type className="w-4 h-4 text-cyan-500" />
-                  Typographie de l'interface
-                </h2>
-                <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                  Police d'écriture pour les textes et l'éditeur
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                {[
-                  { id: 'sans' as TypographyStyle, label: 'Sans-Serif Moderne', preview: 'Inter / Apple System — Neutre et optimisé' },
-                  { id: 'serif' as TypographyStyle, label: 'Serif Littéraire', preview: 'Georgia / Lora — Style livre & Notion élégant' },
-                  { id: 'mono' as TypographyStyle, label: 'Monospace Technique', preview: 'JetBrains Mono — Précision de code' },
-                ].map((font) => (
-                  <button
-                    key={font.id}
-                    onClick={() => {
-                      updateSetting('typography', font.id);
-                      showNotification(`Police réglée sur ${font.label}`);
-                    }}
-                    className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                      settings.typography === font.id
-                        ? isDark
-                          ? 'bg-purple-500/15 border-purple-500 text-purple-300'
-                          : 'bg-purple-50 border-purple-500 text-purple-700 font-semibold'
-                        : isDark
-                        ? 'bg-zinc-950/40 border-zinc-800/80 text-zinc-300 hover:border-zinc-700'
-                        : 'bg-zinc-50 border-zinc-200 text-zinc-800 hover:bg-zinc-100/60'
-                    }`}
-                  >
-                    <div>
-                      <span className="text-xs font-bold block">{font.label}</span>
-                      <span className={`text-[11px] block ${isDark ? 'text-zinc-500' : 'text-zinc-500'}`}>{font.preview}</span>
+                    {/* Repères sous le slider */}
+                    <div className="flex items-center justify-between text-[11px] text-zinc-500 font-medium px-0.5">
+                      <span>Opaque</span>
+                      <span className={isDark ? 'text-zinc-400' : 'text-zinc-600'}>
+                        {isReduced ? 'Flou d\'arrière-plan · Désactivé' : `Flou d'arrière-plan · ${blurPx} px`}
+                      </span>
+                      <span>Verre</span>
                     </div>
-                    {settings.typography === font.id && <Check className="w-4 h-4 text-purple-600 dark:text-purple-400" />}
-                  </button>
-                ))}
-              </div>
-            </div>
+                  </div>
 
-            {/* Densité d'affichage */}
-            <div className={`p-6 rounded-3xl border space-y-4 transition-colors ${
-              isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
-            }`}>
-              <div>
-                <h2 className={`text-base font-bold flex items-center gap-2 ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                  <Maximize2 className="w-4 h-4 text-emerald-500" />
-                  Densité d'affichage
-                </h2>
-                <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                  Espacements des éléments et listes
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                {[
-                  { id: 'comfortable' as DisplayDensity, label: 'Mode Aéré (Standard)', icon: Maximize2, desc: 'Espacements généreux et lecture confortable' },
-                  { id: 'compact' as DisplayDensity, label: 'Mode Compact', icon: Minimize2, desc: 'Idéal pour afficher plus de tâches et notes simultanément' },
-                ].map((d) => {
-                  const Icon = d.icon;
-                  const isSelected = settings.density === d.id;
-                  return (
+                  {/* 3 Préréglages : Opaque, Équilibrée, Verre */}
+                  <div className="grid grid-cols-3 gap-2.5 pt-1">
                     <button
-                      key={d.id}
+                      type="button"
                       onClick={() => {
-                        updateSetting('density', d.id);
-                        showNotification(`Densité réglée sur "${d.label}"`);
+                        updateSetting('surfaceTransparency', 0);
+                        showNotification('Préréglage Opaque (0%) appliqué');
                       }}
-                      className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                        isSelected
+                      className={`py-2 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        transparency === 0
                           ? isDark
-                            ? 'bg-purple-500/15 border-purple-500 text-purple-300'
-                            : 'bg-purple-50 border-purple-500 text-purple-700 font-semibold'
+                            ? 'bg-purple-500/15 border-purple-500 text-purple-300 ring-1 ring-purple-500/30'
+                            : 'bg-purple-50 border-purple-500 text-purple-700 font-bold'
                           : isDark
-                          ? 'bg-zinc-950/40 border-zinc-800/80 text-zinc-300 hover:border-zinc-700'
-                          : 'bg-zinc-50 border-zinc-200 text-zinc-800 hover:bg-zinc-100/60'
+                          ? 'bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+                          : 'bg-zinc-50 border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                      }`}
+                      style={transparency === 0 ? { borderColor: activeAccentHex } : undefined}
+                    >
+                      <Ban className="w-3.5 h-3.5" />
+                      <span>Opaque</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateSetting('surfaceTransparency', 35);
+                        showNotification('Préréglage Équilibrée (35%) appliqué');
+                      }}
+                      className={`py-2 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        transparency === 35
+                          ? isDark
+                            ? 'bg-purple-500/15 border-purple-500 text-purple-300 ring-1 ring-purple-500/30'
+                            : 'bg-purple-50 border-purple-500 text-purple-700 font-bold'
+                          : isDark
+                          ? 'bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+                          : 'bg-zinc-50 border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                      }`}
+                      style={transparency === 35 ? { borderColor: activeAccentHex } : undefined}
+                    >
+                      <Sliders className="w-3.5 h-3.5" />
+                      <span>Équilibrée</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateSetting('surfaceTransparency', 45);
+                        showNotification('Préréglage Verre (45%) appliqué');
+                      }}
+                      className={`py-2 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        transparency === 45
+                          ? isDark
+                            ? 'bg-purple-500/15 border-purple-500 text-purple-300 ring-1 ring-purple-500/30'
+                            : 'bg-purple-50 border-purple-500 text-purple-700 font-bold'
+                          : isDark
+                          ? 'bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+                          : 'bg-zinc-50 border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                      }`}
+                      style={transparency === 45 ? { borderColor: activeAccentHex } : undefined}
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Verre</span>
+                    </button>
+                  </div>
+
+                  {/* Interrupteur « Réduire les effets de transparence » */}
+                  <div className="pt-3 border-t border-inherit flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-xl ${isDark ? 'bg-zinc-800 text-zinc-300' : 'bg-zinc-100 text-zinc-700'}`}>
+                        <EyeOff className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className={`text-xs font-bold block ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+                          Réduire les effets de transparence
+                        </span>
+                        <span className={`text-[11px] block ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                          Désactive les effets de flou et de transparence pour plus de lisibilité.
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={isReduced}
+                      aria-label="Réduire les effets de transparence"
+                      onClick={() => {
+                        updateSetting('reduceTransparency', !isReduced);
+                        showNotification(isReduced ? 'Effets de transparence réactivés' : 'Effets de transparence réduits');
+                      }}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500/40 ${
+                        isReduced ? 'bg-purple-600' : isDark ? 'bg-zinc-800' : 'bg-zinc-300'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <Icon className={`w-4 h-4 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`} />
-                        <div>
-                          <span className="text-xs font-bold block">{d.label}</span>
-                          <span className={`text-[11px] block ${isDark ? 'text-zinc-500' : 'text-zinc-600'}`}>{d.desc}</span>
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          isReduced ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* =================================================== */}
+              {/* COLONNE DROITE (Aperçu en direct & Référence UI)   */}
+              {/* =================================================== */}
+              <div className="xl:col-span-7 space-y-4">
+                <div className={`p-5 rounded-3xl border space-y-4 transition-colors ${
+                  isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
+                }`}>
+                  {/* En-tête Aperçu */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div>
+                      <h2 className={`text-sm font-bold flex items-center gap-2 ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+                        <Eye className="w-4 h-4 text-purple-400" />
+                        Aperçu en direct
+                      </h2>
+                      <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                        Voyez les changements en temps réel sur votre environnement Syntropy.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 self-start sm:self-auto">
+                      <span
+                        className="px-2.5 py-1 rounded-full text-[11px] font-medium border flex items-center gap-1.5"
+                        style={{
+                          backgroundColor: `${activeAccentHex}15`,
+                          borderColor: `${activeAccentHex}35`,
+                          color: activeAccentHex,
+                        }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: activeAccentHex }} />
+                        Accent {activeAccent.shortName.toLowerCase()} • Mode {previewIsDark ? 'sombre' : 'clair'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Toile d'ambiance avec fond fluide abstrait (Papier peint Aurora macOS / iOS) */}
+                  <div className="relative rounded-2xl overflow-hidden p-3 sm:p-4 border border-zinc-800/80 shadow-2xl bg-zinc-950 select-none">
+                    {/* Fond d'ondes fluides colorées */}
+                    <div
+                      className="absolute inset-0 pointer-events-none opacity-85 transition-opacity"
+                      style={{
+                        background: `
+                          radial-gradient(circle at 15% 20%, rgba(139, 92, 246, 0.55), transparent 45%),
+                          radial-gradient(circle at 85% 25%, rgba(59, 130, 246, 0.45), transparent 40%),
+                          radial-gradient(circle at 50% 80%, rgba(236, 72, 153, 0.4), transparent 50%),
+                          radial-gradient(circle at 90% 85%, rgba(6, 182, 212, 0.35), transparent 45%),
+                          #0b0c14
+                        `,
+                      }}
+                    />
+
+                    {/* Fenêtre miniature du Dashboard Syntropy */}
+                    <div
+                      className="relative z-10 rounded-2xl border flex overflow-hidden shadow-2xl"
+                      style={{
+                        borderColor: previewIsDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)',
+                        boxShadow: `0 20px 40px -15px rgba(0, 0, 0, 0.6), 0 0 25px -5px ${activeAccentHex}20`,
+                      }}
+                    >
+                      {/* Mini Sidebar Translucide */}
+                      <div
+                        className="w-36 sm:w-40 flex-shrink-0 p-2.5 flex flex-col justify-between border-r transition-all duration-200"
+                        style={{
+                          backgroundColor: previewIsDark
+                            ? `rgba(18, 18, 24, ${alpha})`
+                            : `rgba(255, 255, 255, ${alpha})`,
+                          backdropFilter: isReduced ? 'none' : `blur(${blurPx}px)`,
+                          WebkitBackdropFilter: isReduced ? 'none' : `blur(${blurPx}px)`,
+                          borderColor: previewIsDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+                          color: previewIsDark ? '#e4e4e7' : '#27272a',
+                        }}
+                      >
+                        <div className="space-y-2.5">
+                          {/* Mini Logo */}
+                          <div className="flex items-center gap-1.5">
+                            <div
+                              className="w-5 h-5 rounded-md flex items-center justify-center p-0.5 shadow-sm"
+                              style={{ backgroundColor: `${activeAccentHex}25`, border: `1px solid ${activeAccentHex}50` }}
+                            >
+                              <Brain className="w-3 h-3" style={{ color: activeAccentHex }} />
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-bold block leading-tight tracking-tight">Syntropy</span>
+                              <span className="text-[7px] text-zinc-500 block leading-none">Productivité & Savoir</span>
+                            </div>
+                          </div>
+
+                          {/* Mini Recherche */}
+                          <div
+                            className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] border"
+                            style={{
+                              backgroundColor: previewIsDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+                              borderColor: previewIsDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                              color: previewIsDark ? '#a1a1aa' : '#71717a',
+                            }}
+                          >
+                            <Search className="w-2 h-2" />
+                            <span className="truncate flex-1">Recherche rapide ...</span>
+                            <span className="text-[7px] opacity-70">⌘K</span>
+                          </div>
+
+                          {/* Section ESPACE DE TRAVAIL */}
+                          <div className="space-y-0.5">
+                            <span className="text-[7px] font-semibold tracking-wider text-zinc-500 uppercase block">
+                              Espace de travail
+                            </span>
+                            <div
+                              className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-semibold text-white shadow-sm"
+                              style={{ backgroundColor: activeAccentHex }}
+                            >
+                              <LayoutDashboard className="w-2 h-2" />
+                              <span className="truncate">Tableau de bord</span>
+                            </div>
+                            <div className="flex items-center justify-between px-1.5 py-0.5 text-[8px] text-zinc-400">
+                              <span className="flex items-center gap-1">
+                                <CheckSquare className="w-2 h-2" />
+                                <span className="truncate">Projets & Tâches</span>
+                              </span>
+                              <span className="text-[7px] px-1 rounded-full bg-zinc-800 text-zinc-400">7</span>
+                            </div>
+                            <div className="flex items-center justify-between px-1.5 py-0.5 text-[8px] text-zinc-400">
+                              <span className="flex items-center gap-1">
+                                <FileText className="w-2 h-2" />
+                                <span className="truncate">Notes</span>
+                              </span>
+                              <span className="text-[7px] px-1 rounded-full bg-zinc-800 text-zinc-400">16</span>
+                            </div>
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 text-[8px] text-zinc-400">
+                              <Calendar className="w-2 h-2" />
+                              <span className="truncate">Calendrier</span>
+                            </div>
+                          </div>
+
+                          {/* Section DAILY LIFE */}
+                          <div className="space-y-0.5">
+                            <span className="text-[7px] font-semibold tracking-wider text-zinc-500 uppercase block">
+                              Daily Life
+                            </span>
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 text-[8px] text-zinc-400">
+                              <Flame className="w-2 h-2" />
+                              <span className="truncate">Habitude</span>
+                            </div>
+                            <div className="flex items-center justify-between px-1.5 py-0.5 text-[8px] text-zinc-400">
+                              <span className="flex items-center gap-1">
+                                <Wallet className="w-2 h-2" />
+                                <span className="truncate">Budget</span>
+                              </span>
+                              <span className="text-[7px] text-zinc-500">0%</span>
+                            </div>
+                          </div>
+
+                          {/* Section MÉTHODE PARA */}
+                          <div className="space-y-0.5">
+                            <span className="text-[7px] font-semibold tracking-wider text-zinc-500 uppercase block">
+                              Méthode PARA
+                            </span>
+                            <div className="flex items-center justify-between px-1.5 py-0.5 text-[8px] text-zinc-400">
+                              <span className="flex items-center gap-1"><Folder className="w-2 h-2" />Projets</span>
+                              <span className="text-[7px]">3</span>
+                            </div>
+                            <div className="flex items-center justify-between px-1.5 py-0.5 text-[8px] text-zinc-400">
+                              <span className="flex items-center gap-1"><Layers className="w-2 h-2" />Domaines</span>
+                              <span className="text-[7px]">0</span>
+                            </div>
+                            <div className="flex items-center justify-between px-1.5 py-0.5 text-[8px] text-zinc-400">
+                              <span className="flex items-center gap-1"><Compass className="w-2 h-2" />Ressources</span>
+                              <span className="text-[7px]">0</span>
+                            </div>
+                            <div className="flex items-center justify-between px-1.5 py-0.5 text-[8px] text-zinc-400">
+                              <span className="flex items-center gap-1"><Archive className="w-2 h-2" />Archives</span>
+                              <span className="text-[7px]">0</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Mini Profil Utilisateur */}
+                        <div
+                          className="pt-1.5 border-t mt-2 flex items-center gap-1.5"
+                          style={{ borderColor: previewIsDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }}
+                        >
+                          <div
+                            className="w-4 h-4 rounded-full text-[7px] font-bold flex items-center justify-center text-white flex-shrink-0"
+                            style={{ backgroundColor: activeAccentHex }}
+                          >
+                            N
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1">
+                              <span className="text-[8px] font-bold truncate">Nathan</span>
+                              <span className="text-[6px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 font-medium">
+                                Admin
+                              </span>
+                            </div>
+                            <span className="text-[6px] text-zinc-500 truncate block">ndebeaupuis@gmail.com</span>
+                          </div>
                         </div>
                       </div>
-                      {isSelected && <Check className="w-4 h-4 text-purple-600 dark:text-purple-400" />}
+
+                      {/* Mini Contenu Principal */}
+                      <div
+                        className="flex-1 p-2.5 space-y-2.5 min-w-0 transition-colors"
+                        style={{
+                          backgroundColor: previewIsDark ? 'rgba(10, 10, 14, 0.75)' : 'rgba(244, 244, 246, 0.85)',
+                        }}
+                      >
+                        {/* Mini En-tête Salutations */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5">
+                            <div
+                              className="w-6 h-6 rounded-lg flex items-center justify-center shadow-sm"
+                              style={{ backgroundColor: `${activeAccentHex}20`, border: `1px solid ${activeAccentHex}40` }}
+                            >
+                              <Brain className="w-3.5 h-3.5" style={{ color: activeAccentHex }} />
+                            </div>
+                            <div>
+                              <h3 className="text-[11px] font-bold leading-tight flex items-center gap-1">
+                                <span className={previewIsDark ? 'text-zinc-100' : 'text-zinc-900'}>Bon matin,</span>
+                                <span style={{ color: activeAccentHex }}>Nathan</span>
+                              </h3>
+                              <span className="text-[8px] text-zinc-500 block leading-none">Vendredi 16 Octobre 2026</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            <div
+                              className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] border"
+                              style={{
+                                backgroundColor: previewIsDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+                                borderColor: previewIsDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                                color: previewIsDark ? '#a1a1aa' : '#71717a',
+                              }}
+                            >
+                              <Search className="w-2 h-2" />
+                              <span className="truncate">Recherche ...</span>
+                              <span className="text-[7px] opacity-60">⌘K</span>
+                            </div>
+                            <button
+                              type="button"
+                              className="w-4 h-4 rounded-md text-white flex items-center justify-center shadow-sm"
+                              style={{ backgroundColor: activeAccentHex }}
+                            >
+                              <Plus className="w-2.5 h-2.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* 4 Mini Widgets en grille 2x2 */}
+                        <div className="grid grid-cols-2 gap-2">
+                          {/* Widget 1: Calendriers */}
+                          <div
+                            className="p-2 rounded-xl border space-y-1.5 transition-all"
+                            style={{
+                              backgroundColor: previewIsDark ? `rgba(24, 24, 28, ${cardAlpha})` : `rgba(255, 255, 255, ${cardAlpha})`,
+                              backdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              WebkitBackdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              borderColor: previewIsDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+                            }}
+                          >
+                            <div className="flex items-center justify-between text-[9px]">
+                              <span className={`font-bold flex items-center gap-1 ${previewIsDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                                <Calendar className="w-2 h-2 text-purple-400" />
+                                <span>Calendriers</span>
+                              </span>
+                              <span className="text-[7px] text-zinc-500">Voir &gt;</span>
+                            </div>
+                            <div className="flex items-center gap-0.5 text-[7px]">
+                              <span className="px-1 py-0.2 rounded text-white font-semibold" style={{ backgroundColor: activeAccentHex }}>Tous</span>
+                              <span className="px-1 py-0.2 rounded text-zinc-400 bg-zinc-800/50">Perso</span>
+                              <span className="px-1 py-0.2 rounded text-zinc-400 bg-zinc-800/50">Travail</span>
+                              <span className="px-1 py-0.2 rounded text-zinc-400 bg-zinc-800/50">Google</span>
+                            </div>
+                            <div className="flex items-start gap-1.5 pt-0.5 text-[8px]">
+                              <span className="font-bold text-[7px] text-zinc-500 uppercase leading-none">
+                                VEN.<br/><strong className={`text-[10px] ${previewIsDark ? 'text-zinc-200' : 'text-zinc-800'}`}>16</strong>
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <span className="text-zinc-400 block truncate text-[7px]">Aucun événement aujourd'hui</span>
+                                <span className="text-[7px] font-semibold block mt-0.5" style={{ color: activeAccentHex }}>+ En programmer un</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Widget 2: Météo */}
+                          <div
+                            className="p-2 rounded-xl border space-y-1.5 transition-all"
+                            style={{
+                              backgroundColor: previewIsDark ? `rgba(24, 24, 28, ${cardAlpha})` : `rgba(255, 255, 255, ${cardAlpha})`,
+                              backdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              WebkitBackdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              borderColor: previewIsDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+                            }}
+                          >
+                            <div className="flex items-center justify-between text-[9px]">
+                              <span className={`font-bold flex items-center gap-1 ${previewIsDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                                <CloudSun className="w-2 h-2 text-amber-400" />
+                                <span>Météo</span>
+                              </span>
+                              <span className="text-[7px] flex items-center gap-0.5" style={{ color: activeAccentHex }}>
+                                <MapPin className="w-1.5 h-1.5" />Paris
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <SunMedium className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                              <div>
+                                <span className={`text-sm font-black leading-none block ${previewIsDark ? 'text-zinc-100' : 'text-zinc-900'}`}>18°</span>
+                                <span className="text-[7px] text-zinc-400 block leading-tight">Nuages épars</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between text-[7px] text-zinc-500 pt-0.5">
+                              <span>Paris, France</span>
+                              <span>↑ 21° ↓ 13°</span>
+                            </div>
+                          </div>
+
+                          {/* Widget 3: To-do list */}
+                          <div
+                            className="p-2 rounded-xl border space-y-1 transition-all"
+                            style={{
+                              backgroundColor: previewIsDark ? `rgba(24, 24, 28, ${cardAlpha})` : `rgba(255, 255, 255, ${cardAlpha})`,
+                              backdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              WebkitBackdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              borderColor: previewIsDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+                            }}
+                          >
+                            <div className="flex items-center justify-between text-[9px]">
+                              <span className={`font-bold flex items-center gap-1 ${previewIsDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                                <CheckSquare className="w-2 h-2 text-purple-400" />
+                                <span>To-do list (7 à faire)</span>
+                              </span>
+                              <span className="text-[7px] text-zinc-500">Voir tout &gt;</span>
+                            </div>
+                            <div className="space-y-0.5 text-[8px]">
+                              <div className="flex items-center justify-between gap-1">
+                                <span className={`truncate flex items-center gap-1 ${previewIsDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                                  <span className="w-1.5 h-1.5 rounded-full border border-zinc-500 inline-block" />
+                                  <span>Design MCU</span>
+                                </span>
+                                <span className="text-[6px] px-1 py-0.2 rounded bg-rose-500/20 text-rose-300">Haute</span>
+                              </div>
+                              <div className="flex items-center justify-between gap-1">
+                                <span className={`truncate flex items-center gap-1 ${previewIsDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                                  <span className="w-1.5 h-1.5 rounded-full border border-zinc-500 inline-block" />
+                                  <span>Rapport Robotique</span>
+                                </span>
+                                <span className="text-[6px] px-1 py-0.2 rounded bg-rose-500/20 text-rose-300">Haute</span>
+                              </div>
+                              <div className="flex items-center justify-between gap-1">
+                                <span className={`truncate flex items-center gap-1 ${previewIsDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                                  <span className="w-1.5 h-1.5 rounded-full border border-zinc-500 inline-block" />
+                                  <span>fonction #4</span>
+                                </span>
+                                <span className="text-[6px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300">Moyenne</span>
+                              </div>
+                            </div>
+                            <div className="pt-0.5 text-[7px] text-zinc-500">+ Nouvelle tâche</div>
+                          </div>
+
+                          {/* Widget 4: Projets & tâches */}
+                          <div
+                            className="p-2 rounded-xl border space-y-1.5 transition-all"
+                            style={{
+                              backgroundColor: previewIsDark ? `rgba(24, 24, 28, ${cardAlpha})` : `rgba(255, 255, 255, ${cardAlpha})`,
+                              backdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              WebkitBackdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              borderColor: previewIsDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+                            }}
+                          >
+                            <div className="flex items-center justify-between text-[9px]">
+                              <span className={`font-bold flex items-center gap-1 ${previewIsDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                                <Folder className="w-2 h-2 text-purple-400" />
+                                <span>Projets & tâches (3)</span>
+                              </span>
+                              <span className="text-[7px] text-zinc-500">Voir tous &gt;</span>
+                            </div>
+                            <div className="space-y-1 text-[8px]">
+                              <div>
+                                <div className="flex items-center justify-between text-[7px]">
+                                  <span className={`font-semibold flex items-center gap-1 ${previewIsDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                                    <Folder className="w-2 h-2" style={{ color: activeAccentHex }} />Syntropy
+                                  </span>
+                                  <span className="text-zinc-400">4/9 tâches • 44%</span>
+                                </div>
+                                <div className="w-full h-1 bg-zinc-800/80 rounded-full mt-0.5 overflow-hidden">
+                                  <div className="h-full rounded-full" style={{ width: '44%', backgroundColor: activeAccentHex }} />
+                                </div>
+                              </div>
+                              <div>
+                                <div className="flex items-center justify-between text-[7px]">
+                                  <span className={`font-semibold flex items-center gap-1 ${previewIsDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                                    <Folder className="w-2 h-2 text-emerald-400" />Robotique Salford
+                                  </span>
+                                  <span className="text-zinc-400">0/1 tâches • 0%</span>
+                                </div>
+                                <div className="w-full h-1 bg-zinc-800/80 rounded-full mt-0.5 overflow-hidden">
+                                  <div className="h-full rounded-full bg-emerald-500" style={{ width: '0%' }} />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sélecteur de Thème Miniature en bas de l'aperçu */}
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    {/* Carte Sombre */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateSetting('theme', 'dark');
+                        showNotification('Thème Sombre activé');
+                      }}
+                      className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer relative ${
+                        effectiveTheme === 'dark'
+                          ? 'ring-2'
+                          : isDark
+                          ? 'border-zinc-800/80 bg-zinc-950/40 hover:border-zinc-700'
+                          : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100'
+                      }`}
+                      style={
+                        effectiveTheme === 'dark'
+                          ? {
+                              borderColor: activeAccentHex,
+                              boxShadow: `0 0 16px ${activeAccentHex}25`,
+                              ['--tw-ring-color' as any]: activeAccentHex,
+                            }
+                          : undefined
+                      }
+                    >
+                      <div className="w-full h-12 rounded-xl bg-zinc-950 border border-zinc-800 p-1.5 flex gap-1 overflow-hidden mb-2 relative">
+                        <div className="w-1/4 h-full rounded bg-zinc-900 border border-zinc-800/60 p-0.5 flex flex-col gap-0.5">
+                          <div className="w-full h-1 rounded" style={{ backgroundColor: activeAccentHex }} />
+                          <div className="w-3/4 h-0.5 rounded bg-zinc-800" />
+                        </div>
+                        <div className="flex-1 h-full rounded bg-zinc-900/50 p-1 grid grid-cols-2 gap-0.5">
+                          <div className="rounded bg-zinc-850 border border-zinc-800/50" />
+                          <div className="rounded bg-zinc-850 border border-zinc-800/50" />
+                          <div className="rounded bg-zinc-850 border border-zinc-800/50" />
+                          <div className="rounded bg-zinc-850 border border-zinc-800/50" />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-100">
+                        <Moon className="w-3.5 h-3.5" style={{ color: activeAccentHex }} />
+                        <span>Sombre</span>
+                      </div>
                     </button>
-                  );
-                })}
+
+                    {/* Carte Clair */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateSetting('theme', 'light');
+                        showNotification('Thème Clair activé');
+                      }}
+                      className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer relative ${
+                        effectiveTheme === 'light'
+                          ? 'ring-2'
+                          : isDark
+                          ? 'border-zinc-800/80 bg-zinc-950/40 hover:border-zinc-700'
+                          : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100'
+                      }`}
+                      style={
+                        effectiveTheme === 'light'
+                          ? {
+                              borderColor: activeAccentHex,
+                              boxShadow: `0 0 16px ${activeAccentHex}25`,
+                              ['--tw-ring-color' as any]: activeAccentHex,
+                            }
+                          : undefined
+                      }
+                    >
+                      <div className="w-full h-12 rounded-xl bg-zinc-100 border border-zinc-300 p-1.5 flex gap-1 overflow-hidden mb-2 relative">
+                        <div className="w-1/4 h-full rounded bg-white border border-zinc-200 p-0.5 flex flex-col gap-0.5">
+                          <div className="w-full h-1 rounded" style={{ backgroundColor: activeAccentHex }} />
+                          <div className="w-3/4 h-0.5 rounded bg-zinc-200" />
+                        </div>
+                        <div className="flex-1 h-full rounded bg-white/70 p-1 grid grid-cols-2 gap-0.5">
+                          <div className="rounded bg-zinc-50 border border-zinc-200/80" />
+                          <div className="rounded bg-zinc-50 border border-zinc-200/80" />
+                          <div className="rounded bg-zinc-50 border border-zinc-200/80" />
+                          <div className="rounded bg-zinc-50 border border-zinc-200/80" />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900">
+                        <Sun className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Clair</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ======================================================== */}
+            {/* OPTIONS COMPLÉMENTAIRES D'AFFICHAGE & TYPOGRAPHIE        */}
+            {/* ======================================================== */}
+            <div className="pt-2 border-t border-inherit space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className={`text-sm font-bold flex items-center gap-2 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                    <Sliders className="w-4 h-4 text-purple-400" />
+                    Réglages complémentaires d'affichage
+                  </h3>
+                  <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                    Intensité néon, style de noir OLED, police de caractères et espacement.
+                  </p>
+                </div>
+              </div>
+
+              {/* Intensité du néon & Style de fond OLED */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* Intensité néon */}
+                <div className={`p-5 rounded-3xl border space-y-3 transition-colors ${
+                  isDark ? 'bg-zinc-900/40 border-zinc-800/70' : 'bg-white border-zinc-200 shadow-sm'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <h4 className={`text-xs font-bold flex items-center gap-2 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                      <Zap className="w-3.5 h-3.5 text-amber-400" />
+                      Intensité de l'effet néon
+                    </h4>
+                    <span className="text-[10px] font-mono text-zinc-500">
+                      {NEON_INTENSITY_OPTIONS.find((n) => n.id === (settings.neonIntensity || 'vibrant'))?.name}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {NEON_INTENSITY_OPTIONS.map((opt) => {
+                      const isSelected = (settings.neonIntensity || 'vibrant') === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => updateSetting('neonIntensity', opt.id)}
+                          className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                            isSelected
+                              ? 'border-purple-500 bg-purple-500/10 text-purple-400 font-bold'
+                              : isDark
+                              ? 'border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200'
+                              : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:text-zinc-900'
+                          }`}
+                        >
+                          <span className="text-xs block">{opt.name.split('/')[0]}</span>
+                          <span className="text-[9px] text-zinc-500 block mt-0.5">{opt.tagline}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Style de fond sombre OLED vs Zinc */}
+                <div className={`p-5 rounded-3xl border space-y-3 transition-colors ${
+                  isDark ? 'bg-zinc-900/40 border-zinc-800/70' : 'bg-white border-zinc-200 shadow-sm'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <h4 className={`text-xs font-bold flex items-center gap-2 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                      <Moon className="w-3.5 h-3.5 text-purple-400" />
+                      Nuance du thème sombre
+                    </h4>
+                    <span className="text-[10px] font-mono text-zinc-500">
+                      {(settings.darkBgStyle || 'zinc') === 'oled' ? 'Noir Pur (#000000)' : 'Zinc (#09090b)'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {DARK_BG_OPTIONS.map((opt) => {
+                      const isSelected = (settings.darkBgStyle || 'zinc') === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => updateSetting('darkBgStyle', opt.id)}
+                          className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                            isSelected
+                              ? 'border-purple-500 bg-purple-500/10 text-purple-400 font-bold'
+                              : isDark
+                              ? 'border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200'
+                              : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:text-zinc-900'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="w-3 h-3 rounded-full border border-zinc-700"
+                              style={{ backgroundColor: opt.hex }}
+                            />
+                            <span className="text-xs font-semibold">{opt.name}</span>
+                          </div>
+                          <span className="text-[9px] text-zinc-500 block mt-1">{opt.badge}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Typographie & Densité */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* Typographie */}
+                <div className={`p-5 rounded-3xl border space-y-3 transition-colors ${
+                  isDark ? 'bg-zinc-900/40 border-zinc-800/70' : 'bg-white border-zinc-200 shadow-sm'
+                }`}>
+                  <h4 className={`text-xs font-bold flex items-center gap-2 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                    <Type className="w-3.5 h-3.5 text-cyan-400" />
+                    Typographie de l'interface
+                  </h4>
+                  <div className="space-y-1.5">
+                    {[
+                      { id: 'sans' as TypographyStyle, label: 'Sans-Serif Moderne (Inter / System)' },
+                      { id: 'serif' as TypographyStyle, label: 'Serif Littéraire (Georgia / Lora)' },
+                      { id: 'mono' as TypographyStyle, label: 'Monospace Technique (JetBrains Mono)' },
+                    ].map((font) => (
+                      <button
+                        key={font.id}
+                        type="button"
+                        onClick={() => updateSetting('typography', font.id)}
+                        className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                          settings.typography === font.id
+                            ? 'border-purple-500 bg-purple-500/10 text-purple-400 font-bold'
+                            : isDark
+                            ? 'border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200'
+                            : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100'
+                        }`}
+                      >
+                        <span className="text-xs">{font.label}</span>
+                        {settings.typography === font.id && <Check className="w-3.5 h-3.5" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Densité */}
+                <div className={`p-5 rounded-3xl border space-y-3 transition-colors ${
+                  isDark ? 'bg-zinc-900/40 border-zinc-800/70' : 'bg-white border-zinc-200 shadow-sm'
+                }`}>
+                  <h4 className={`text-xs font-bold flex items-center gap-2 ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                    <Maximize2 className="w-3.5 h-3.5 text-emerald-400" />
+                    Densité d'affichage
+                  </h4>
+                  <div className="space-y-1.5">
+                    {[
+                      { id: 'comfortable' as DisplayDensity, label: 'Mode Aéré (Standard)', desc: 'Espacements généreux et confort de lecture' },
+                      { id: 'compact' as DisplayDensity, label: 'Mode Compact', desc: 'Plus de contenu visible par écran' },
+                    ].map((d) => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => updateSetting('density', d.id)}
+                        className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                          settings.density === d.id
+                            ? 'border-purple-500 bg-purple-500/10 text-purple-400 font-bold'
+                            : isDark
+                            ? 'border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200'
+                            : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100'
+                        }`}
+                      >
+                        <div>
+                          <span className="text-xs font-semibold block">{d.label}</span>
+                          <span className="text-[10px] text-zinc-500 block">{d.desc}</span>
+                        </div>
+                        {settings.density === d.id && <Check className="w-3.5 h-3.5" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ======================================================== */}
       {/* 2. ÉDITEUR DE NOTES & MARKDOWN                          */}

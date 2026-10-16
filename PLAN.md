@@ -4,7 +4,7 @@
 **Nom Firebase** : `second-brain-os-e6a83` (`evris-syntropy-os`)  
 **URL de Déploiement** : https://second-brain-os-e6a83.web.app  
 **Stack** : Next.js 14+ (App Router), TypeScript, Tailwind CSS, Lucide Icons, `@uiw/react-md-editor`, Firebase Cloud Firestore, Firebase Hosting & Auth.  
-**Version** : V2.5.0 (Desktop Engine & Admin Release)
+**Version** : V2.6.0 (Liquid Glass iOS Translucency & UI System)
 
 ---
 
@@ -367,5 +367,34 @@ npx electron-builder --win nsis --publish always
   * Sélecteur de dossier local pour les sauvegardes sur disque.
   * Boutons de déclenchement test pour le raccourci Alt+Espace et les notifications Toast.
   * Statut en direct de l'environnement d'exécution (Application Desktop Native vs Navigateur Web).
+
+---
+
+## 8. Système de Transparence des Surfaces & Liquid Glass iOS (V2.6.0)
+
+### 8.1 Paramètres & Tokens CSS Centralisés
+- Réglages dans `AppSettings` :
+  * `surfaceTransparency?: number;` (0 à 45, défaut: 35)
+  * `reduceTransparency?: boolean;` (défaut: false)
+- Variables dynamiques injectées dans `:root` et `html.dark` via `SettingsContext.tsx` :
+  * `--glass-transparency` : pourcentage effectif (0 si `reduceTransparency === true`).
+  * `--glass-blur` : `Math.round((effectiveTransparency / 45) * 20)` px (0px si réduit).
+  * `--glass-surface-bg` : rgba pour navigation (Sidebar, header, barres fixes).
+  * `--glass-card-bg` : rgba avec alpha plus élevé pour les cartes de contenu.
+  * `--glass-border` : bordure vitrée semi-transparente.
+  * `--glass-accent-border` : bordure réactive à l'accent RGB.
+- Classes Tailwind / CSS dans `src/app/globals.css` :
+  * `.glass-surface`
+  * `.glass-card`
+  * `.glass-border-accent`
+
+### 8.2 Débouncing Firestore (700ms)
+- Les modifications de glissement du slider ou clics de preset mettent à jour le state local et le `localStorage` instantanément pour un rendu à 60fps.
+- L'écriture Firestore est temporisée via un debounce de 700ms (`useRef` timer dans `SettingsContext`) pour préserver les quotas Firestore et éliminer tout lag réseau.
+
+### 8.3 Panneau « Aperçu en direct »
+- Colonne de droite dans `Paramètres → Apparence & UI` avec fond d'écran mesh vibrant et mini-tableau de bord Syntropy OS réactif en temps réel.
+- Commutateur rapide miniature `[Sombre] / [Clair]` pour évaluer instantanément la lisibilité.
+
 
 

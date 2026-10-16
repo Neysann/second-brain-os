@@ -264,9 +264,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           className={`flex md:hidden items-center justify-between px-3 sm:px-4 py-2 border-b z-20 select-none flex-shrink-0
             ${
               theme === 'dark'
-                ? 'bg-zinc-950/95 border-zinc-800/80 text-zinc-100'
-                : 'bg-white/95 border-zinc-200 text-zinc-900'
-            } backdrop-blur-md`}
+                ? 'glass-surface border-zinc-800/80 text-zinc-100'
+                : 'glass-surface border-zinc-200 text-zinc-900'
+            }`}
         >
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg overflow-hidden border border-purple-500/30 shadow-sm shadow-purple-500/20 bg-zinc-950 flex items-center justify-center flex-shrink-0 p-0.5">
@@ -376,9 +376,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           className={`flex md:hidden fixed bottom-0 left-0 right-0 z-30 border-t px-1 sm:px-3 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom,0px))] items-center justify-around select-none
             ${
               theme === 'dark'
-                ? 'bg-zinc-950/95 border-zinc-800/90 text-zinc-400'
-                : 'bg-white/95 border-zinc-200 text-zinc-600'
-            } backdrop-blur-xl shadow-2xl`}
+                ? 'glass-surface border-zinc-800/90 text-zinc-400'
+                : 'glass-surface border-zinc-200 text-zinc-600'
+            } shadow-2xl`}
         >
           {mobileNavItems.map((item) => {
             const Icon = item.icon;

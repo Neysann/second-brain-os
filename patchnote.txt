@@ -2,6 +2,51 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.0] - 2026-10-16 (Transparence des surfaces, Effet Liquid Glass iOS, Contrôles Précis & Aperçu en Direct)
+--------------------------------------------------------------------------------
+1. Section « Transparence des surfaces » (Paramètres → Apparence & UI) :
+- Curseur de translucidité progressif de 0 % à 45 % (valeur par défaut : 35 %) avec incrément unitaire (step=1).
+- Badge numérique dynamique affichant la valeur actuelle en temps réel (ex. « 35 % »).
+- Indicateur textuel dynamique du flou sous le curseur (« Flou d'arrière-plan · X px »), calculé proportionnellement jusqu'à 20px (16px pour 35%, 20px pour 45%, 0px pour 0%).
+- Échelle graduée avec repères visuels « Opaque » à gauche et « Verre » à droite.
+- 3 boutons de préréglages instantanés avec badge actif :
+  * Opaque (0 %)
+  * Équilibrée (35 %)
+  * Verre (45 %)
+- Commutateur d'accessibilité « Réduire les effets de transparence » :
+  * Désactive immédiatement le flou et l'alpha (rendu opaque) sans effacer la valeur de transparence choisie en mémoire.
+  * Prévient la fatigue visuelle et respecte les besoins d'ergonomie et d'accessibilité.
+
+2. Panneau « Aperçu en direct » Haute Fidélité (Colonne de droite) :
+- Fond d'écran immersif avec dégradé mesh fluide dynamique (fond abstrait multicolore avec orbes lumineux floutés).
+- Mini-tableau de bord Syntropy OS en temps réel réagissant instantanément aux modifications :
+  * Barre latérale translucide miniature avec icônes de navigation.
+  * Barre d'accueil supérieure « Bonjour Nathan » avec date et statut en verre dépoli.
+  * 4 cartes de widgets miniatures : Calendriers (réunions et badges horaires), Météo Paris (19°C Ensoleillé), To-do list (cases à cocher avec statuts), Projets & tâches (barre de progression colorée).
+  * Adaptabilité dynamique immédiate au thème actif (sombre ou clair) et à la couleur d'accentuation choisie.
+- Sélecteur de thème miniature sous le canvas de prévisualisation :
+  * Deux cartes cliquables `[🌙 Sombre]` et `[☀️ Clair]` pour tester instantanément le rendu de la transparence sur les deux fonds sans quitter l'écran.
+
+3. Architecture CSS & Variables Centralisées :
+- Variables CSS injectées sur `:root` et `html.dark` :
+  * `--glass-transparency` : pourcentage effectif.
+  * `--glass-blur` : valeur CSS en px avec flou (`backdrop-filter: blur(...)`).
+  * `--glass-surface-bg` : couleur de fond rgba calculée dynamiquement pour les surfaces de navigation (Sidebar, header).
+  * `--glass-card-bg` : couleur de fond rgba avec opacité supérieure pour préserver la lisibilité du contenu.
+  * `--glass-border` : bordure subtile semi-transparente pour le contour vitré.
+  * `--glass-accent-border` : bordure réactive à la couleur d'accentuation active.
+- Classes utilitaires globales `.glass-surface`, `.glass-card`, `.glass-border-accent` avec repli gracieux (`@supports not (backdrop-filter: blur(1px))`).
+- Opacité 100% stricte conservée pour tous les textes, icônes et boutons (aucun conteneur avec `opacity` globale).
+
+4. Synchronisation & Persistance Intelligente :
+- Mise à jour instantanée du state React et du `localStorage` (`syntropy_settings_v1`) pour un rendu fluide à 60 fps sans saccade lors du glissement du curseur.
+- Débouncing Firestore de 700 ms : évite les écritures excessives dans la base de données lors des déplacements continus du curseur tout en garantissant la synchronisation multi-appareils.
+- Préservation de tous les autres paramètres d'apparence existants (Mode OLED, Intensité du néon, Typographie, Densité d'affichage).
+
+5. Lisibilité & Contraste Optimaux :
+- En mode clair, maintien strict de typographies foncées (`text-zinc-900` / `text-zinc-700`) garantissant un contraste WCAG conforme sur fond translucide.
+- En mode sombre, maintien de la profondeur et des halos néon tout en apportant une impression de verre dépoli haut de gamme.
+
 #### [V2.5.0] - 2026-10-15 (Moteur Desktop Native Windows .exe, Auto-Updater electron-updater, Onglet Admin & Capture Rapide Alt+Espace)
 --------------------------------------------------------------------------------
 1. Architecture Desktop Native Windows (.exe) avec Nextron & electron-builder :

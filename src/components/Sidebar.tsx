@@ -128,9 +128,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
         ${collapsed ? 'w-20' : 'w-64'}
         ${
           theme === 'dark'
-            ? 'bg-zinc-950/95 border-zinc-800/80 text-zinc-300'
-            : 'bg-zinc-50 border-zinc-200 text-zinc-700'
-        } backdrop-blur-md`}
+            ? 'glass-surface border-zinc-800/80 text-zinc-300'
+            : 'glass-surface border-zinc-200 text-zinc-700'
+        }`}
     >
       {/* Header & Logo */}
       <div className={`flex items-center ${collapsed ? 'justify-center p-3' : 'justify-between p-4'} border-b border-inherit`}>

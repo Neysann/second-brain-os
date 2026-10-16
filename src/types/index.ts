@@ -29,6 +29,8 @@ export interface AppSettings {
   neonIntensity: NeonIntensity;
   typography: TypographyStyle;
   density: DisplayDensity;
+  surfaceTransparency?: number; // 0 à 45 % (défaut 35)
+  reduceTransparency?: boolean; // désactive les effets de flou et de translucidité (défaut false)
 
   // 2. Éditeur de Notes & Markdown
   defaultEditorMode: DefaultEditorMode;

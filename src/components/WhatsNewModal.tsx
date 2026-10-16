@@ -29,7 +29,7 @@ import {
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 
-export const CURRENT_VERSION = '2.5.0';
+export const CURRENT_VERSION = '2.6.0';
 
 interface WhatsNewModalProps {
   forceOpen?: boolean;
@@ -81,6 +81,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
   };
 
   const features = [
+    {
+      icon: Sparkles,
+      color: 'text-violet-400 bg-violet-500/10 border-violet-500/30',
+      title: 'Syntropy OS V2.6.0 : Transparence des surfaces & Effet Liquid Glass iOS',
+      desc: 'Nouvelle expérience esthétique premium inspirée du Liquid Glass d\'iOS avec flou d\'arrière-plan (backdrop-filter blur) et translucidité réglable de 0 % à 45 % (curseur fluide, préréglages Opaque / Équilibrée / Verre, commutateur d\'accessibilité "Réduire les effets de transparence"), panneau d\'aperçu en direct dynamique avec fond d\'écran fluide et synchronisation Firestore / LocalStorage avec debounce 700ms.',
+    },
     {
       icon: Sparkles,
       color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
