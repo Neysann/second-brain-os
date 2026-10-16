@@ -450,10 +450,14 @@ function registerIpcHandlers() {
 
   // Ouvrir l'emplacement du binaire dans l'Explorateur Windows
   ipcMain.handle('open-dist-folder', () => {
-    const exePath = path.join(__dirname, '../dist/Syntropy-OS-Setup-2.5.0.exe');
-    if (fs.existsSync(exePath)) {
-      shell.showItemInFolder(exePath);
-      return { success: true };
+    const distDir = path.join(__dirname, '../dist');
+    if (fs.existsSync(distDir)) {
+      const files = fs.readdirSync(distDir);
+      const exe = files.find(f => f.startsWith('Syntropy-OS-Setup-') && f.endsWith('.exe'));
+      if (exe) {
+        shell.showItemInFolder(path.join(distDir, exe));
+        return { success: true };
+      }
     }
     return { success: false, reason: 'Fichier non trouvé dans dist/' };
   });

@@ -67,11 +67,11 @@ export default function AdminUpdateSection({
   onNotification,
   onLogAction,
 }: AdminUpdateSectionProps) {
-  const [currentAppVersion, setCurrentAppVersion] = useState<string>('2.5.0');
+  const [currentAppVersion, setCurrentAppVersion] = useState<string>('2.6.1');
   const [isDesktopApp, setIsDesktopApp] = useState<boolean>(false);
   const [updateState, setUpdateState] = useState<UpdateInfoState>({
     status: 'idle',
-    currentVersion: '2.5.0',
+    currentVersion: '2.6.1',
   });
   const [isChecking, setIsChecking] = useState<boolean>(false);
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
@@ -372,7 +372,7 @@ export default function AdminUpdateSection({
                   <>
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     <span className="text-xs font-mono font-bold text-emerald-400">
-                      🎉 Mise à jour v{updateState.version || '2.5.0'} prête à être installée !
+                      🎉 Mise à jour v{updateState.version || '2.6.1'} prête à être installée !
                     </span>
                   </>
                 )}

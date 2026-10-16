@@ -108,7 +108,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
             if (data.status === 'downloaded') {
               onNotification(`Mise à jour v${data.version} prête à être installée !`, 'success');
             } else if (data.status === 'not-available') {
-              onNotification('Syntropy OS est déjà à jour (V2.5.0) !', 'info');
+              onNotification('Syntropy OS est déjà à jour (V2.6.1) !', 'info');
             }
           });
           return () => {
@@ -130,7 +130,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
         setIsCheckingUpdates(false);
         setUpdateStatus({
           status: 'not-available',
-          version: '2.5.0',
+          version: '2.6.1',
           message: 'En session Web : Syntropy OS fonctionne avec la dernière version cloud synchronisée.',
         });
         onNotification('Syntropy OS est à jour sur le cloud !', 'info');
@@ -175,13 +175,13 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
     if (electron?.openDistFolder) {
       const res = await electron.openDistFolder();
       if (res?.success) {
-        onNotification("Installateur Syntropy-OS-Setup-2.5.0.exe révélé dans l'Explorateur Windows !", "success");
+        onNotification("Installateur Syntropy-OS-Setup-2.6.1.exe révélé dans l'Explorateur Windows !", "success");
         return;
       }
     }
 
-    const localPath = "C:\\PROJET ASSISTANT - JARVIS\\dist\\Syntropy-OS-Setup-2.5.0.exe";
-    const githubReleaseUrl = "https://github.com/Neysann/second-brain-os/releases";
+    const localPath = "C:\\PROJET ASSISTANT - JARVIS\\dist\\Syntropy-OS-Setup-2.6.1.exe";
+    const githubReleaseUrl = "https://github.com/Neysann/second-brain-os/releases/latest";
 
     // Copie du chemin local dans le presse-papier
     try {
@@ -201,7 +201,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
       'info'
     );
     refreshLogs();
-    onNotification("Chemin local copié dans le presse-papier ! L'exécutable est disponible dans dist/Syntropy-OS-Setup-2.5.0.exe", "info");
+    onNotification("Chemin local copié dans le presse-papier ! L'exécutable est disponible dans dist/Syntropy-OS-Setup-2.6.1.exe", "info");
   };
 
   const handleOpenDistFolder = async () => {
@@ -213,7 +213,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
         return;
       }
     }
-    onNotification("Installateur disponible dans c:\\PROJET ASSISTANT - JARVIS\\dist\\Syntropy-OS-Setup-2.5.0.exe", "info");
+    onNotification("Installateur disponible dans c:\\PROJET ASSISTANT - JARVIS\\dist\\Syntropy-OS-Setup-2.6.1.exe", "info");
   };
 
   const handleToggleAutoStart = async () => {
@@ -274,7 +274,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
       const fileName = `syntropy-backup-${new Date().toISOString().split('T')[0]}_${Date.now()}.json`;
       const fullBackup = {
         app: 'Syntropy OS',
-        version: '2.5.0',
+        version: '2.6.1',
         exportedAt: new Date().toISOString(),
         user: user ? { uid: user.uid, email: user.email } : null,
         stats: { notesCount: notes.length, tasksCount: tasks.length, projectsCount: projects.length },
@@ -339,7 +339,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
     if (!electron?.showNotification) {
       if ('Notification' in window) {
         if (Notification.permission === 'granted') {
-          new Notification('Syntropy OS V2.5.0', { body: 'Notification test du navigateur (Desktop non actif).' });
+          new Notification('Syntropy OS V2.6.1', { body: 'Notification test du navigateur (Desktop non actif).' });
         } else {
           Notification.requestPermission();
         }
@@ -348,7 +348,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
       return;
     }
     await electron.showNotification({
-      title: 'Syntropy OS V2.5.0 — Session Focus',
+      title: 'Syntropy OS V2.6.1 — Session Focus',
       body: 'Session Pomodoro terminée ! Actionnez les boutons interactifs pour valider ou reporter.',
     });
     onNotification('Notification native Windows Toast envoyée avec succès !');
@@ -639,7 +639,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className={`text-lg font-black tracking-tight ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                  Application Desktop Native Windows (V2.5.0)
+                  Application Desktop Native Windows (V2.6.1)
                 </h3>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/40 uppercase tracking-wider">
                   Desktop Engine
@@ -681,7 +681,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
                   Package d'Installation Officiel Windows (.exe)
                 </h4>
                 <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-zinc-800 text-zinc-300 border border-zinc-700">
-                  Syntropy-OS-Setup-2.5.0.exe
+                  Syntropy-OS-Setup-2.6.1.exe
                 </span>
               </div>
               <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'} max-w-xl leading-relaxed`}>
@@ -703,7 +703,7 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
                 className="px-6 py-3.5 rounded-xl text-xs font-black tracking-wide bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white shadow-xl shadow-purple-600/30 flex items-center justify-center gap-2.5 cursor-pointer transition-all transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Download className="w-4 h-4" />
-                <span>Télécharger Syntropy-OS-Setup-2.5.0.exe</span>
+                <span>Télécharger Syntropy-OS-Setup-2.6.1.exe</span>
                 <span className="px-1.5 py-0.5 rounded text-[9px] bg-purple-950/60 border border-purple-400/40 font-mono text-purple-200">
                   Admin Only
                 </span>
