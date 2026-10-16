@@ -12,6 +12,7 @@ let quickCaptureWindow = null;
 let tray = null;
 let isQuitting = false;
 let localServer = null;
+let currentAppUrl = null;
 
 // Configuration de l'identifiant d'application Windows pour la barre des tâches
 app.setAppUserModelId('com.syntropy.os');
@@ -32,9 +33,233 @@ app.on('second-instance', () => {
 });
 
 /**
- * Serveur HTTP local autonome pour servir le build statique out/ en production
+ * Localise intelligemment le dossier de build statique out/
+ */
+function resolveOutDir() {
+  const candidates = [
+    path.join(__dirname, '../out'),
+    path.join(app.getAppPath(), 'out'),
+    path.join(process.resourcesPath || '', 'out'),
+    path.join(process.resourcesPath || '', 'app.asar/out'),
+    path.join(__dirname, 'out'),
+  ];
+  for (const c of candidates) {
+    try {
+      if (fs.existsSync(c) && fs.existsSync(path.join(c, 'index.html'))) {
+        return c;
+      }
+    } catch (_) {}
+  }
+  return path.join(__dirname, '../out');
+}
+
+/**
+ * Sonde HTTP rapide non-bloquante pour vérifier si un serveur local écoute
+ */
+function checkUrlAlive(targetUrl, timeoutMs = 800) {
+  return new Promise((resolve) => {
+    try {
+      const u = new URL(targetUrl);
+      const req = http.request(
+        {
+          hostname: u.hostname,
+          port: u.port || 80,
+          path: '/',
+          method: 'HEAD',
+          timeout: timeoutMs,
+        },
+        (res) => {
+          resolve(res.statusCode >= 200 && res.statusCode < 500);
+        }
+      );
+      req.on('error', () => resolve(false));
+      req.on('timeout', () => {
+        req.destroy();
+        resolve(false);
+      });
+      req.end();
+    } catch (_) {
+      resolve(false);
+    }
+  });
+}
+
+/**
+ * Génère une page d'attente stylée Syntropy OS lors d'une tentative de connexion
+ */
+function getLoadingHtml(retryUrl, message = "Initialisation du moteur Syntropy OS...") {
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Syntropy OS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: #09090b;
+      color: #f4f4f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      user-select: none;
+      overflow: hidden;
+    }
+    .background-orb {
+      position: absolute;
+      width: 440px;
+      height: 440px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.18) 0%, rgba(99, 102, 241, 0.06) 50%, transparent 70%);
+      filter: blur(45px);
+      z-index: 0;
+      animation: float 5s ease-in-out infinite alternate;
+    }
+    @keyframes float {
+      from { transform: translateY(-16px) scale(0.96); }
+      to { transform: translateY(16px) scale(1.04); }
+    }
+    .card {
+      position: relative;
+      z-index: 1;
+      background: rgba(24, 24, 27, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 36px 32px;
+      max-width: 420px;
+      width: 100%;
+      backdrop-filter: blur(24px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 40px rgba(168, 85, 247, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .logo-pulse {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #a855f7, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      box-shadow: 0 0 28px rgba(168, 85, 247, 0.5);
+      animation: pulse 2.2s infinite ease-in-out;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 24px rgba(168, 85, 247, 0.4); }
+      50% { transform: scale(1.06); box-shadow: 0 0 38px rgba(168, 85, 247, 0.7); }
+    }
+    .logo-pulse svg {
+      width: 32px;
+      height: 32px;
+      color: #ffffff;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      color: #fafafa;
+    }
+    p {
+      font-size: 13px;
+      color: #a1a1aa;
+      line-height: 1.5;
+      margin-bottom: 22px;
+    }
+    .spinner {
+      width: 22px;
+      height: 22px;
+      border: 2px solid rgba(168, 85, 247, 0.2);
+      border-top-color: #a855f7;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 18px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .status {
+      font-size: 12px;
+      color: #71717a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #a855f7;
+      animation: blink 1.2s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+    button {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(99, 102, 241, 0.2));
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      color: #e4e4e7;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    button:hover {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(99, 102, 241, 0.35));
+      border-color: rgba(168, 85, 247, 0.7);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+  <div class="background-orb"></div>
+  <div class="card">
+    <div class="logo-pulse">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path>
+        <path d="M12 6v6l4 2"></path>
+      </svg>
+    </div>
+    <h1>Syntropy OS</h1>
+    <p>${message}</p>
+    <div class="spinner"></div>
+    <div class="status">
+      <span class="status-dot"></span>
+      <span>Connexion en cours...</span>
+    </div>
+    <button onclick="window.location.href='${retryUrl}'">Recharger</button>
+  </div>
+  <script>
+    setTimeout(() => {
+      window.location.href = "${retryUrl}";
+    }, 1800);
+  </script>
+</body>
+</html>`;
+}
+
+/**
+ * Serveur HTTP local autonome pour servir le build statique out/
  */
 function startStaticServer(callback) {
+  if (localServer && localServer.listening) {
+    const addr = localServer.address();
+    const activePort = typeof addr === 'object' && addr ? addr.port : PORT;
+    callback(`http://127.0.0.1:${activePort}`);
+    return;
+  }
+
   const mimeTypes = {
     '.html': 'text/html; charset=utf-8',
     '.js': 'application/javascript; charset=utf-8',
@@ -53,9 +278,9 @@ function startStaticServer(callback) {
     '.txt': 'text/plain; charset=utf-8',
   };
 
-  const outDir = path.join(__dirname, '../out');
+  const outDir = resolveOutDir();
 
-  localServer = http.createServer((req, res) => {
+  const handleRequest = (req, res) => {
     try {
       const parsedUrl = new URL(req.url, `http://localhost:${PORT}`);
       let reqPath = decodeURIComponent(parsedUrl.pathname);
@@ -97,20 +322,32 @@ function startStaticServer(callback) {
       res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
       res.end('500 Internal Server Error');
     }
+  };
+
+  localServer = http.createServer(handleRequest);
+
+  localServer.once('error', (err) => {
+    console.error('[Syntropy OS Desktop] Port principal occupé ou indisponible (38200):', err?.message || err);
+    try {
+      localServer.close();
+    } catch (_) {}
+
+    // En cas de port déjà utilisé, basculer proprement sur un port dynamique alloué par le système
+    const fallbackServer = http.createServer(handleRequest);
+    fallbackServer.listen(0, '127.0.0.1', () => {
+      localServer = fallbackServer;
+      const dynPort = fallbackServer.address().port;
+      console.log(`[Syntropy OS Desktop] Serveur local de secours démarré sur http://127.0.0.1:${dynPort}`);
+      callback(`http://127.0.0.1:${dynPort}`);
+    });
+    fallbackServer.on('error', (fatalErr) => {
+      console.error('[Syntropy OS Desktop] Erreur fatale serveur local:', fatalErr);
+    });
   });
 
   localServer.listen(PORT, '127.0.0.1', () => {
     console.log(`[Syntropy OS Desktop] Serveur local démarré sur http://127.0.0.1:${PORT}`);
     callback(`http://127.0.0.1:${PORT}`);
-  });
-
-  localServer.on('error', (err) => {
-    console.error('[Syntropy OS Desktop] Erreur serveur local:', err);
-    // En cas de port déjà utilisé, essayer un port dynamique
-    localServer.listen(0, '127.0.0.1', () => {
-      const dynPort = localServer.address().port;
-      callback(`http://127.0.0.1:${dynPort}`);
-    });
   });
 }
 
@@ -157,6 +394,38 @@ function createMainWindow(appUrl) {
   });
 
   mainWindow.removeMenu();
+
+  // Gestionnaire de secours en cas d'échec de chargement réseau
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    if (errorCode === -3) return; // ERR_ABORTED (navigation annulée normale)
+
+    console.warn(`[Syntropy OS Desktop] Échec du chargement de ${validatedURL} (${errorCode}: ${errorDescription})`);
+
+    const outDir = resolveOutDir();
+    const hasStaticBuild = fs.existsSync(path.join(outDir, 'index.html'));
+
+    // Si on cherchait à charger localhost:3000 et qu'un build statique local est présent, basculer sans attendre
+    if (validatedURL && validatedURL.includes('localhost:3000') && hasStaticBuild) {
+      console.log('[Syntropy OS Desktop] Bascule de secours automatique vers le build statique out/...');
+      startStaticServer((staticUrl) => {
+        currentAppUrl = staticUrl;
+        mainWindow.loadURL(staticUrl);
+        if (quickCaptureWindow) {
+          quickCaptureWindow.loadURL(`${staticUrl}/quick-capture`);
+        }
+      });
+      return;
+    }
+
+    // Afficher l'écran d'attente Syntropy OS avec reconnexion automatique
+    const retryHtml = getLoadingHtml(validatedURL || appUrl, "Connexion au serveur de l'application en cours...");
+    mainWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(retryHtml));
+
+    if (!mainWindow.isVisible()) {
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
 
   mainWindow.loadURL(appUrl);
 
@@ -211,6 +480,13 @@ function createQuickCaptureWindow(appUrl) {
   });
 
   const captureUrl = `${appUrl}/quick-capture`;
+
+  quickCaptureWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    if (errorCode === -3) return;
+    const retryHtml = getLoadingHtml(validatedURL || captureUrl, "Chargement de la Capture Rapide...");
+    quickCaptureWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(retryHtml));
+  });
+
   quickCaptureWindow.loadURL(captureUrl);
 
   quickCaptureWindow.on('blur', () => {
@@ -478,6 +754,7 @@ app.whenReady().then(() => {
   }
 
   const startApp = (appUrl) => {
+    currentAppUrl = appUrl;
     createMainWindow(appUrl);
     createQuickCaptureWindow(appUrl);
     setupSystemTray(appUrl);
@@ -497,17 +774,43 @@ app.whenReady().then(() => {
     }
   };
 
-  if (isDev) {
-    startApp('http://localhost:3000');
-  } else {
-    startStaticServer((appUrl) => {
-      startApp(appUrl);
-    });
-  }
+  const initApp = async () => {
+    const outDir = resolveOutDir();
+    const hasStaticBuild = fs.existsSync(path.join(outDir, 'index.html'));
+
+    if (isDev) {
+      // Tester rapidement si Next.js dev server répond sur http://localhost:3000
+      const isNextDevRunning = await checkUrlAlive('http://localhost:3000', 800);
+      if (isNextDevRunning) {
+        console.log('[Syntropy OS Desktop] Serveur de dev actif détecté sur http://localhost:3000');
+        startApp('http://localhost:3000');
+        return;
+      }
+
+      // Si localhost:3000 n'est pas actif mais que out/index.html existe, lancer directement sur le build local !
+      if (hasStaticBuild) {
+        console.log('[Syntropy OS Desktop] Next.js dev inactif, lancement direct sur le build local statique out/');
+        startStaticServer((appUrl) => {
+          startApp(appUrl);
+        });
+        return;
+      }
+
+      // Ni dev ni static : lancer sur localhost:3000 (did-fail-load assurera l'écran stylé et la reconnexion automatique)
+      console.log('[Syntropy OS Desktop] En attente du serveur de développement sur http://localhost:3000...');
+      startApp('http://localhost:3000');
+    } else {
+      startStaticServer((appUrl) => {
+        startApp(appUrl);
+      });
+    }
+  };
+
+  initApp();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      const url = isDev ? 'http://localhost:3000' : `http://127.0.0.1:${PORT}`;
+      const url = currentAppUrl || (isDev ? 'http://localhost:3000' : `http://127.0.0.1:${PORT}`);
       createMainWindow(url);
     }
   });

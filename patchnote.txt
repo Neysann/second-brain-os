@@ -2,6 +2,21 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.3] - 2026-10-16 (Fiabilisation du Moteur Desktop, Reconnexion Auto & Élimination de l'Erreur au Lancement)
+--------------------------------------------------------------------------------
+1. Élimination Définitive de l'Écran d'Erreur Chromium (« This page couldn't load ») :
+- Mise en place d'une sonde HTTP pré-vol ultra-rapide au démarrage du moteur Electron testant si le serveur Next.js (http://localhost:3000) répond.
+- Si le serveur de dev n'est pas actif mais qu'un build local existe (dossier out/), Syntropy OS bascule instantanément et de manière totalement transparente sur le build local sans afficher la moindre erreur.
+- Intégration d'un écouteur d'événement `did-fail-load` sur toutes les fenêtres BrowserWindow : en cas de retard réseau ou d'indisponibilité temporaire, affichage d'un écran d'attente immersif aux couleurs de Syntropy OS (pulsation galactique néon violette, spinner moderne, statut en direct et boucle de reconnexion automatique toutes les 1.8s).
+
+2. Serveur Statique Local Résilient & Crash-Proof :
+- Algorithme de détection multi-chemins pour le répertoire `out/` compatible avec les environnements de développement, de production et les paquets ASAR Electron (`resolveOutDir`).
+- En cas de conflit sur le port standard 38200 (processus orphelin ou socket occupée), fermeture propre et réallocation dynamique instantanée sur le port 0 de l'OS afin de garantir le lancement sans blocage.
+
+3. Optimisation des Scripts Lanceurs (.bat) :
+- Dans `Lancer_Syntropy.bat` et `Lancer_Second_Brain_OS.bat`, suppression de l'ouverture prématurée du navigateur : un observateur d'arrière-plan discret sonde le port 3000 et n'ouvre le navigateur qu'au moment précis où Next.js est prêt à répondre.
+- Création du script dédié `Lancer_Syntropy_Desktop.bat` permettant de lancer directement l'exécutable desktop compilé en un double-clic.
+
 #### [V2.6.2] - 2026-10-16 (Design System Uiverse Aether, Rouge Rubis Velours, Thème Mix & Suivi Dynamique de Version)
 --------------------------------------------------------------------------------
 1. Thème d'Accentuation Uiverse Aether (Inspiré de https://uiverse.io/design/systems/aether) :
