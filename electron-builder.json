@@ -12,7 +12,8 @@
     {
       "provider": "github",
       "owner": "Neysann",
-      "repo": "second-brain-os"
+      "repo": "second-brain-os",
+      "releaseType": "release"
     }
   ],
   "files": [
