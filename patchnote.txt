@@ -2,6 +2,12 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.12] - 2026-10-17 (Optimisation du Script de Packaging Windows & Prévention Anti-Bloat)
+--------------------------------------------------------------------------------
+1. Correction Définitive du Pipeline de Packaging Windows :
+- Suppression de la commande de duplication automatique des exécutables `.exe` vers `public/` dans le script `npm run build:win`.
+- Les installateurs `.exe` sont désormais exclusivement générés et conservés dans le dossier dédié `dist/`, empêchant toute réapparition du problème de surcharge disque de 10 Go.
+
 #### [V2.6.11] - 2026-10-17 (Accès Directs GitHub & Console Firebase dans le Panneau Administrateur)
 --------------------------------------------------------------------------------
 1. Intégration des Liens d'Infrastructure dans le Panneau Administrateur :

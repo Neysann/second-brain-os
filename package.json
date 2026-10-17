@@ -1,6 +1,6 @@
 {
   "name": "syntropy-os",
-  "version": "2.6.11",
+  "version": "2.6.12",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "dev:desktop": "concurrently -k \"next dev\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development electron electron/main.js\"",
     "build": "next build",
     "build:icons": "node scripts/convert-icons.js",
-    "build:win": "node scripts/convert-icons.js && next build && electron-builder --win nsis && powershell -NoProfile -Command \"Copy-Item -Path 'dist/Syntropy-OS-Setup-*.exe' -Destination 'public/' -Force; Copy-Item -Path 'dist/Syntropy-OS-Setup-*.exe' -Destination 'second-brain-os/public/' -Force\"",
+    "build:win": "node scripts/convert-icons.js && next build && electron-builder --win nsis",
     "start": "next start",
     "deploy": "next build && npx firebase-tools deploy --only hosting",
     "release:tag": "node scripts/release-tag.js",

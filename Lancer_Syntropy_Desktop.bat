@@ -1,14 +1,14 @@
 @echo off
 chcp 65001 > nul
-title Syntropy OS Desktop (V2.6.11)
+title Syntropy OS Desktop (V2.6.12)
 color 05
 
 echo =====================================================================
-echo                  SYNTROPY OS - APPLICATION OFFICIELLE (V2.6.11)
+echo                  SYNTROPY OS - APPLICATION OFFICIELLE (V2.6.12)
 echo =====================================================================
 echo.
 echo  Dossier : %~dp0
-echo  Version : 2.6.11
+echo  Version : 2.6.12
 echo.
 echo ---------------------------------------------------------------------
 
@@ -37,9 +37,9 @@ if exist "dist\win-unpacked\Syntropy OS.exe" (
 )
 
 rem 3. Verification de la presence de l'installateur officiel
-if exist "dist\Syntropy-OS-Setup-2.6.11.exe" (
-    echo [INFO] Lancement de l'installateur Syntropy OS 2.6.11...
-    start "" "dist\Syntropy-OS-Setup-2.6.11.exe"
+if exist "dist\Syntropy-OS-Setup-2.6.12.exe" (
+    echo [INFO] Lancement de l'installateur Syntropy OS 2.6.12...
+    start "" "dist\Syntropy-OS-Setup-2.6.12.exe"
     goto :success
 )
 
