@@ -2,6 +2,16 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.6] - 2026-10-17 (Synchronisation Web/Desktop & Lancement Exclusif de l'Application Officielle Syntropy OS)
+--------------------------------------------------------------------------------
+1. Lancement Exclusif de la Véritable Application Officielle :
+- `Lancer_Syntropy_Desktop.bat` ne lance plus l'environnement brut `electron.exe` de dev. Il cible exclusivement l'exécutable officiel packagé `Syntropy OS.exe` (version installée dans AppData ou version autonome officielle compilée dans `dist/win-unpacked/`).
+- En cas d'absence de compilation, le script déclenche automatiquement la compilation officielle (`npm run build:win`) afin de garantir que l'utilisateur dispose toujours du véritable logiciel avec son icône, son branding et son identité.
+
+2. Synchronisation Stricte de la Version Web et Desktop :
+- Alignement complet du numéro de version (2.6.6) sur l'ensemble de la codebase (`package.json`, `version.ts`, `preload.js`, documentation et scripts de lancement).
+- Intégration du script de synchronisation globale pour déployer sur Firebase Hosting et recompiler l'exécutable de production.
+
 #### [V2.6.5] - 2026-10-17 (Fiabilisation du Lanceur Desktop, Affichage Immédiat & Résolution de la Fermeture Instantanée)
 --------------------------------------------------------------------------------
 1. Résolution de la Fermeture Instantanée du Lanceur Desktop :
