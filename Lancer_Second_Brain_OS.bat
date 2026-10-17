@@ -1,18 +1,19 @@
 @echo off
 chcp 65001 > nul
-title Second Brain OS - Lanceur Rapide (V2.6.4)
+title Second Brain OS - Lanceur Rapide (V2.6.5)
 color 0B
 
 echo =====================================================================
-echo                 SECOND BRAIN OS (V2.6.4)
+echo                 SECOND BRAIN OS (V2.6.5)
 echo =====================================================================
 echo.
 echo  Projet  : Second Brain OS (Methode PARA, Kanban, Notes Markdown)
-echo  Dossier : c:\PROJET ASSISTANT - JARVIS
+echo  Dossier : %~dp0
+echo  Version : 2.6.5
 echo.
 echo ---------------------------------------------------------------------
 
-cd /d "c:\PROJET ASSISTANT - JARVIS"
+cd /d "%~dp0"
 
 echo [1/3] Verification de l environnement...
 where node >nul 2>&1
@@ -39,7 +40,7 @@ call npm run dev
 if %errorlevel% neq 0 (
     echo.
     echo [!] Tentative alternative dans le sous-dossier second-brain-os...
-    cd /d "c:\PROJET ASSISTANT - JARVIS\second-brain-os"
+    cd /d "%~dp0second-brain-os"
     call npm run dev
 )
 

@@ -2,6 +2,23 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.5] - 2026-10-17 (Fiabilisation du Lanceur Desktop, Affichage Immédiat & Résolution de la Fermeture Instantanée)
+--------------------------------------------------------------------------------
+1. Résolution de la Fermeture Instantanée du Lanceur Desktop :
+- Dans `Lancer_Syntropy_Desktop.bat`, élimination de la fermeture abrupte (`exit /b 0` instantané) qui faisait disparaître la console en quelques millisecondes : confirmation explicite de démarrage réussie et temporisation élégante de 3 secondes.
+- Passage des arguments de démarrage du moteur Electron sous la forme standard `%~dp0.` pour que `package.json` et le dossier racine soient correctement interprétés avec `app.getAppPath()`.
+- Gestion des cas d'erreur avec `pause` interactive pour préserver la visibilité des diagnostics au lieu d'une fermeture aveugle.
+
+2. Affichage Immédiat de la Fenêtre Desktop (`show: true`) :
+- Dans `electron/main.js`, activation de l'ouverture instantanée de la fenêtre principale avec arrière-plan sombre `#09090b`, éliminant le délai d'attente aveugle de l'événement `ready-to-show`.
+- Ajout d'un timer de sécurité pour forcer le focus et l'affichage au premier plan en toutes circonstances.
+
+3. Restauration Agressive en Multi-Instance (`second-instance`) :
+- Si un processus Electron d'arrière-plan ou une instance masquée dans la zone de notification (systray) existe déjà, un nouveau double-clic sur `Lancer_Syntropy_Desktop.bat` restaure, rend visible, place au premier plan et donne immédiatement le focus à la fenêtre existante, ou en recrée une si elle avait été détruite.
+
+4. Journalisation Préventive des Exceptions :
+- Ajout d'un écouteur global `uncaughtException` écrivant dans `electron-startup.log` pour détecter et diagnostiquer tout dysfonctionnement silencieux.
+
 #### [V2.6.4] - 2026-10-16 (Correction Critique du Hook React #310 dans AppShell & Stabilité du Rendu Desktop)
 --------------------------------------------------------------------------------
 1. Résolution de l'Erreur React #310 (« Rendered more hooks than during previous render ») :

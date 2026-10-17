@@ -14,6 +14,15 @@ let isQuitting = false;
 let localServer = null;
 let currentAppUrl = null;
 
+// Capture globale des exceptions pour éviter tout crash silencieux
+process.on('uncaughtException', (err) => {
+  try {
+    const logPath = path.join(__dirname, 'electron-startup.log');
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] Uncaught Exception: ${err?.stack || err}\n`);
+  } catch (_) {}
+  console.error('[Syntropy OS Desktop Exception]', err);
+});
+
 // Configuration de l'identifiant d'application Windows pour la barre des tâches
 app.setAppUserModelId('com.syntropy.os');
 
@@ -27,8 +36,13 @@ if (!gotTheLock) {
 app.on('second-instance', () => {
   if (mainWindow) {
     if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.show();
+    if (!mainWindow.isVisible()) mainWindow.show();
+    mainWindow.setAlwaysOnTop(true);
     mainWindow.focus();
+    mainWindow.setAlwaysOnTop(false);
+  } else {
+    const url = currentAppUrl || `http://127.0.0.1:${PORT}`;
+    createMainWindow(url);
   }
 });
 
@@ -382,7 +396,7 @@ function createMainWindow(appUrl) {
     minHeight: 650,
     backgroundColor: '#09090b',
     icon: iconPath,
-    show: false,
+    show: true,
     frame: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -430,9 +444,17 @@ function createMainWindow(appUrl) {
   mainWindow.loadURL(appUrl);
 
   mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
+    if (!mainWindow.isVisible()) mainWindow.show();
     mainWindow.focus();
   });
+
+  // Sécurité supplémentaire : s'assurer que la fenêtre est immédiatement visible
+  setTimeout(() => {
+    if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.isVisible()) {
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  }, 400);
 
   // Réduire dans la zone de notification au lieu de fermer si demandée
   mainWindow.on('close', (e) => {
@@ -779,11 +801,11 @@ app.whenReady().then(() => {
     const hasStaticBuild = fs.existsSync(path.join(outDir, 'index.html'));
 
     if (isDev) {
-      // Tester rapidement si Next.js dev server répond sur http://localhost:3000
-      const isNextDevRunning = await checkUrlAlive('http://localhost:3000', 800);
+      // Tester rapidement si Next.js dev server répond sur http://127.0.0.1:3000
+      const isNextDevRunning = await checkUrlAlive('http://127.0.0.1:3000', 350);
       if (isNextDevRunning) {
-        console.log('[Syntropy OS Desktop] Serveur de dev actif détecté sur http://localhost:3000');
-        startApp('http://localhost:3000');
+        console.log('[Syntropy OS Desktop] Serveur de dev actif détecté sur http://127.0.0.1:3000');
+        startApp('http://127.0.0.1:3000');
         return;
       }
 
