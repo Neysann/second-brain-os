@@ -567,9 +567,39 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
               <ShieldCheck className="w-4 h-4" />
               Droits Root Actifs
             </span>
+            <a
+              href="https://github.com/Neysann/second-brain-os"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all transform hover:scale-[1.02] active:scale-[0.98] ${
+                isDark
+                  ? 'bg-zinc-900/90 hover:bg-zinc-800 text-zinc-200 border-zinc-700 shadow-sm'
+                  : 'bg-white hover:bg-zinc-50 text-zinc-800 border-zinc-300 shadow-sm'
+              }`}
+              title="Ouvrir le dépôt GitHub officiel du projet"
+            >
+              <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+              </svg>
+              <span>GitHub</span>
+              <ExternalLink className="w-3 h-3 text-zinc-400" />
+            </a>
+            <a
+              href="https://console.firebase.google.com/project/second-brain-os-e6a83/overview"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1.5 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-sm"
+              title="Ouvrir la console Google Cloud Firebase du projet"
+            >
+              <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                <path d="M3.89 15.672L6.255.472A.538.538 0 0 1 7.27.28l3.536 6.621zm16.768 2.634L18.42 4.544a.539.539 0 0 0-.979-.187l-2.738 5.163zm-8.874-4.834l2.133-4.02 2.664 5.024zm9.32 6.551L18.89 4.882a.539.539 0 0 0-.962-.178L3.24 19.988l8.28 4.665a1.08 1.08 0 0 0 1.056 0z"/>
+              </svg>
+              <span>Firebase</span>
+              <ExternalLink className="w-3 h-3 text-amber-500/70" />
+            </a>
             <button
               onClick={handleDownloadDiagnostic}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1.5 cursor-pointer transition-colors"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-zinc-500/10 hover:bg-zinc-500/20 text-zinc-400 dark:text-zinc-300 border border-zinc-500/30 flex items-center gap-1.5 cursor-pointer transition-colors"
               title="Exporter les métriques et configurations"
             >
               <Download className="w-3.5 h-3.5" />
@@ -625,6 +655,95 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
               <span className="text-[10px] text-zinc-500 mt-0.5 block">
                 {isFirebaseConnected ? 'Synchronisation active' : 'Persistance de secours'}
               </span>
+            </div>
+          </div>
+
+          {/* 1.1 Accès Directs Infrastructure Cloud & Code Source */}
+          <div className="mt-5 pt-5 border-t border-amber-500/20">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <h4 className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 ${
+                isDark ? 'text-zinc-400' : 'text-zinc-600'
+              }`}>
+                <Server className="w-3.5 h-3.5 text-amber-500" />
+                <span>Accès Directs Infrastructure & Code Source</span>
+              </h4>
+              <span className="text-[10px] text-zinc-500 font-mono">Liens certifiés Administrateur</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Carte Dépôt GitHub */}
+              <a
+                href="https://github.com/Neysann/second-brain-os"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`p-4 rounded-2xl border transition-all flex items-center justify-between gap-4 group ${
+                  isDark
+                    ? 'bg-zinc-900/80 hover:bg-zinc-800/80 border-zinc-700/60 hover:border-zinc-500 shadow-sm'
+                    : 'bg-white hover:bg-zinc-50 border-zinc-200 hover:border-zinc-300 shadow-xs'
+                }`}
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="p-2.5 rounded-xl bg-zinc-800 text-white border border-zinc-700 flex-shrink-0 group-hover:scale-105 transition-transform shadow-sm">
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-bold truncate ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                        Dépôt GitHub du Projet
+                      </span>
+                      <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                        main
+                      </span>
+                    </div>
+                    <p className={`text-[11px] truncate mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                      github.com/Neysann/second-brain-os
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-purple-400 font-semibold flex-shrink-0 group-hover:translate-x-0.5 transition-transform">
+                  <span>Accéder</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </div>
+              </a>
+
+              {/* Carte Console Firebase */}
+              <a
+                href="https://console.firebase.google.com/project/second-brain-os-e6a83/overview"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`p-4 rounded-2xl border transition-all flex items-center justify-between gap-4 group ${
+                  isDark
+                    ? 'bg-zinc-900/80 hover:bg-zinc-800/80 border-amber-500/30 hover:border-amber-500/60 shadow-sm'
+                    : 'bg-white hover:bg-amber-50/50 border-amber-200 hover:border-amber-300 shadow-xs'
+                }`}
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-500 dark:text-amber-400 border border-amber-500/40 flex-shrink-0 group-hover:scale-105 transition-transform shadow-sm">
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M3.89 15.672L6.255.472A.538.538 0 0 1 7.27.28l3.536 6.621zm16.768 2.634L18.42 4.544a.539.539 0 0 0-.979-.187l-2.738 5.163zm-8.874-4.834l2.133-4.02 2.664 5.024zm9.32 6.551L18.89 4.882a.539.539 0 0 0-.962-.178L3.24 19.988l8.28 4.665a1.08 1.08 0 0 0 1.056 0z"/>
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-bold truncate ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                        Console Google Firebase
+                      </span>
+                      <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        Production
+                      </span>
+                    </div>
+                    <p className={`text-[11px] truncate mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                      Projet : second-brain-os-e6a83
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-amber-500 font-semibold flex-shrink-0 group-hover:translate-x-0.5 transition-transform">
+                  <span>Accéder</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </div>
+              </a>
             </div>
           </div>
         </div>

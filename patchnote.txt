@@ -2,6 +2,14 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.11] - 2026-10-17 (Accès Directs GitHub & Console Firebase dans le Panneau Administrateur)
+--------------------------------------------------------------------------------
+1. Intégration des Liens d'Infrastructure dans le Panneau Administrateur :
+- Ajout de deux boutons d'accès rapide dans l'en-tête de la Console d'Administration :
+  * Dépôt GitHub : `https://github.com/Neysann/second-brain-os`
+  * Console Google Firebase : `https://console.firebase.google.com/project/second-brain-os-e6a83/overview`
+- Création d'une nouvelle section dédiée "Accès Directs Infrastructure & Code Source" sous la télémétrie Cloud Firestore avec cartes interactives, badges de statut (`main`, `Production`) et ouverture sécurisée en nouvel onglet.
+
 #### [V2.6.10] - 2026-10-17 (Grand Nettoyage & Optimisation de l'Espace Disque : ~10 Go Libérés)
 --------------------------------------------------------------------------------
 1. Purge Massive des Anciens Binaires et Installateurs Obsolètes :
