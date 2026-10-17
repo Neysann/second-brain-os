@@ -2,6 +2,14 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.13] - 2026-10-17 (Correction Icône Barre des Tâches Windows via asarUnpack & Résolution Native)
+--------------------------------------------------------------------------------
+1. Correction de l'Affichage de l'Icône Cérébrale Violette dans la Barre des Tâches :
+- Résolution du problème d'icône Electron par défaut (atome bleu) affichée au lancement de l'application sur Windows.
+- Configuration d'« asarUnpack » dans electron-builder pour extraire physiquement l'icône sur le disque (`resources/app.asar.unpacked/electron/icon.ico`), permettant aux API natives Windows Win32 (WM_SETICON) de la charger sans restriction liée à l'archive virtuelle ASAR.
+- Amélioration de la détection et du chargement de l'icône (`getAppIconPath` et `getAppIcon`) avec priorité au fichier .ico décompressé pour une résolution multi-taille nette dans la barre des tâches, la barre de titre et les aperçus miniatures.
+- Application immédiate à la fenêtre principale (`mainWindow`), à la mini-fenêtre de capture rapide (`quickCaptureWindow`) et au System Tray.
+
 #### [V2.6.12] - 2026-10-17 (Optimisation du Script de Packaging Windows & Prévention Anti-Bloat)
 --------------------------------------------------------------------------------
 1. Correction Définitive du Pipeline de Packaging Windows :

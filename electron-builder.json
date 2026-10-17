@@ -29,6 +29,10 @@
     "!out/Syntropy-OS-Setup-*",
     "package.json"
   ],
+  "asarUnpack": [
+    "electron/icon.ico",
+    "electron/icon.png"
+  ],
   "nodeGypRebuild": false,
   "npmRebuild": false,
   "win": {

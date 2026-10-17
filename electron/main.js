@@ -365,20 +365,46 @@ function startStaticServer(callback) {
   });
 }
 
-function getAppIcon() {
+function getAppIconPath() {
   const candidatePaths = [
+    // 1. Fichier extrait sur le disque réel par asarUnpack (évite le piège des archives asar)
+    path.join(process.resourcesPath || '', 'app.asar.unpacked', 'electron', 'icon.ico'),
+    path.join(process.resourcesPath || '', 'app.asar.unpacked', 'electron', 'icon.png'),
+    path.join(process.resourcesPath || '', 'icon.ico'),
+    path.join(process.resourcesPath || '', 'icon.png'),
+    // 2. Fichiers dans electron/
     path.join(__dirname, 'icon.ico'),
     path.join(__dirname, 'icon.png'),
+    // 3. Fichiers dans build/
     path.join(__dirname, '../build/icon.ico'),
     path.join(__dirname, '../build/icon.png'),
-    path.join(__dirname, '../out/icon.ico'),
-    path.join(__dirname, '../out/logo.png'),
+    // 4. Fichiers publics de secours
     path.join(__dirname, '../public/icon.ico'),
     path.join(__dirname, '../public/logo.png'),
   ];
   for (const p of candidatePaths) {
-    if (fs.existsSync(p)) return p;
+    try {
+      if (fs.existsSync(p)) return p;
+    } catch (_) {}
   }
+  return undefined;
+}
+
+function getAppIcon() {
+  const p = getAppIconPath();
+  if (p) {
+    try {
+      const img = nativeImage.createFromPath(p);
+      if (!img.isEmpty()) return img;
+    } catch (_) {}
+    return p;
+  }
+  try {
+    if (app.isPackaged && process.execPath) {
+      const img = nativeImage.createFromPath(process.execPath);
+      if (!img.isEmpty()) return img;
+    }
+  } catch (_) {}
   return undefined;
 }
 
@@ -386,7 +412,8 @@ function getAppIcon() {
  * Création de la Fenêtre Principale de Syntropy OS
  */
 function createMainWindow(appUrl) {
-  const iconPath = getAppIcon();
+  const iconImg = getAppIcon();
+  const iconPath = getAppIconPath();
 
   mainWindow = new BrowserWindow({
     title: 'Syntropy OS',
@@ -395,7 +422,7 @@ function createMainWindow(appUrl) {
     minWidth: 980,
     minHeight: 650,
     backgroundColor: '#09090b',
-    icon: iconPath,
+    icon: iconPath || iconImg,
     show: true,
     frame: true,
     webPreferences: {
@@ -406,6 +433,13 @@ function createMainWindow(appUrl) {
       webSecurity: true,
     },
   });
+
+  const finalIcon = iconPath || iconImg;
+  if (finalIcon) {
+    try {
+      mainWindow.setIcon(finalIcon);
+    } catch (_) {}
+  }
 
   mainWindow.removeMenu();
 
@@ -480,6 +514,9 @@ function createMainWindow(appUrl) {
  * Création de la Mini-Fenêtre Flottante de Capture Rapide (Alt+Espace)
  */
 function createQuickCaptureWindow(appUrl) {
+  const iconImg = getAppIcon();
+  const iconPath = getAppIconPath();
+
   quickCaptureWindow = new BrowserWindow({
     title: 'Syntropy OS — Capture Rapide',
     width: 620,
@@ -492,7 +529,7 @@ function createQuickCaptureWindow(appUrl) {
     show: false,
     center: true,
     backgroundColor: '#00000000',
-    icon: getAppIcon(),
+    icon: iconPath || iconImg,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -500,6 +537,13 @@ function createQuickCaptureWindow(appUrl) {
       sandbox: false,
     },
   });
+
+  const finalQuickIcon = iconPath || iconImg;
+  if (finalQuickIcon) {
+    try {
+      quickCaptureWindow.setIcon(finalQuickIcon);
+    } catch (_) {}
+  }
 
   const captureUrl = `${appUrl}/quick-capture`;
 
@@ -535,13 +579,18 @@ function toggleQuickCaptureWindow() {
  * Configuration du System Tray (Icône de notification violette)
  */
 function setupSystemTray(appUrl) {
-  const iconPath = getAppIcon();
+  const iconImg = getAppIcon();
   let trayImage;
 
-  if (iconPath && fs.existsSync(iconPath)) {
-    trayImage = nativeImage.createFromPath(iconPath).resize({ width: 18, height: 18 });
+  if (iconImg && typeof iconImg.resize === 'function') {
+    trayImage = iconImg.resize({ width: 18, height: 18 });
   } else {
-    trayImage = nativeImage.createEmpty();
+    const iconPath = getAppIconPath();
+    if (iconPath && fs.existsSync(iconPath)) {
+      trayImage = nativeImage.createFromPath(iconPath).resize({ width: 18, height: 18 });
+    } else {
+      trayImage = nativeImage.createEmpty();
+    }
   }
 
   tray = new Tray(trayImage);
