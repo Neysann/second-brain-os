@@ -655,6 +655,14 @@ function registerIpcHandlers() {
   });
 
   ipcMain.handle('set-auto-start', (_event, enabled) => {
+    // Ne jamais enregistrer le binaire de dev brut electron.exe au démarrage de Windows !
+    if (!app.isPackaged) {
+      console.log('[AutoStart] Désactivé en mode dev pour éviter d\'enregistrer electron.exe au démarrage');
+      try {
+        app.setLoginItemSettings({ openAtLogin: false });
+      } catch (_) {}
+      return false;
+    }
     app.setLoginItemSettings({
       openAtLogin: Boolean(enabled),
       openAsHidden: true,
@@ -763,6 +771,13 @@ function registerIpcHandlers() {
 
 // Initialisation globale de l'application
 app.whenReady().then(() => {
+  // Purger tout enregistrement accidentel d'electron.exe au démarrage si en mode dev
+  if (!app.isPackaged) {
+    try {
+      app.setLoginItemSettings({ openAtLogin: false });
+    } catch (_) {}
+  }
+
   registerIpcHandlers();
   registerAutoUpdaterIpc(isDev);
 

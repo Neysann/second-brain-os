@@ -1,14 +1,14 @@
 @echo off
 chcp 65001 > nul
-title Syntropy OS - Synchronisation & Deploiement (V2.6.7)
+title Syntropy OS - Synchronisation & Deploiement (V2.6.8)
 color 0A
 
 echo =====================================================================
-echo           SYNTROPY OS - SYNCHRONISATION COMPLETE (V2.6.7)
+echo           SYNTROPY OS - SYNCHRONISATION COMPLETE (V2.6.8)
 echo =====================================================================
 echo.
 echo  Dossier : %~dp0
-echo  Version : 2.6.7
+echo  Version : 2.6.8
 echo.
 echo  Cette commande va :
 echo   1. Fermer les instances en cours pour liberer les fichiers
@@ -50,7 +50,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo =====================================================================
-echo   Synchronisation terminee avec succes pour la version 2.6.7 !
+echo   Synchronisation terminee avec succes pour la version 2.6.8 !
 echo =====================================================================
 echo.
 pause

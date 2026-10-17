@@ -2,6 +2,16 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.8] - 2026-10-17 (Suppression d'Electron au Démarrage Windows & Protection Login Items)
+--------------------------------------------------------------------------------
+1. Éradication de la Fenêtre Electron au Démarrage de Windows :
+- Identification de la cause de la fenêtre d'accueil par défaut d'Electron à l'ouverture de session : l'activation du lancement automatique en mode dev avait enregistré le binaire brut `electron.exe` dans le registre Windows Startup.
+- Création du script de nettoyage instantané `Desactiver_Demarrage_Auto_Electron.bat` supprimant automatiquement toute clé de démarrage résiduelle du registre et du dossier Startup de Windows.
+
+2. Protection Stricte dans le Moteur Desktop :
+- Dans `electron/main.js`, verrouillage de la fonction `set-auto-start` : impossible pour un binaire non packagé de s'enregistrer au démarrage de Windows.
+- Nettoyage automatique préventif à chaque initialisation de l'application en mode développement.
+
 #### [V2.6.7] - 2026-10-17 (Résolution du Verrouillage de Fichiers & Optimisation du Packaging Windows)
 --------------------------------------------------------------------------------
 1. Correction des Conflits de Verrouillage de Fichiers lors du Packaging :
