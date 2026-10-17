@@ -2,6 +2,19 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.10] - 2026-10-17 (Grand Nettoyage & Optimisation de l'Espace Disque : ~10 Go Libérés)
+--------------------------------------------------------------------------------
+1. Purge Massive des Anciens Binaires et Installateurs Obsolètes :
+- Suppression des lourds installateurs d'anciennes versions (2.5.0, 2.6.6, 2.6.7) dupliqués inutilement dans `public/`, `out/` et `dist/` (~6.5 Go libérés).
+- Suppression des volumineuses archives de compilation NSIS 7z et blockmaps archivés dans `dist/` (~3.5 Go libérés).
+- Le dossier `public/` ne conserve désormais que les véritables assets graphiques essentiels (icônes et logos).
+
+2. Assainissement des Fichiers Résiduels et Scripts Temporaires :
+- Élimination des logs de débogage temporaires (`installed_err.log`, `installed_out.log`).
+- Suppression des scripts PowerShell temporaires à la racine (`copy_to_desktop.ps1`, `create_shortcut.ps1`).
+- Suppression des scripts obsolètes devenus inutiles (`scripts/watch-and-deploy.ps1`).
+- Amélioration immédiate de la vitesse de compilation Next.js et de déploiement grâce à la disparition des copies récursives de gros fichiers.
+
 #### [V2.6.9] - 2026-10-17 (Nettoyage des Fichiers .bat Obsolètes & Simplification des Lanceurs)
 --------------------------------------------------------------------------------
 1. Purge des Scripts Batch Superflus et Redondants :
