@@ -21,6 +21,12 @@
     "out/**/*",
     "!out/**/*.exe",
     "!out/*.exe",
+    "!out/**/*.zip",
+    "!out/*.zip",
+    "!out/**/*.bin",
+    "!out/*.bin",
+    "!out/**/Syntropy-OS-Setup-*",
+    "!out/Syntropy-OS-Setup-*",
     "package.json"
   ],
   "nodeGypRebuild": false,

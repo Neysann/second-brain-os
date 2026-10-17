@@ -1,15 +1,15 @@
 @echo off
 chcp 65001 > nul
-title Second Brain OS - Lanceur Rapide (V2.6.6)
+title Second Brain OS - Lanceur Rapide (V2.6.7)
 color 0B
 
 echo =====================================================================
-echo                 SECOND BRAIN OS (V2.6.6)
+echo                 SECOND BRAIN OS (V2.6.7)
 echo =====================================================================
 echo.
 echo  Projet  : Second Brain OS (Methode PARA, Kanban, Notes Markdown)
 echo  Dossier : %~dp0
-echo  Version : 2.6.6
+echo  Version : 2.6.7
 echo.
 echo ---------------------------------------------------------------------
 

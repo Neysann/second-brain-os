@@ -1,24 +1,31 @@
 @echo off
 chcp 65001 > nul
-title Syntropy OS - Synchronisation & Deploiement (V2.6.6)
+title Syntropy OS - Synchronisation & Deploiement (V2.6.7)
 color 0A
 
 echo =====================================================================
-echo           SYNTROPY OS - SYNCHRONISATION COMPLETE (V2.6.6)
+echo           SYNTROPY OS - SYNCHRONISATION COMPLETE (V2.6.7)
 echo =====================================================================
 echo.
 echo  Dossier : %~dp0
-echo  Version : 2.6.6
+echo  Version : 2.6.7
 echo.
 echo  Cette commande va :
-echo   1. Compiler la derniere version Web pour la production (out/)
-echo   2. Deployer sur Firebase Hosting (version en ligne pour navigateur)
-echo   3. Packager l'executable officiel Windows (.exe)
+echo   1. Fermer les instances en cours pour liberer les fichiers
+echo   2. Compiler la derniere version Web pour la production (out/)
+echo   3. Deployer sur Firebase Hosting (version en ligne pour navigateur)
+echo   4. Packager l'executable officiel Windows (.exe)
 echo.
 echo ---------------------------------------------------------------------
 
 cd /d "%~dp0"
 
+echo [0/3] Liberation des fichiers verrouilles...
+taskkill /F /IM "Syntropy OS.exe" >nul 2>&1
+taskkill /F /IM "electron.exe" >nul 2>&1
+if exist "dist\builder-debug.yml" del /f /q "dist\builder-debug.yml" >nul 2>&1
+
+echo.
 echo [1/3] Compilation Web en cours...
 call npm run build
 if %errorlevel% neq 0 (
@@ -43,7 +50,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo =====================================================================
-echo   Synchronisation terminee avec succes pour la version 2.6.6 !
+echo   Synchronisation terminee avec succes pour la version 2.6.7 !
 echo =====================================================================
 echo.
 pause

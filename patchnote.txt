@@ -2,6 +2,16 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.7] - 2026-10-17 (Résolution du Verrouillage de Fichiers & Optimisation du Packaging Windows)
+--------------------------------------------------------------------------------
+1. Correction des Conflits de Verrouillage de Fichiers lors du Packaging :
+- Libération automatique des processus actifs (`Syntropy OS.exe` et `electron.exe`) avant toute étape de packaging dans `Synchroniser_Et_Deployer.bat`, évitant les erreurs de verrouillage EBUSY / UNKNOWN sous Windows.
+- Suppression automatique des fichiers temporaires résiduels (`dist/builder-debug.yml`).
+
+2. Allègement Majeur du Bundle ASAR (-1,8 Go) :
+- Élimination des anciens installateurs et archives volumineux (2.5.0 `.bin`, `.zip`, `.exe`) qui étaient dupliqués par inadvertance dans le répertoire `out/`.
+- Configuration stricte dans `electron-builder.json` pour exclure tout fichier binaire lourd du packaging, divisant la taille du dossier source par 400 (de 2 Go à 5 Mo) et éliminant tout blocage lié à l'antivirus dans les dossiers temporaires.
+
 #### [V2.6.6] - 2026-10-17 (Synchronisation Web/Desktop & Lancement Exclusif de l'Application Officielle Syntropy OS)
 --------------------------------------------------------------------------------
 1. Lancement Exclusif de la Véritable Application Officielle :
