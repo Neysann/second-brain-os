@@ -45,15 +45,22 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [3/3] Packaging de l'executable officiel Windows...
+echo [3/4] Packaging de l'executable officiel Windows local...
 call npm run build:win
 if %errorlevel% neq 0 (
     echo [ATTENTION] Le packaging Windows a echoue.
 )
 
 echo.
+echo [4/4] Publication sur GitHub & Declenchement de la Release Automatique...
+call npm run release:tag
+if %errorlevel% neq 0 (
+    echo [ATTENTION] La synchronisation Git/Release GitHub a rencontre un avertissement.
+)
+
+echo.
 echo =====================================================================
-echo   Synchronisation terminee avec succes pour la version 2.6.12 !
+echo   Synchronisation terminee avec succes pour la version 2.6.15 !
 echo =====================================================================
 echo.
 pause
