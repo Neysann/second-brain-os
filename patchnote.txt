@@ -2,6 +2,13 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.14] - 2026-10-17 (Éradication du Raccourci Parasite Electron.lnk & Correction Définitive de l'Icône de Barre des Tâches)
+--------------------------------------------------------------------------------
+1. Élimination du Conflit d'Identifiant d'Application Windows (AUMID) :
+- Détection et suppression du raccourci parasite de développement `Electron.lnk` dans le menu Démarrer Windows (`AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Electron.lnk`). Ce raccourci portait le même identifiant `com.syntropy.os`, provoquant la substitution par l'icône de l'atome Electron sur la barre des tâches lors du tri alphabétique Windows Shell (E < S).
+- Implémentation d'un nettoyage préventif automatique au démarrage dans `electron/main.js` et dans `Lancer_Syntropy_Desktop.bat` pour garantir que seul `Syntropy OS.lnk` (avec l'icône cérébrale violette) puisse être résolu par Windows.
+- Actualisation du lanceur desktop pour pointer vers le dernier installateur de version.
+
 #### [V2.6.13] - 2026-10-17 (Correction Icône Barre des Tâches Windows via asarUnpack & Résolution Native)
 --------------------------------------------------------------------------------
 1. Correction de l'Affichage de l'Icône Cérébrale Violette dans la Barre des Tâches :

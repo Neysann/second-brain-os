@@ -1,15 +1,15 @@
 @echo off
 chcp 65001 > nul
-title Syntropy - Lanceur Rapide (V2.6.13)
+title Syntropy - Lanceur Rapide (V2.6.14)
 color 0D
 
 echo =====================================================================
-echo                     SYNTROPY OS (V2.6.13)
+echo                     SYNTROPY OS (V2.6.14)
 echo =====================================================================
 echo.
 echo  Projet  : Syntropy (Systeme de Productivite & Connaissances)
 echo  Dossier : %~dp0
-echo  Version : 2.6.13
+echo  Version : 2.6.14
 echo.
 echo ---------------------------------------------------------------------
 

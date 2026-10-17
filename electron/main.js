@@ -26,6 +26,19 @@ process.on('uncaughtException', (err) => {
 // Configuration de l'identifiant d'application Windows pour la barre des tâches
 app.setAppUserModelId('com.syntropy.os');
 
+// Nettoyage préventif des raccourcis parasites du mode développement Windows
+if (process.platform === 'win32') {
+  try {
+    const appData = process.env.APPDATA || (app.getPath && app.getPath('appData'));
+    if (appData) {
+      const parasiticLnk = path.join(appData, 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Electron.lnk');
+      if (fs.existsSync(parasiticLnk)) {
+        fs.unlinkSync(parasiticLnk);
+      }
+    }
+  } catch (_) {}
+}
+
 // Vérification d'instance unique
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {

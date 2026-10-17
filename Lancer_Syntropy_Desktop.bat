@@ -1,14 +1,14 @@
 @echo off
 chcp 65001 > nul
-title Syntropy OS Desktop (V2.6.13)
+title Syntropy OS Desktop (V2.6.14)
 color 05
 
 echo =====================================================================
-echo                  SYNTROPY OS - APPLICATION OFFICIELLE (V2.6.13)
+echo                  SYNTROPY OS - APPLICATION OFFICIELLE (V2.6.14)
 echo =====================================================================
 echo.
 echo  Dossier : %~dp0
-echo  Version : 2.6.13
+echo  Version : 2.6.14
 echo.
 echo ---------------------------------------------------------------------
 
@@ -21,6 +21,9 @@ rem Nettoyage préventif de tout démarrage intempestif de l'environnement de de
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "com.syntropy.os" /f >nul 2>&1
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "electron" /f >nul 2>&1
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "Electron" /f >nul 2>&1
+if exist "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Electron.lnk" (
+    del /f /q "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Electron.lnk" >nul 2>&1
+)
 
 rem 1. Verification de la version installee sur le systeme Windows
 if exist "%LOCALAPPDATA%\Programs\Syntropy OS\Syntropy OS.exe" (
@@ -37,9 +40,9 @@ if exist "dist\win-unpacked\Syntropy OS.exe" (
 )
 
 rem 3. Verification de la presence de l'installateur officiel
-if exist "dist\Syntropy-OS-Setup-2.6.12.exe" (
-    echo [INFO] Lancement de l'installateur Syntropy OS 2.6.12...
-    start "" "dist\Syntropy-OS-Setup-2.6.12.exe"
+if exist "dist\Syntropy-OS-Setup-2.6.13.exe" (
+    echo [INFO] Lancement de l'installateur Syntropy OS 2.6.13...
+    start "" "dist\Syntropy-OS-Setup-2.6.13.exe"
     goto :success
 )
 
