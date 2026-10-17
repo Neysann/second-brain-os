@@ -20,6 +20,7 @@ import {
 } from '@/types/dashboard';
 import DashboardGrid from '@/components/dashboard/DashboardGrid';
 import WidgetDrawer from '@/components/dashboard/WidgetDrawer';
+import WidgetSettingsModal from '@/components/dashboard/WidgetSettingsModal';
 
 const MAX_WIDGETS = 10;
 const STORAGE_KEY = 'syntropy_dashboard_widgets_v1_17';
@@ -56,6 +57,8 @@ export default function DashboardPage() {
   const [showGridLines, setShowGridLines] = useState(false);
   const [selectedDrawerSize, setSelectedDrawerSize] = useState<WidgetSize>('small');
   const [saveToast, setSaveToast] = useState(false);
+  const [activeSettingsConfig, setActiveSettingsConfig] =
+    useState<DashboardWidgetConfig | null>(null);
 
   // Chargement depuis localStorage
   useEffect(() => {
@@ -133,6 +136,29 @@ export default function DashboardPage() {
     const reindexed = updated.map((item, idx) => ({ ...item, order: idx }));
     setWidgets(reindexed);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(reindexed));
+  };
+
+  // Mettre à jour les réglages spécifiques d'un widget
+  const handleUpdateWidgetSettings = (id: string, newSettings: Record<string, any>) => {
+    const updated = widgets.map((w) =>
+      w.id === id
+        ? {
+            ...w,
+            settings: {
+              ...(w.settings || {}),
+              ...newSettings,
+            },
+          }
+        : w
+    );
+    setWidgets(updated);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      setSaveToast(true);
+      setTimeout(() => setSaveToast(false), 1500);
+    } catch (e) {
+      console.warn('Erreur sauvegarde réglages widget', e);
+    }
   };
 
   const activeWidgetIds = widgets.map((w) => w.widgetId);
@@ -226,6 +252,7 @@ export default function DashboardPage() {
             onRemoveWidget={handleRemoveWidget}
             onUpdateWidgetSize={handleUpdateWidgetSize}
             onReorderWidgets={handleReorderWidgets}
+            onOpenWidgetSettings={(config) => setActiveSettingsConfig(config)}
           />
         </main>
 
@@ -245,6 +272,14 @@ export default function DashboardPage() {
           saveToast={saveToast}
         />
       </div>
+
+      {/* 4. Modal de personnalisation avancée des réglages du widget */}
+      <WidgetSettingsModal
+        isOpen={!!activeSettingsConfig}
+        onClose={() => setActiveSettingsConfig(null)}
+        config={activeSettingsConfig}
+        onSaveSettings={handleUpdateWidgetSettings}
+      />
     </div>
   );
 }

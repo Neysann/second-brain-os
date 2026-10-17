@@ -2,29 +2,52 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { CheckSquare, Plus, ChevronRight, Check } from 'lucide-react';
+import { CheckSquare, Plus, ChevronRight, Check, Settings } from 'lucide-react';
 import { useData } from '@/context/DataContext';
-import { Task } from '@/types';
+import { TodoListWidgetSettings } from '@/types/dashboard';
 
-export const TodoListWidget: React.FC = () => {
+interface TodoListWidgetProps {
+  settings?: TodoListWidgetSettings;
+  onOpenSettings?: () => void;
+}
+
+export const TodoListWidget: React.FC<TodoListWidgetProps> = ({
+  settings,
+  onOpenSettings,
+}) => {
   const { tasks, toggleTaskStatus, addTask } = useData();
   const [isAdding, setIsAdding] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Trier les tâches : les tâches à faire d'abord par priorité, puis les terminées
+  const filter = settings?.filter || 'all';
+  const hideCompleted = settings?.hideCompleted ?? false;
+  const maxItems = settings?.maxItems || 4;
+
+  // Filtrer et trier les tâches selon les préférences
   const displayedTasks = useMemo(() => {
     const priorityWeights: Record<string, number> = { urgent: 4, high: 3, medium: 2, low: 1 };
-    const pending = tasks
+
+    let filtered = [...tasks];
+    if (filter === 'urgent') {
+      filtered = filtered.filter((t) => t.priority === 'urgent');
+    } else if (filter === 'high') {
+      filtered = filtered.filter((t) => t.priority === 'urgent' || t.priority === 'high');
+    }
+
+    if (hideCompleted) {
+      filtered = filtered.filter((t) => t.status !== 'done');
+    }
+
+    const pending = filtered
       .filter((t) => t.status !== 'done')
       .sort((a, b) => (priorityWeights[b.priority] || 0) - (priorityWeights[a.priority] || 0));
-    const completed = tasks.filter((t) => t.status === 'done');
+    const completed = filtered.filter((t) => t.status === 'done');
 
-    return [...pending, ...completed].slice(0, 4);
-  }, [tasks]);
+    return [...pending, ...completed].slice(0, maxItems);
+  }, [tasks, filter, hideCompleted, maxItems]);
 
   const pendingCount = useMemo(() => tasks.filter((t) => t.status !== 'done').length, [tasks]);
-  const doneCount = useMemo(() => tasks.filter((t) => t.status === 'done').length, [tasks]);
 
   const handleQuickAdd = async () => {
     if (!newTitle.trim() || isSubmitting) return;
@@ -33,7 +56,7 @@ export const TodoListWidget: React.FC = () => {
       await addTask({
         title: newTitle.trim(),
         status: 'todo',
-        priority: 'high',
+        priority: filter === 'urgent' ? 'urgent' : 'high',
         category: 'project',
         tags: [],
       });
@@ -58,7 +81,7 @@ export const TodoListWidget: React.FC = () => {
       case 'high':
         return (
           <span className="px-1.5 py-0.2 rounded-full text-[9px] font-semibold bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30">
-            Haute
+            {priority === 'urgent' ? 'Urgent' : 'Haute'}
           </span>
         );
       case 'medium':
@@ -77,22 +100,34 @@ export const TodoListWidget: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full justify-between p-3 select-none">
+    <div className="flex flex-col h-full justify-between p-3 select-none group/widget">
       {/* En-tête */}
       <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 mb-2">
         <span className="flex items-center gap-1.5">
           <CheckSquare className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
           <span className="text-zinc-800 dark:text-zinc-200">To-do list</span>
           <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500">
-            ({pendingCount} à faire)
+            ({pendingCount})
           </span>
         </span>
-        <Link
-          href="/tasks"
-          className="text-[10px] text-zinc-500 hover:text-indigo-600 dark:text-zinc-400 dark:hover:text-indigo-400 transition-colors flex items-center gap-0.5"
-        >
-          Voir tout <ChevronRight className="w-2.5 h-2.5" />
-        </Link>
+        <div className="flex items-center gap-1.5">
+          <Link
+            href="/tasks"
+            className="text-[10px] text-zinc-500 hover:text-indigo-600 dark:text-zinc-400 dark:hover:text-indigo-400 transition-colors flex items-center gap-0.5"
+          >
+            Voir tout <ChevronRight className="w-2.5 h-2.5" />
+          </Link>
+          {onOpenSettings && (
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              className="p-0.5 rounded text-zinc-400 hover:text-indigo-500 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+              title="Options des tâches"
+            >
+              <Settings className="w-2.5 h-2.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Liste des tâches */}
@@ -100,7 +135,7 @@ export const TodoListWidget: React.FC = () => {
         {displayedTasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-zinc-500 dark:text-zinc-400 text-xs py-4 text-center">
             <Check className="w-6 h-6 text-emerald-500/60 mb-1" />
-            <span>Toutes vos tâches sont terminées !</span>
+            <span>Aucune tâche {filter !== 'all' ? `(${filter})` : 'à faire'} !</span>
           </div>
         ) : (
           displayedTasks.map((task) => {

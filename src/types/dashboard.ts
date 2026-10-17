@@ -28,7 +28,68 @@ export interface DashboardWidgetConfig {
     cols?: number; // 1 to 4
     rows?: number; // 1 to 2
   };
-  settings?: Record<string, unknown>;
+  settings?: Record<string, any>;
+}
+
+export interface WeatherWidgetSettings {
+  city?: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
+  flag?: string;
+  temperatureUnit?: 'celsius' | 'fahrenheit';
+  windSpeedUnit?: 'kmh' | 'mph';
+  showDetails?: boolean;
+  showHourly?: boolean;
+  showWind?: boolean;
+  showHumidity?: boolean;
+  showHourlyForecast?: boolean;
+}
+
+export interface SecondaryClockCity {
+  name: string;
+  country?: string;
+  offset?: number;
+  timezone?: string;
+  flag?: string;
+}
+
+export interface ClockWidgetSettings {
+  mode?: 'analog' | 'digital' | 'dual';
+  primaryCityName?: string;
+  primaryTimezone?: string;
+  secondaryCities?: SecondaryClockCity[];
+  showSeconds?: boolean;
+  timeFormat?: '24h' | '12h';
+  showWeekNumber?: boolean;
+}
+
+export interface FocusTimerWidgetSettings {
+  focusDuration?: number; // en minutes
+  breakDuration?: number; // en minutes
+  soundEnabled?: boolean;
+  soundAlert?: boolean;
+}
+
+export interface QuickNotesWidgetSettings {
+  themeColor?: 'amber' | 'purple' | 'emerald' | 'cyan' | 'rose' | 'dark';
+  cardColor?: 'amber' | 'purple' | 'emerald' | 'cyan' | 'rose' | 'dark';
+  fontSize?: 'small' | 'medium' | 'large' | 'sm' | 'base' | 'lg';
+  title?: string;
+  defaultTag?: string;
+}
+
+export interface TodoListWidgetSettings {
+  filter?: 'all' | 'urgent' | 'high';
+  hideCompleted?: boolean;
+  maxItems?: number;
+}
+
+export interface AudioPlayerWidgetSettings {
+  defaultService?: 'spotify' | 'deezer' | 'youtube' | 'zen';
+  defaultZenSound?: 'rain' | 'waves' | 'cafe' | 'alpha' | 'fire' | 'birds' | 'ocean' | 'campfire';
+  defaultVolume?: number;
+  autoPlay?: boolean;
 }
 
 export interface WidgetMeta {

@@ -8,6 +8,7 @@ import {
   Minimize2,
   ArrowLeft,
   ArrowRight,
+  Settings,
 } from 'lucide-react';
 import { DashboardWidgetConfig, WidgetSize } from '@/types/dashboard';
 import CalendarWidget from './widgets/CalendarWidget';
@@ -35,6 +36,7 @@ interface DashboardGridProps {
   onRemoveWidget: (id: string) => void;
   onUpdateWidgetSize: (id: string, size: WidgetSize) => void;
   onReorderWidgets: (startIndex: number, endIndex: number) => void;
+  onOpenWidgetSettings?: (config: DashboardWidgetConfig) => void;
 }
 
 export const DashboardGrid: React.FC<DashboardGridProps> = ({
@@ -44,6 +46,7 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
   onRemoveWidget,
   onUpdateWidgetSize,
   onReorderWidgets,
+  onOpenWidgetSettings,
 }) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverInfo, setDragOverInfo] = useState<{
@@ -52,27 +55,63 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
   } | null>(null);
 
   const renderWidgetContent = (config: DashboardWidgetConfig) => {
+    const handleOpenSettings = onOpenWidgetSettings
+      ? () => onOpenWidgetSettings(config)
+      : undefined;
+
     switch (config.widgetId) {
       case 'calendar':
         return <CalendarWidget />;
       case 'clock':
-        return <ClockWidget size={config.size} />;
+        return (
+          <ClockWidget
+            size={config.size}
+            settings={config.settings}
+            onOpenSettings={handleOpenSettings}
+          />
+        );
       case 'weather':
-        return <WeatherWidget size={config.size} />;
+        return (
+          <WeatherWidget
+            size={config.size}
+            settings={config.settings}
+            onOpenSettings={handleOpenSettings}
+          />
+        );
       case 'quick_notes':
-        return <QuickNotesWidget />;
+        return (
+          <QuickNotesWidget
+            settings={config.settings}
+            onOpenSettings={handleOpenSettings}
+          />
+        );
       case 'tasks':
-        return <TodoListWidget />;
+        return (
+          <TodoListWidget
+            settings={config.settings}
+            onOpenSettings={handleOpenSettings}
+          />
+        );
       case 'projects_overview':
         return <ProjectsOverviewWidget />;
       case 'project_progress':
         return <ProjectProgressWidget />;
       case 'focus_timer':
-        return <FocusTimerWidget />;
+        return (
+          <FocusTimerWidget
+            settings={config.settings}
+            onOpenSettings={handleOpenSettings}
+          />
+        );
       case 'daily_quote':
         return <DailyQuoteWidget isEditing={isEditing} />;
       case 'audio_player':
-        return <AudioPlayerWidget />;
+        return (
+          <AudioPlayerWidget
+            settings={config.settings}
+            onOpenSettings={handleOpenSettings}
+          />
+        );
       case 'rss_feed':
         return <RssFeedWidget />;
       case 'news':
@@ -251,6 +290,18 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
                   >
                     <GripVertical className="w-3 h-3" />
                   </div>
+
+                  {/* Bouton de personnalisation des réglages du widget */}
+                  {onOpenWidgetSettings && (
+                    <button
+                      type="button"
+                      onClick={() => onOpenWidgetSettings(config)}
+                      className="p-1 rounded-md text-zinc-500 hover:text-purple-600 dark:text-zinc-400 dark:hover:text-purple-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                      title="Personnaliser ce widget"
+                    >
+                      <Settings className="w-3 h-3" />
+                    </button>
+                  )}
 
                   {/* Redimensionnement */}
                   <button

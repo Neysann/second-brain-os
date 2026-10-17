@@ -2,23 +2,42 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '@/context/ThemeContext';
-import { Clock as ClockIcon, Globe, Bell, Moon, Sun, ArrowRightLeft } from 'lucide-react';
-import { WidgetSize } from '@/types/dashboard';
+import { Clock as ClockIcon, Bell, Moon, Sun, ArrowRightLeft, Settings } from 'lucide-react';
+import { WidgetSize, ClockWidgetSettings, SecondaryClockCity } from '@/types/dashboard';
 
 interface ClockWidgetProps {
   size?: WidgetSize;
+  settings?: ClockWidgetSettings;
+  onOpenSettings?: () => void;
 }
 
-export const ClockWidget: React.FC<ClockWidgetProps> = ({ size = 'small' }) => {
+const DEFAULT_SECONDARY_CITIES: SecondaryClockCity[] = [
+  { name: 'Tokyo', country: 'Japon', timezone: 'Asia/Tokyo', flag: '🇯🇵' },
+  { name: 'New York', country: 'États-Unis', timezone: 'America/New_York', flag: '🇺🇸' },
+  { name: 'San Francisco', country: 'États-Unis', timezone: 'America/Los_Angeles', flag: '🇺🇸' },
+  { name: 'Londres', country: 'Royaume-Uni', timezone: 'Europe/London', flag: '🇬🇧' },
+  { name: 'Dubaï', country: 'Émirats arabes unis', timezone: 'Asia/Dubai', flag: '🇦🇪' },
+];
+
+export const ClockWidget: React.FC<ClockWidgetProps> = ({
+  size = 'small',
+  settings,
+  onOpenSettings,
+}) => {
   const { theme } = useTheme();
   const [time, setTime] = useState<Date | null>(null);
-  const [secondaryCityIndex, setSecondaryCityIndex] = useState(0); // 0 = Tokyo, 1 = New York, 2 = San Francisco
+  const [secondaryCityIndex, setSecondaryCityIndex] = useState(0);
 
-  const SECONDARY_CITIES = [
-    { name: 'Tokyo', country: 'Japon', offset: 7, flag: '🇯🇵' },
-    { name: 'New York', country: 'États-Unis', offset: -6, flag: '🇺🇸' },
-    { name: 'San Francisco', country: 'États-Unis', offset: -9, flag: '🇺🇸' },
-  ];
+  const displayMode = settings?.mode || (size === 'small' ? 'analog' : 'dual');
+  const primaryCityName = settings?.primaryCityName || 'Paris';
+  const primaryTimezone = settings?.primaryTimezone || 'Europe/Paris';
+  const secondaryCities =
+    settings?.secondaryCities && settings.secondaryCities.length > 0
+      ? settings.secondaryCities
+      : DEFAULT_SECONDARY_CITIES;
+  const showSeconds = settings?.showSeconds ?? true;
+  const timeFormat = settings?.timeFormat || '24h';
+  const showWeekNumber = settings?.showWeekNumber ?? true;
 
   useEffect(() => {
     setTime(new Date());
@@ -36,37 +55,99 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ size = 'small' }) => {
     );
   }
 
-  const hours = time.getHours();
-  const minutes = time.getMinutes();
-  const seconds = time.getSeconds();
+  // Formatage pour un fuseau horaire donné
+  const formatTimeForZone = (tz: string) => {
+    try {
+      const is12h = timeFormat === '12h';
+      const formatter = new Intl.DateTimeFormat('fr-FR', {
+        timeZone: tz,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: is12h,
+      });
+      const parts = formatter.formatToParts(time);
+      const hourStr = parts.find((p) => p.type === 'hour')?.value || '00';
+      const minStr = parts.find((p) => p.type === 'minute')?.value || '00';
+      const secStr = parts.find((p) => p.type === 'second')?.value || '00';
+      const period = parts.find((p) => p.type === 'dayPeriod')?.value || '';
 
-  const hourAngle = (hours % 12) * 30 + minutes * 0.5;
-  const minuteAngle = minutes * 6 + seconds * 0.1;
-  const secondAngle = seconds * 6;
+      // Calcul heure 24h pour savoir si c'est le jour
+      const formatter24 = new Intl.DateTimeFormat('fr-FR', {
+        timeZone: tz,
+        hour: 'numeric',
+        hour12: false,
+      });
+      const raw24h = parseInt(formatter24.format(time), 10);
 
-  const formattedDigital = time.toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+      return {
+        digitalShort: `${hourStr}:${minStr}${period ? ' ' + period : ''}`,
+        seconds: secStr,
+        rawHour: raw24h,
+        rawMinute: parseInt(minStr, 10),
+        rawSecond: parseInt(secStr, 10),
+        isDay: raw24h >= 6 && raw24h < 20,
+      };
+    } catch {
+      const h = time.getHours();
+      return {
+        digitalShort: time.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+        seconds: String(time.getSeconds()).padStart(2, '0'),
+        rawHour: h,
+        rawMinute: time.getMinutes(),
+        rawSecond: time.getSeconds(),
+        isDay: h >= 6 && h < 20,
+      };
+    }
+  };
 
-  const formattedSeconds = String(seconds).padStart(2, '0');
+  const primaryTimeData = formatTimeForZone(primaryTimezone);
 
-  const formattedDate = time.toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  // Aiguilles horloge analogique basées sur le fuseau primaire
+  const hourAngle = (primaryTimeData.rawHour % 12) * 30 + primaryTimeData.rawMinute * 0.5;
+  const minuteAngle = primaryTimeData.rawMinute * 6 + primaryTimeData.rawSecond * 0.1;
+  const secondAngle = primaryTimeData.rawSecond * 6;
 
-  // Calcul heure secondaire OneUI
-  const secCity = SECONDARY_CITIES[secondaryCityIndex];
-  const utcHours = time.getUTCHours();
-  const secHours = (utcHours + secCity.offset + 24) % 24;
-  const secFormattedDigital = `${String(secHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-  const isSecDay = secHours >= 6 && secHours < 20;
-  const isLocalDay = hours >= 6 && hours < 20;
+  // Date locale primaire
+  let formattedDate = '';
+  try {
+    formattedDate = new Intl.DateTimeFormat('fr-FR', {
+      timeZone: primaryTimezone,
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(time);
+  } catch {
+    formattedDate = time.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  }
 
-  // Calcul numéro de semaine
+  // Ville secondaire sélectionnée
+  const activeSecCity = secondaryCities[secondaryCityIndex % secondaryCities.length];
+  const secTimezone = activeSecCity.timezone || 'Asia/Tokyo';
+  const secTimeData = formatTimeForZone(secTimezone);
+
+  // Calcul du décalage approximatif en heures
+  let diffHours = 0;
+  try {
+    const d1 = new Date(time.toLocaleString('en-US', { timeZone: primaryTimezone }));
+    const d2 = new Date(time.toLocaleString('en-US', { timeZone: secTimezone }));
+    diffHours = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60));
+  } catch {}
+
+  const diffStr =
+    diffHours === 0
+      ? 'Même heure'
+      : diffHours > 0
+      ? `+${diffHours}h par rapport à ${primaryCityName}`
+      : `${diffHours}h par rapport à ${primaryCityName}`;
+
+  // Calcul numéro de semaine ISO
   const getWeekNumber = (d: Date) => {
     const target = new Date(d.valueOf());
     const dayNr = (d.getDay() + 6) % 7;
@@ -81,14 +162,14 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ size = 'small' }) => {
   const weekNum = getWeekNumber(time);
 
   // Si taille Medium ou Large : Mode Dual Clock OneUI Samsung
-  if (size === 'medium' || size === 'large') {
+  if (size === 'medium' || size === 'large' || displayMode === 'dual') {
     return (
-      <div className="flex flex-col h-full justify-between p-3.5 select-none animate-in fade-in duration-200">
+      <div className="flex flex-col h-full justify-between p-3.5 select-none animate-in fade-in duration-200 group/widget">
         {/* En-tête OneUI */}
         <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-800/80 pb-2">
           <div className="flex items-center gap-1.5">
             <ClockIcon className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-            <span className="text-zinc-800 dark:text-zinc-200 font-bold">Horloge Double & Fuseaux</span>
+            <span className="text-zinc-800 dark:text-zinc-200 font-bold">Horloge Mondiale & Fuseaux</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -99,26 +180,36 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ size = 'small' }) => {
             <button
               type="button"
               onClick={() =>
-                setSecondaryCityIndex((prev) => (prev + 1) % SECONDARY_CITIES.length)
+                setSecondaryCityIndex((prev) => (prev + 1) % secondaryCities.length)
               }
-              className="text-[10px] text-zinc-500 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-300 transition-colors flex items-center gap-1 cursor-pointer"
-              title="Changer de ville internationale"
+              className="text-[10px] text-zinc-500 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-300 transition-colors flex items-center gap-1 cursor-pointer bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-800"
+              title="Changer de ville secondaire"
             >
               <ArrowRightLeft className="w-3 h-3" />
-              <span>{secCity.name}</span>
+              <span>{activeSecCity.name}</span>
             </button>
+            {onOpenSettings && (
+              <button
+                type="button"
+                onClick={onOpenSettings}
+                className="p-1 rounded-lg text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors opacity-70 group-hover/widget:opacity-100 cursor-pointer"
+                title="Options de l'horloge"
+              >
+                <Settings className="w-3 h-3" />
+              </button>
+            )}
           </div>
         </div>
 
         {/* Zone Centrale : Deux Cadres Villes OneUI */}
         <div className="grid grid-cols-2 gap-3 my-auto items-center">
-          {/* Ville 1 : Locale (Paris) */}
+          {/* Ville 1 : Primaire */}
           <div className="p-3 rounded-2xl bg-zinc-50/90 dark:bg-zinc-950/60 border border-zinc-200/90 dark:border-zinc-800/80 flex flex-col justify-between h-full shadow-2xs">
             <div className="flex items-center justify-between text-xs font-semibold text-zinc-700 dark:text-zinc-300">
               <span className="flex items-center gap-1">
-                <span>🇫🇷</span> Paris
+                <span>📍</span> {primaryCityName}
               </span>
-              {isLocalDay ? (
+              {primaryTimeData.isDay ? (
                 <Sun className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
               ) : (
                 <Moon className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
@@ -127,10 +218,12 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ size = 'small' }) => {
 
             <div className="my-2 text-center">
               <div className="font-mono text-3xl font-black tracking-tight text-zinc-900 dark:text-white flex items-baseline justify-center">
-                <span>{formattedDigital}</span>
-                <span className="text-xs text-purple-600 dark:text-purple-400 font-normal ml-1">
-                  :{formattedSeconds}
-                </span>
+                <span>{primaryTimeData.digitalShort}</span>
+                {showSeconds && (
+                  <span className="text-xs text-purple-600 dark:text-purple-400 font-normal ml-1">
+                    :{primaryTimeData.seconds}
+                  </span>
+                )}
               </div>
               <div className="text-[10px] text-zinc-500 dark:text-zinc-400 capitalize truncate mt-0.5">
                 {formattedDate}
@@ -138,17 +231,17 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ size = 'small' }) => {
             </div>
 
             <div className="text-[9px] text-zinc-400 dark:text-zinc-500 text-center font-mono">
-              Heure Locale (UTC+2)
+              Heure Principale
             </div>
           </div>
 
-          {/* Ville 2 : Internationale (Tokyo / New York / etc.) */}
+          {/* Ville 2 : Internationale */}
           <div className="p-3 rounded-2xl bg-zinc-50/90 dark:bg-zinc-950/60 border border-zinc-200/90 dark:border-zinc-800/80 flex flex-col justify-between h-full shadow-2xs">
             <div className="flex items-center justify-between text-xs font-semibold text-zinc-700 dark:text-zinc-300">
               <span className="flex items-center gap-1">
-                <span>{secCity.flag}</span> {secCity.name}
+                <span>{activeSecCity.flag || '🌐'}</span> {activeSecCity.name}
               </span>
-              {isSecDay ? (
+              {secTimeData.isDay ? (
                 <Sun className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
               ) : (
                 <Moon className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
@@ -157,38 +250,106 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ size = 'small' }) => {
 
             <div className="my-2 text-center">
               <div className="font-mono text-3xl font-black tracking-tight text-purple-600 dark:text-purple-300">
-                {secFormattedDigital}
+                {secTimeData.digitalShort}
               </div>
               <div className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
-                {secCity.offset >= 0 ? `+${secCity.offset}h` : `${secCity.offset}h`} par rapport à Paris
+                {diffStr}
               </div>
             </div>
 
             <div className="text-[9px] text-zinc-400 dark:text-zinc-500 text-center font-mono">
-              {secCity.country}
+              {activeSecCity.country}
             </div>
           </div>
         </div>
 
         {/* Pied OneUI */}
         <div className="flex items-center justify-between text-[10px] text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-800/80">
-          <span className="font-mono">Semaine {weekNum}</span>
-          <span className="text-zinc-400 dark:text-zinc-500">Fuseau dynamique actif</span>
+          {showWeekNumber ? (
+            <span className="font-mono">Semaine {weekNum}</span>
+          ) : (
+            <span className="font-mono">{primaryTimezone}</span>
+          )}
+          <span className="text-zinc-400 dark:text-zinc-500">
+            {secondaryCities.length} ville{secondaryCities.length > 1 ? 's' : ''} configurée{secondaryCities.length > 1 ? 's' : ''}
+          </span>
         </div>
       </div>
     );
   }
 
-  // Si taille Small (Carré classique) : Cadran Analogique + Heure
+  // Si taille Small et Mode Digital
+  if (displayMode === 'digital') {
+    return (
+      <div className="flex flex-col h-full items-center justify-between p-3 select-none group/widget">
+        <div className="w-full flex items-center justify-between text-[11px] font-semibold text-zinc-400">
+          <span className="flex items-center gap-1.5">
+            <ClockIcon className="w-3.5 h-3.5 text-purple-400" />
+            <span>Horloge Digitale</span>
+          </span>
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-zinc-500 font-mono truncate max-w-[70px]">
+              {primaryCityName}
+            </span>
+            {onOpenSettings && (
+              <button
+                type="button"
+                onClick={onOpenSettings}
+                className="p-0.5 rounded text-zinc-400 hover:text-purple-400 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+                title="Options"
+              >
+                <Settings className="w-2.5 h-2.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="my-auto text-center">
+          <div className="font-mono text-4xl font-black tracking-tight text-zinc-900 dark:text-white flex items-baseline justify-center">
+            <span>{primaryTimeData.digitalShort}</span>
+            {showSeconds && (
+              <span className="text-xs text-purple-500 font-normal ml-1">
+                :{primaryTimeData.seconds}
+              </span>
+            )}
+          </div>
+          <div className="text-[11px] text-zinc-500 dark:text-zinc-400 capitalize truncate mt-1">
+            {formattedDate}
+          </div>
+        </div>
+
+        <div className="w-full flex items-center justify-between text-[10px] text-zinc-500 pt-1 border-t border-zinc-200 dark:border-zinc-800/60 font-mono">
+          <span>{primaryTimeData.isDay ? '☀️ Jour' : '🌙 Nuit'}</span>
+          {showWeekNumber && <span>S{weekNum}</span>}
+        </div>
+      </div>
+    );
+  }
+
+  // Si taille Small (Carré classique) : Cadran Analogique SVG
   return (
-    <div className="flex flex-col h-full items-center justify-between p-3 select-none">
+    <div className="flex flex-col h-full items-center justify-between p-3 select-none group/widget">
       {/* En-tête */}
       <div className="w-full flex items-center justify-between text-[11px] font-semibold text-zinc-400">
         <span className="flex items-center gap-1.5">
           <ClockIcon className="w-3.5 h-3.5 text-purple-400" />
-          Horloge
+          <span>Horloge</span>
         </span>
-        <span className="text-[10px] text-zinc-500 font-mono">Paris</span>
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] text-zinc-500 font-mono truncate max-w-[75px]">
+            {primaryCityName}
+          </span>
+          {onOpenSettings && (
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              className="p-0.5 rounded text-zinc-400 hover:text-purple-400 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+              title="Options"
+            >
+              <Settings className="w-2.5 h-2.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Cadran Analogique SVG */}
@@ -258,15 +419,17 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ size = 'small' }) => {
           />
 
           {/* Aiguille des secondes */}
-          <line
-            x1="50"
-            y1="50"
-            x2={50 + 37 * Math.sin((secondAngle * Math.PI) / 180)}
-            y2={50 - 37 * Math.cos((secondAngle * Math.PI) / 180)}
-            className="stroke-rose-500"
-            strokeWidth="1"
-            strokeLinecap="round"
-          />
+          {showSeconds && (
+            <line
+              x1="50"
+              y1="50"
+              x2={50 + 37 * Math.sin((secondAngle * Math.PI) / 180)}
+              y2={50 - 37 * Math.cos((secondAngle * Math.PI) / 180)}
+              className="stroke-rose-500"
+              strokeWidth="1"
+              strokeLinecap="round"
+            />
+          )}
 
           {/* Pivot central */}
           <circle cx="50" cy="50" r="3" className="fill-purple-500" />
@@ -277,7 +440,7 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ size = 'small' }) => {
       {/* Heure Numérique & Date */}
       <div className="text-center">
         <div className="font-mono text-xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
-          {formattedDigital}
+          {primaryTimeData.digitalShort}
         </div>
         <div className="text-[10px] text-zinc-500 dark:text-zinc-400 capitalize truncate max-w-[150px]">
           {formattedDate}

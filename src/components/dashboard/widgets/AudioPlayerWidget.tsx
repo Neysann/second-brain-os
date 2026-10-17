@@ -10,9 +10,9 @@ import {
   ExternalLink,
   Link as LinkIcon,
   Sparkles,
-  Radio,
-  Check,
+  Settings,
 } from 'lucide-react';
+import { AudioPlayerWidgetSettings } from '@/types/dashboard';
 
 type MusicService = 'spotify' | 'deezer' | 'youtube' | 'zen';
 
@@ -86,9 +86,19 @@ const YOUTUBE_PRESETS: PresetItem[] = [
   },
 ];
 
-export const AudioPlayerWidget: React.FC = () => {
+interface AudioPlayerWidgetProps {
+  settings?: AudioPlayerWidgetSettings;
+  onOpenSettings?: () => void;
+}
+
+export const AudioPlayerWidget: React.FC<AudioPlayerWidgetProps> = ({
+  settings,
+  onOpenSettings,
+}) => {
   // Service actif
-  const [activeService, setActiveService] = useState<MusicService>('spotify');
+  const [activeService, setActiveService] = useState<MusicService>(
+    settings?.defaultService || 'spotify'
+  );
 
   // Sélections actives par service
   const [selectedSpotify, setSelectedSpotify] = useState(SPOTIFY_PRESETS[0].urlOrId);
@@ -101,6 +111,7 @@ export const AudioPlayerWidget: React.FC = () => {
 
   // État pour Zen Lo-Fi
   const [isZenPlaying, setIsZenPlaying] = useState(false);
+  const [zenSound, setZenSound] = useState(settings?.defaultZenSound || 'alpha');
   const [volume, setVolume] = useState(0.7);
   const [isMuted, setIsMuted] = useState(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -108,11 +119,21 @@ export const AudioPlayerWidget: React.FC = () => {
   const osc2Ref = useRef<OscillatorNode | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
 
+  // Mise à jour si settings changent
+  useEffect(() => {
+    if (settings?.defaultService) {
+      setActiveService(settings.defaultService);
+    }
+    if (settings?.defaultZenSound) {
+      setZenSound(settings.defaultZenSound);
+    }
+  }, [settings?.defaultService, settings?.defaultZenSound]);
+
   // Chargement des préférences enregistrées
   useEffect(() => {
     try {
       const savedService = localStorage.getItem('syntropy_music_service') as MusicService;
-      if (savedService) setActiveService(savedService);
+      if (savedService && !settings?.defaultService) setActiveService(savedService);
 
       const savedSp = localStorage.getItem('syntropy_music_spotify');
       if (savedSp) setSelectedSpotify(savedSp);
@@ -123,7 +144,7 @@ export const AudioPlayerWidget: React.FC = () => {
       const savedYt = localStorage.getItem('syntropy_music_youtube');
       if (savedYt) setSelectedYoutube(savedYt);
     } catch {}
-  }, []);
+  }, [settings?.defaultService]);
 
   const handleSelectService = (srv: MusicService) => {
     setActiveService(srv);
@@ -194,7 +215,9 @@ export const AudioPlayerWidget: React.FC = () => {
   const startZen = () => {
     try {
       if (!audioCtxRef.current) {
-        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const AudioCtx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
         audioCtxRef.current = new AudioCtx();
       }
       if (audioCtxRef.current.state === 'suspended') {
@@ -206,16 +229,31 @@ export const AudioPlayerWidget: React.FC = () => {
       gain.connect(ctx.destination);
       gainNodeRef.current = gain;
 
+      // Fréquences selon le son Zen choisi
+      let baseFreq = 136.1; // Om
+      let beatFreq = 140.1; // 4Hz Theta
+
+      if (zenSound === 'alpha') {
+        baseFreq = 144.0;
+        beatFreq = 154.0; // 10Hz Alpha
+      } else if (zenSound === 'rain' || zenSound === 'waves' || (zenSound as string) === 'ocean') {
+        baseFreq = 108.0;
+        beatFreq = 110.5;
+      } else if (zenSound === 'fire' || (zenSound as string) === 'campfire') {
+        baseFreq = 120.0;
+        beatFreq = 123.5;
+      }
+
       const osc1 = ctx.createOscillator();
       osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(136.1, ctx.currentTime); // Om tone
+      osc1.frequency.setValueAtTime(baseFreq, ctx.currentTime);
       osc1.connect(gain);
       osc1.start();
       osc1Ref.current = osc1;
 
       const osc2 = ctx.createOscillator();
       osc2.type = 'triangle';
-      osc2.frequency.setValueAtTime(140.1, ctx.currentTime); // 4Hz Theta beat
+      osc2.frequency.setValueAtTime(beatFreq, ctx.currentTime);
       osc2.connect(gain);
       osc2.start();
       osc2Ref.current = osc2;
@@ -266,7 +304,7 @@ export const AudioPlayerWidget: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col h-full justify-between p-3 select-none">
+    <div className="flex flex-col h-full justify-between p-3 select-none group/widget">
       {/* 1. En-tête : Titre et Sélecteur de Services */}
       <div className="flex items-center justify-between gap-1 text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
         <span className="flex items-center gap-1.5 truncate">
@@ -320,10 +358,20 @@ export const AudioPlayerWidget: React.FC = () => {
                 ? 'bg-amber-500 text-black shadow-sm shadow-amber-500/30'
                 : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white'
             }`}
-            title="Générateur Lo-Fi Zen (Ondes cérébrales)"
+            title="Générateur Lo-Fi Zen"
           >
             Zen
           </button>
+          {onOpenSettings && (
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              className="p-1 rounded text-zinc-400 hover:text-rose-500 opacity-60 hover:opacity-100 transition-opacity cursor-pointer ml-0.5"
+              title="Options audio"
+            >
+              <Settings className="w-2.5 h-2.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -484,7 +532,7 @@ export const AudioPlayerWidget: React.FC = () => {
               </button>
               <div className="min-w-0">
                 <div className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1 truncate">
-                  <span>Ondes Theta 136Hz</span>
+                  <span className="capitalize">{zenSound === 'alpha' ? 'Ondes Alpha 10Hz' : `Son Zen (${zenSound})`}</span>
                   {isZenPlaying && (
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping flex-shrink-0" />
                   )}

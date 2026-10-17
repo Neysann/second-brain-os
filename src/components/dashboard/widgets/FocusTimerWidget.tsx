@@ -1,14 +1,57 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Timer, Play, Pause, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Timer, Play, Pause, RotateCcw, Settings } from 'lucide-react';
+import { FocusTimerWidgetSettings } from '@/types/dashboard';
 
-export const FocusTimerWidget: React.FC = () => {
+interface FocusTimerWidgetProps {
+  settings?: FocusTimerWidgetSettings;
+  onOpenSettings?: () => void;
+}
+
+export const FocusTimerWidget: React.FC<FocusTimerWidgetProps> = ({
+  settings,
+  onOpenSettings,
+}) => {
+  const focusMinutes = settings?.focusDuration || 25;
+  const breakMinutes = settings?.breakDuration || 5;
+  const soundAlert = settings?.soundAlert ?? true;
+
   const [mode, setMode] = useState<'focus' | 'break'>('focus');
-  const [timeLeft, setTimeLeft] = useState<number>(25 * 60);
+  const [timeLeft, setTimeLeft] = useState<number>(focusMinutes * 60);
   const [isRunning, setIsRunning] = useState<boolean>(false);
 
-  const totalTime = mode === 'focus' ? 25 * 60 : 5 * 60;
+  // Mettre à jour si les réglages changent et qu'on ne tourne pas
+  useEffect(() => {
+    if (!isRunning) {
+      setTimeLeft(mode === 'focus' ? focusMinutes * 60 : breakMinutes * 60);
+    }
+  }, [focusMinutes, breakMinutes, mode, isRunning]);
+
+  const totalTime = mode === 'focus' ? focusMinutes * 60 : breakMinutes * 60;
+
+  // Signal sonore Web Audio doux à la fin
+  const playAlertSound = () => {
+    if (!soundAlert || typeof window === 'undefined') return;
+    try {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime); // La5
+      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.4);
+
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.45);
+    } catch {}
+  };
 
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
@@ -16,31 +59,32 @@ export const FocusTimerWidget: React.FC = () => {
       timer = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
-    } else if (timeLeft === 0) {
+    } else if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
+      playAlertSound();
       // Bascule automatique
       if (mode === 'focus') {
         setMode('break');
-        setTimeLeft(5 * 60);
+        setTimeLeft(breakMinutes * 60);
       } else {
         setMode('focus');
-        setTimeLeft(25 * 60);
+        setTimeLeft(focusMinutes * 60);
       }
     }
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [isRunning, timeLeft, mode]);
+  }, [isRunning, timeLeft, mode, focusMinutes, breakMinutes, soundAlert]);
 
   const handleModeChange = (newMode: 'focus' | 'break') => {
     setMode(newMode);
     setIsRunning(false);
-    setTimeLeft(newMode === 'focus' ? 25 * 60 : 5 * 60);
+    setTimeLeft(newMode === 'focus' ? focusMinutes * 60 : breakMinutes * 60);
   };
 
   const handleReset = () => {
     setIsRunning(false);
-    setTimeLeft(mode === 'focus' ? 25 * 60 : 5 * 60);
+    setTimeLeft(mode === 'focus' ? focusMinutes * 60 : breakMinutes * 60);
   };
 
   const minutes = Math.floor(timeLeft / 60);
@@ -53,13 +97,28 @@ export const FocusTimerWidget: React.FC = () => {
   const offset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="flex flex-col h-full justify-between p-3 select-none">
+    <div className="flex flex-col h-full justify-between p-3 select-none group/widget">
       {/* En-tête */}
       <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
         <span className="flex items-center gap-1.5">
           <Timer className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
           <span>Minuteur focus</span>
         </span>
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] text-zinc-400 font-mono">
+            {mode === 'focus' ? `${focusMinutes}m` : `${breakMinutes}m`}
+          </span>
+          {onOpenSettings && (
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              className="p-0.5 rounded text-zinc-400 hover:text-purple-500 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+              title="Paramètres minuteur"
+            >
+              <Settings className="w-2.5 h-2.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Onglets Focus / Pause */}
@@ -73,7 +132,7 @@ export const FocusTimerWidget: React.FC = () => {
               : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
           }`}
         >
-          Focus
+          Focus ({focusMinutes}m)
         </button>
         <button
           type="button"
@@ -84,7 +143,7 @@ export const FocusTimerWidget: React.FC = () => {
               : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
           }`}
         >
-          Pause
+          Pause ({breakMinutes}m)
         </button>
       </div>
 

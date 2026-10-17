@@ -2,6 +2,29 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.15] - 2026-10-17 (Personnalisation Avancée des Widgets du Tableau de Bord & Recherche Mondiale de Villes)
+--------------------------------------------------------------------------------
+1. Météo & Villes Mondiales Personnalisables :
+- Intégration de l'API de géocodage mondial Open-Meteo pour rechercher n'importe quelle ville dans le monde avec autocomplétion instantanée, drapeaux nationaux, coordonnées GPS et fuseaux horaires IANA automatiques.
+- Raccourcis instantanés pour les métropoles mondiales majeures (Paris, Tokyo, New York, Londres, Dubaï, San Francisco, etc.).
+- Prise en charge des unités de mesure configurables : Celsius (°C) ou Fahrenheit (°F), km/h ou mph.
+- Affichage personnalisable du vent, de l'humidité et des prévisions horaires glissantes sur 4 heures.
+
+2. Horloge & Fuseaux Horaires Internationaux (Dual Clock) :
+- Support complet du choix de la ville principale locale et de plusieurs villes secondaires internationales avec drapeaux et calcul dynamique du décalage horaire en direct via l'API standard JavaScript Intl.DateTimeFormat.
+- Modes d'affichage configurables : Cadran analogique à aiguilles haute précision, Horloge numérique avec secondes, et Horloge double mondiale OneUI.
+- Formats 12h/24h, activation/désactivation des secondes et numéro de semaine ISO.
+
+3. Personnalisation Complète des Autres Widgets :
+- Minuteur Focus : Choix libre de la durée de concentration (15, 25, 45, 60 min), durée de pause (5, 10, 15 min) et alerte sonore Web Audio configurable.
+- Notes Rapides : 6 thèmes colorés Post-it (Ambre, Violet, Émeraude, Cyan, Rose, Sombre), taille de police adaptable et tags par défaut.
+- To-Do List : Filtres dynamiques (toutes, urgentes, haute priorité), masquage automatique des tâches terminées et nombre maximum d'éléments affichés.
+- Lecteur Audio : Service par défaut sélectionnable (Spotify, Deezer, YouTube Music, Zen), générateur d'ondes cérébrales (Alpha 10Hz, Pluie, Vagues, Feu de camp, Café, Oiseaux).
+
+4. Ergonomie & Accès aux Paramètres :
+- Bouton d'engrenage contextuel (⚙️) directement au survol de chaque widget sur le tableau de bord et dans la barre flottante du mode édition.
+- Modal de réglages complet avec onglets dédiés, prévisualisation et sauvegarde instantanée dans le stockage local persistant.
+
 #### [V2.6.14] - 2026-10-17 (Éradication du Raccourci Parasite Electron.lnk & Correction Définitive de l'Icône de Barre des Tâches)
 --------------------------------------------------------------------------------
 1. Élimination du Conflit d'Identifiant d'Application Windows (AUMID) :
