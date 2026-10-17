@@ -1,14 +1,14 @@
 @echo off
 chcp 65001 > nul
-title Syntropy OS Desktop (V2.6.8)
+title Syntropy OS Desktop (V2.6.9)
 color 05
 
 echo =====================================================================
-echo                  SYNTROPY OS - APPLICATION OFFICIELLE (V2.6.8)
+echo                  SYNTROPY OS - APPLICATION OFFICIELLE (V2.6.9)
 echo =====================================================================
 echo.
 echo  Dossier : %~dp0
-echo  Version : 2.6.8
+echo  Version : 2.6.9
 echo.
 echo ---------------------------------------------------------------------
 
@@ -16,6 +16,11 @@ cd /d "%~dp0"
 
 echo [1/1] Recherche de l'application officielle Syntropy OS...
 echo.
+
+rem Nettoyage préventif de tout démarrage intempestif de l'environnement de dev
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "com.syntropy.os" /f >nul 2>&1
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "electron" /f >nul 2>&1
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "Electron" /f >nul 2>&1
 
 rem 1. Verification de la version installee sur le systeme Windows
 if exist "%LOCALAPPDATA%\Programs\Syntropy OS\Syntropy OS.exe" (
@@ -32,9 +37,9 @@ if exist "dist\win-unpacked\Syntropy OS.exe" (
 )
 
 rem 3. Verification de la presence de l'installateur officiel
-if exist "dist\Syntropy-OS-Setup-2.6.8.exe" (
-    echo [INFO] Lancement de l'installateur Syntropy OS 2.6.8...
-    start "" "dist\Syntropy-OS-Setup-2.6.8.exe"
+if exist "dist\Syntropy-OS-Setup-2.6.9.exe" (
+    echo [INFO] Lancement de l'installateur Syntropy OS 2.6.9...
+    start "" "dist\Syntropy-OS-Setup-2.6.9.exe"
     goto :success
 )
 

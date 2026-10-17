@@ -2,6 +2,18 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.9] - 2026-10-17 (Nettoyage des Fichiers .bat Obsolètes & Simplification des Lanceurs)
+--------------------------------------------------------------------------------
+1. Purge des Scripts Batch Superflus et Redondants :
+- Suppression des anciens lanceurs et doublons : `Deployer_Syntropy_En_Ligne.bat`, `Lancer_Second_Brain_OS.bat`, `Synchro_Auto_En_Ligne.bat` et `Desactiver_Demarrage_Auto_Electron.bat`.
+- Conservation exclusive des 3 scripts essentiels pour l'ensemble du cycle de vie du projet :
+  * `Lancer_Syntropy.bat` : Lancement du serveur Web local pour le navigateur.
+  * `Lancer_Syntropy_Desktop.bat` : Démarrage du véritable exécutable officiel autonome Syntropy OS.
+  * `Synchroniser_Et_Deployer.bat` : Synchronisation complète (compilation Web, déploiement Firebase Hosting et packaging Windows officiel).
+
+2. Intégration Native des Tâches d'Assainissement :
+- L'assainissement du registre Windows (suppression de toute trace résiduelle de démarrage d'electron.exe) et la fermeture des processus verrouillés sont désormais gérés directement de façon invisible dans `Synchroniser_Et_Deployer.bat` et `Lancer_Syntropy_Desktop.bat`.
+
 #### [V2.6.8] - 2026-10-17 (Suppression d'Electron au Démarrage Windows & Protection Login Items)
 --------------------------------------------------------------------------------
 1. Éradication de la Fenêtre Electron au Démarrage de Windows :

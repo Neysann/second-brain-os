@@ -1,14 +1,14 @@
 @echo off
 chcp 65001 > nul
-title Syntropy OS - Synchronisation & Deploiement (V2.6.8)
+title Syntropy OS - Synchronisation & Deploiement (V2.6.9)
 color 0A
 
 echo =====================================================================
-echo           SYNTROPY OS - SYNCHRONISATION COMPLETE (V2.6.8)
+echo           SYNTROPY OS - SYNCHRONISATION COMPLETE (V2.6.9)
 echo =====================================================================
 echo.
 echo  Dossier : %~dp0
-echo  Version : 2.6.8
+echo  Version : 2.6.9
 echo.
 echo  Cette commande va :
 echo   1. Fermer les instances en cours pour liberer les fichiers
@@ -23,6 +23,9 @@ cd /d "%~dp0"
 echo [0/3] Liberation des fichiers verrouilles...
 taskkill /F /IM "Syntropy OS.exe" >nul 2>&1
 taskkill /F /IM "electron.exe" >nul 2>&1
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "com.syntropy.os" /f >nul 2>&1
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "electron" /f >nul 2>&1
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "Electron" /f >nul 2>&1
 if exist "dist\builder-debug.yml" del /f /q "dist\builder-debug.yml" >nul 2>&1
 
 echo.
@@ -50,7 +53,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo =====================================================================
-echo   Synchronisation terminee avec succes pour la version 2.6.8 !
+echo   Synchronisation terminee avec succes pour la version 2.6.9 !
 echo =====================================================================
 echo.
 pause
