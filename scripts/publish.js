@@ -23,9 +23,11 @@ console.log(`🏷️ Version cible     : ${tagName}\n`);
 // 2. Synchronisation récursive vers second-brain-os si sous-dossier Git
 function copyRecursiveSync(src, dest, ignoreList = []) {
   if (!fs.existsSync(src)) return;
+  const baseName = path.basename(src);
+  if (ignoreList.includes(baseName)) return;
+
   const stat = fs.statSync(src);
   if (stat.isDirectory()) {
-    if (ignoreList.includes(path.basename(src))) return;
     if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
     for (const child of fs.readdirSync(src)) {
       copyRecursiveSync(path.join(src, child), path.join(dest, child), ignoreList);
@@ -49,10 +51,22 @@ if (gitDir !== rootDir) {
     'firestore.rules',
     '.firebaserc',
   ];
-  const ignoreDirs = ['node_modules', '.next', 'dist', 'out', '.git', '.agents', 'scratch'];
+  const ignoreList = [
+    'node_modules',
+    '.next',
+    'dist',
+    'out',
+    '.git',
+    '.agents',
+    'scratch',
+    'check-domains.js',
+    'sync-firebase-auth.js',
+    '.env',
+    '.env.local'
+  ];
 
   for (const d of dirsToSync) {
-    copyRecursiveSync(path.join(rootDir, d), path.join(gitDir, d), ignoreDirs);
+    copyRecursiveSync(path.join(rootDir, d), path.join(gitDir, d), ignoreList);
   }
   for (const f of filesToSync) {
     const srcF = path.join(rootDir, f);

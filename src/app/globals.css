@@ -142,38 +142,38 @@
     --accent-text: #a78bfa;
   }
 
-  /* Palette AETHER (Uiverse Aether Official Design System : Réfraction iridescente Cyan-Magenta-Ambre sur Noir Profond) */
+  /* Palette AETHER (Dégradé Bleu Violacé : Bleu électrique #3b82f6 -> Indigo #6366f1 -> Violet néon #8b5cf6) */
   [data-accent="aether"] {
-    --color-purple-50: #f0fdfa;
-    --color-purple-100: #ccfbf1;
-    --color-purple-200: #99f6e4;
-    --color-purple-300: #5eead4;
-    --color-purple-400: #2dd4bf;
-    --color-purple-500: #06b6d4;
-    --color-purple-600: #0891b2;
-    --color-purple-700: #0e7490;
-    --color-purple-800: #155e75;
-    --color-purple-900: #164e63;
-    --color-purple-950: #083344;
+    --color-purple-50: #eff6ff;
+    --color-purple-100: #dbeafe;
+    --color-purple-200: #bfdbfe;
+    --color-purple-300: #93c5fd;
+    --color-purple-400: #60a5fa;
+    --color-purple-500: #3b82f6;
+    --color-purple-600: #2563eb;
+    --color-purple-700: #1d4ed8;
+    --color-purple-800: #1e40af;
+    --color-purple-900: #1e3a8a;
+    --color-purple-950: #172554;
 
-    --color-indigo-50: #fdf4ff;
-    --color-indigo-100: #fae8ff;
-    --color-indigo-200: #f5d0fe;
-    --color-indigo-300: #f0abfc;
-    --color-indigo-400: #e879f9;
-    --color-indigo-500: #d946ef;
-    --color-indigo-600: #c026d3;
-    --color-indigo-700: #a21caf;
-    --color-indigo-800: #86198f;
-    --color-indigo-900: #701a75;
-    --color-indigo-950: #4a044e;
+    --color-indigo-50: #f5f3ff;
+    --color-indigo-100: #ede9fe;
+    --color-indigo-200: #ddd6fe;
+    --color-indigo-300: #c4b5fd;
+    --color-indigo-400: #a78bfa;
+    --color-indigo-500: #8b5cf6;
+    --color-indigo-600: #7c3aed;
+    --color-indigo-700: #6d28d9;
+    --color-indigo-800: #5b21b6;
+    --color-indigo-900: #4c1d95;
+    --color-indigo-950: #2e1065;
 
-    --accent-primary: #06b6d4;
-    --accent-hover: #0891b2;
-    --accent-glow: rgba(6, 182, 212, 0.45);
-    --accent-subtle: rgba(6, 182, 212, 0.15);
-    --accent-text: #38bdf8;
-    --accent-aether-gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 30%, #ec4899 70%, #f59e0b 100%);
+    --accent-primary: #6366f1;
+    --accent-hover: #4f46e5;
+    --accent-glow: rgba(99, 102, 241, 0.45);
+    --accent-subtle: rgba(99, 102, 241, 0.15);
+    --accent-text: #818cf8;
+    --accent-aether-gradient: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%);
   }
 
   [data-accent="cyan"] {
@@ -801,28 +801,28 @@ html.light .w-md-editor-toolbar {
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   0. AETHER (Uiverse Aether Official Design System : Réfraction Cyan-Magenta-Ambre)
+   0. AETHER (Dégradé Bleu Violacé : Bleu #3b82f6 -> Indigo #6366f1 -> Violet #8b5cf6)
    -------------------------------------------------------------------------- */
 [data-accent="aether"] .bg-purple-600,
 [data-accent="aether"] .bg-indigo-600,
 [data-accent="aether"] .bg-purple-500,
 [data-accent="aether"] .bg-indigo-500 {
-  background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 30%, #ec4899 70%, #f59e0b 100%) !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%) !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 20px -2px rgba(6, 182, 212, 0.40), 0 0 15px rgba(236, 72, 153, 0.25) !important;
+  box-shadow: 0 4px 20px -2px rgba(59, 130, 246, 0.40), 0 0 15px rgba(139, 92, 246, 0.30) !important;
 }
 
 [data-accent="aether"] .hover\:bg-purple-500:hover,
 [data-accent="aether"] .hover\:bg-indigo-500:hover,
 [data-accent="aether"] .hover\:bg-purple-600:hover,
 [data-accent="aether"] .hover\:bg-indigo-600:hover {
-  background: linear-gradient(135deg, #22d3ee 0%, #60a5fa 30%, #f472b6 70%, #fbbf24 100%) !important;
-  box-shadow: 0 6px 25px rgba(6, 182, 212, 0.50), 0 0 20px rgba(236, 72, 153, 0.35) !important;
+  background: linear-gradient(135deg, #60a5fa 0%, #818cf8 50%, #a78bfa 100%) !important;
+  box-shadow: 0 6px 25px rgba(59, 130, 246, 0.50), 0 0 20px rgba(139, 92, 246, 0.40) !important;
 }
 
 [data-accent="aether"] .bg-indigo-700,
 [data-accent="aether"] .bg-purple-700 {
-  background: linear-gradient(135deg, #0891b2 0%, #2563eb 30%, #db2777 70%, #d97706 100%) !important;
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 50%, #7c3aed 100%) !important;
   color: #ffffff !important;
 }
 
@@ -838,7 +838,7 @@ html.light .w-md-editor-toolbar {
 [data-accent="aether"] .hover\:text-purple-300:hover,
 [data-accent="aether"] .group:hover .group-hover\:text-purple-400,
 [data-accent="aether"] .group:hover .group-hover\:text-indigo-400 {
-  color: #38bdf8 !important;
+  color: #818cf8 !important;
 }
 
 html.dark[data-accent="aether"] .text-purple-600,
@@ -847,7 +847,7 @@ html.dark[data-accent="aether"] .text-purple-700,
 html.dark[data-accent="aether"] .text-indigo-700,
 html.dark[data-accent="aether"] .dark\:text-purple-400,
 html.dark[data-accent="aether"] .dark\:text-indigo-400 {
-  color: #38bdf8 !important;
+  color: #818cf8 !important;
 }
 
 html.light[data-accent="aether"] .text-purple-600,
@@ -856,19 +856,19 @@ html.light[data-accent="aether"] .text-purple-700,
 html.light[data-accent="aether"] .text-indigo-700,
 html.light[data-accent="aether"] .hover\:text-purple-600:hover,
 html.light[data-accent="aether"] .hover\:text-indigo-600:hover {
-  color: #0284c7 !important;
+  color: #4f46e5 !important;
 }
 
 [data-accent="aether"] .bg-purple-50,
 [data-accent="aether"] .bg-indigo-50,
 [data-accent="aether"] .bg-purple-100,
 [data-accent="aether"] .bg-indigo-100 {
-  background-color: #f5f3ff !important;
+  background-color: #eef2ff !important;
 }
 
 [data-accent="aether"] .border-purple-200,
 [data-accent="aether"] .border-indigo-200 {
-  border-color: #ddd6fe !important;
+  border-color: #c7d2fe !important;
 }
 
 [data-accent="aether"] .border-purple-500,
@@ -879,16 +879,16 @@ html.light[data-accent="aether"] .hover\:text-indigo-600:hover {
 [data-accent="aether"] .border-indigo-400,
 [data-accent="aether"] .hover\:border-indigo-400:hover,
 [data-accent="aether"] .hover\:border-purple-400:hover {
-  border-color: #a855f7 !important;
+  border-color: #6366f1 !important;
 }
 
 [data-accent="aether"] .border-purple-500\/80 {
-  border-color: rgba(168, 85, 247, 0.8) !important;
+  border-color: rgba(99, 102, 241, 0.8) !important;
 }
 
 [data-accent="aether"] .border-purple-500\/60,
 [data-accent="aether"] .border-indigo-500\/60 {
-  border-color: rgba(168, 85, 247, 0.6) !important;
+  border-color: rgba(99, 102, 241, 0.6) !important;
 }
 
 [data-accent="aether"] .border-purple-500\/40,
@@ -899,7 +899,7 @@ html.light[data-accent="aether"] .hover\:text-indigo-600:hover {
 [data-accent="aether"] .border-indigo-500\/20,
 [data-accent="aether"] .border-purple-800\/40,
 [data-accent="aether"] .border-indigo-800\/40 {
-  border-color: rgba(168, 85, 247, 0.35) !important;
+  border-color: rgba(99, 102, 241, 0.35) !important;
 }
 
 [data-accent="aether"] .ring-purple-500\/30,
@@ -909,7 +909,7 @@ html.light[data-accent="aether"] .hover\:text-indigo-600:hover {
 [data-accent="aether"] .ring-indigo-500\/50,
 [data-accent="aether"] .ring-purple-500,
 [data-accent="aether"] .ring-indigo-500 {
-  --tw-ring-color: rgba(168, 85, 247, 0.5) !important;
+  --tw-ring-color: rgba(99, 102, 241, 0.5) !important;
 }
 
 [data-accent="aether"] .bg-purple-500\/10,
@@ -920,7 +920,7 @@ html.light[data-accent="aether"] .hover\:text-indigo-600:hover {
 [data-accent="aether"] .bg-indigo-600\/10,
 [data-accent="aether"] .hover\:bg-indigo-500\/10:hover,
 [data-accent="aether"] .hover\:bg-purple-500\/10:hover {
-  background-color: rgba(168, 85, 247, 0.12) !important;
+  background-color: rgba(99, 102, 241, 0.12) !important;
 }
 
 [data-accent="aether"] .bg-purple-500\/20,
@@ -929,7 +929,7 @@ html.light[data-accent="aether"] .hover\:text-indigo-600:hover {
 [data-accent="aether"] .bg-indigo-600\/20,
 [data-accent="aether"] .hover\:bg-indigo-600\/20:hover,
 [data-accent="aether"] .hover\:bg-purple-600\/20:hover {
-  background-color: rgba(168, 85, 247, 0.2) !important;
+  background-color: rgba(99, 102, 241, 0.2) !important;
 }
 
 [data-accent="aether"] .bg-purple-950\/20,
@@ -938,18 +938,18 @@ html.light[data-accent="aether"] .hover\:text-indigo-600:hover {
 [data-accent="aether"] .bg-indigo-950\/30,
 [data-accent="aether"] .hover\:bg-purple-950\/60:hover,
 [data-accent="aether"] .hover\:bg-indigo-950\/60:hover {
-  background-color: rgba(168, 85, 247, 0.15) !important;
+  background-color: rgba(99, 102, 241, 0.15) !important;
 }
 
 [data-accent="aether"] .shadow-purple-600\/30,
 [data-accent="aether"] .shadow-indigo-600\/30,
 [data-accent="aether"] .shadow-purple-600\/20,
 [data-accent="aether"] .shadow-indigo-600\/20 {
-  box-shadow: 0 10px 25px -5px rgba(0, 210, 255, 0.35), 0 8px 12px -4px rgba(168, 85, 247, 0.4) !important;
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.35), 0 8px 12px -4px rgba(139, 92, 246, 0.4) !important;
 }
 
 [data-accent="aether"] ::selection {
-  background-color: rgba(168, 85, 247, 0.4) !important;
+  background-color: rgba(99, 102, 241, 0.4) !important;
   color: #ffffff !important;
 }
 

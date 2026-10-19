@@ -48,10 +48,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     switch (accent) {
       case 'aether':
         return {
-          orb1: isDark ? 'rgba(6, 182, 212, 0.45)' : 'rgba(6, 182, 212, 0.25)',  // Cyan Céleste
-          orb2: isDark ? 'rgba(99, 102, 241, 0.38)' : 'rgba(99, 102, 241, 0.20)', // Indigo Spectral
-          orb3: isDark ? 'rgba(217, 70, 239, 0.40)' : 'rgba(217, 70, 239, 0.22)', // Magenta Iridescent
-          orb4: isDark ? 'rgba(245, 158, 11, 0.32)' : 'rgba(245, 158, 11, 0.18)', // Ambre / Or Topaze
+          orb1: isDark ? 'rgba(59, 130, 246, 0.45)' : 'rgba(59, 130, 246, 0.25)',  // Bleu Électrique
+          orb2: isDark ? 'rgba(99, 102, 241, 0.42)' : 'rgba(99, 102, 241, 0.22)', // Indigo Spectral
+          orb3: isDark ? 'rgba(139, 92, 246, 0.40)' : 'rgba(139, 92, 246, 0.22)', // Violet Néon
+          orb4: isDark ? 'rgba(79, 70, 229, 0.35)' : 'rgba(79, 70, 229, 0.18)',  // Bleu Indigo Profond
         };
       case 'red':
       case 'rose':

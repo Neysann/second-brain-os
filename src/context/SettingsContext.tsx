@@ -247,7 +247,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const accentRgbMap: Record<string, string> = {
       purple: '139, 92, 246',
-      aether: '6, 182, 212',
+      aether: '99, 102, 241',
       cyan: '6, 182, 212',
       emerald: '16, 185, 129',
       amber: '245, 158, 11',

@@ -123,7 +123,7 @@ const ACCENT_OPTIONS: {
   isGradient?: boolean;
 }[] = [
   { id: 'purple', name: 'Violet Synaptique', shortName: 'Violet', hex: '#8b5cf6', colorHex: '#8b5cf6', desc: 'Ambiance néon cyberpunk classique Syntropy' },
-  { id: 'aether', name: 'Aether (Uiverse)', shortName: 'Aether', hex: 'linear-gradient(135deg, #06b6d4 0%, #ec4899 50%, #f59e0b 100%)', colorHex: '#06b6d4', isGradient: true, desc: 'Design System Uiverse Aether : réfraction iridescente Cyan-Magenta-Ambre sur noir profond' },
+  { id: 'aether', name: 'Aether (Bleu Violacé)', shortName: 'Aether', hex: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%)', colorHex: '#6366f1', isGradient: true, desc: 'Dégradé vibrant bleu violacé : Bleu électrique vers Indigo et Violet néon' },
   { id: 'mix', name: 'Harmonie Mix (Multichrome)', shortName: 'Mix', hex: 'linear-gradient(135deg, #8b5cf6 0%, #06b6d4 33%, #10b981 66%, #e03148 100%)', colorHex: '#8b5cf6', isGradient: true, desc: 'Mélange cohérent et harmonieux des accents selon la fonction de chaque bouton' },
   { id: 'cyan', name: 'Bleu Cyan', shortName: 'Bleu', hex: '#06b6d4', colorHex: '#06b6d4', desc: 'Énergique et haute clarté visuelle' },
   { id: 'emerald', name: 'Vert Émeraude', shortName: 'Vert', hex: '#10b981', colorHex: '#10b981', desc: 'Concentration, sérénité & productivité' },

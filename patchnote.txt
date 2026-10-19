@@ -2,6 +2,13 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.20] - 2026-10-19 (Thème Aether : Dégradé Exclusif Bleu Électrique, Indigo et Violet Néon)
+--------------------------------------------------------------------------------
+1. Refonte Complète du Thème Aether en Dégradé Bleu Violacé :
+- Remplacement de l'ancien gradient polychrome (Cyan-Magenta-Ambre) par un dégradé purement bleu violacé vibrant et cyberpunk (#3b82f6 → #6366f1 → #8b5cf6).
+- Rendu harmonieux et unifié sur l'ensemble de l'interface : boutons d'action principaux, états de survol, lueurs néon, bordures actives, sélections de texte et orbes d'ambiance d'aurore boréale (AppShell).
+- Mise à jour de la pastille et description dans Paramètres > Apparence avec aperçu en temps réel du dégradé fluide.
+
 #### [V2.6.19] - 2026-10-19 (Mode Sombre Absolu Caché, Verrouillage Rouge Nothing & Restauration Intelligente)
 --------------------------------------------------------------------------------
 1. Mode Secret « Sombre absolu » & Expérience Immersive Nothing OS :

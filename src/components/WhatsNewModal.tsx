@@ -85,6 +85,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
   const features = [
     {
+      icon: Palette,
+      color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/30',
+      title: 'Syntropy OS V2.6.20 : Thème Aether en Dégradé Bleu Violacé Céleste',
+      desc: 'Refonte exclusive du thème d\'accentuation Aether sous la forme d\'un dégradé bleu violacé cyberpunk vibrant (#3b82f6 → #6366f1 → #8b5cf6). Unification complète sur les boutons d\'action, les effets néon, les bordures interactives et les orbes d\'aurore boréale du fond d\'écran.',
+    },
+    {
       icon: Moon,
       color: 'text-red-500 bg-red-500/10 border-red-500/30',
       title: 'Syntropy OS V2.6.19 : Mode Sombre Absolu & Verrouillage Signature Nothing Red',
