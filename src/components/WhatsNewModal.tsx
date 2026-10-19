@@ -85,6 +85,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
   const features = [
     {
+      icon: Zap,
+      color: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
+      title: 'Syntropy OS V2.6.22 : Easter Egg Konami Code & Laboratoire Secret',
+      desc: 'Déverrouillez le laboratoire secret des thèmes dans les Paramètres en tapant le Konami Code aux touches fléchées (↑ ↑ ↓ ↓ ← → ← →). Basculez instantanément entre Syntropy Classique (Liquid Glass) et Nothing OS Edition avec bruitage rétro 8-bit et architecture prête pour de futurs thèmes !',
+    },
+    {
       icon: CalendarIcon,
       color: 'text-blue-400 bg-blue-500/10 border-blue-500/30',
       title: 'Syntropy OS V2.6.21 : Synchronisation Google Agenda Directe & Native',

@@ -343,9 +343,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const updateSetting = useCallback(
     <K extends keyof AppSettings>(key: K, value: AppSettings[K], debounceCloud?: boolean) => {
-      // 1. Nuance de noir sombre : activation ou désactivation de Sombre absolu (Nothing OS)
-      if (key === 'darkBgStyle') {
-        if (value === 'oled') {
+      // 1. Nuance de noir sombre ou Style UI : activation ou désactivation de Nothing OS vs Syntropy
+      if (key === 'darkBgStyle' || key === 'uiStyle') {
+        const isActivatingNothing = (key === 'darkBgStyle' && value === 'oled') || (key === 'uiStyle' && value === 'nothing');
+        const isActivatingSyntropy = (key === 'darkBgStyle' && value === 'zinc') || (key === 'uiStyle' && value === 'syntropy');
+
+        if (isActivatingNothing) {
           const prevAccent =
             settings.accentColor !== 'red' && settings.accentColor !== 'rose'
               ? settings.accentColor
@@ -362,7 +365,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             debounceCloud
           );
           return;
-        } else if (value === 'zinc') {
+        } else if (isActivatingSyntropy) {
           const restoredAccent = settings.previousAccentColor || 'purple';
           persistSettings(
             {
@@ -417,7 +420,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     (partial: Partial<AppSettings>, debounceCloud?: boolean) => {
       let next = { ...settings, ...partial };
 
-      if (partial.darkBgStyle === 'oled') {
+      if (partial.darkBgStyle === 'oled' || partial.uiStyle === 'nothing') {
         const prevAccent =
           settings.accentColor !== 'red' && settings.accentColor !== 'rose'
             ? settings.accentColor
@@ -426,7 +429,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         next.uiStyle = 'nothing';
         next.accentColor = 'red';
         next.previousAccentColor = prevAccent;
-      } else if (partial.darkBgStyle === 'zinc') {
+      } else if (partial.darkBgStyle === 'zinc' || partial.uiStyle === 'syntropy') {
         next.darkBgStyle = 'zinc';
         next.uiStyle = 'syntropy';
         next.accentColor = settings.previousAccentColor || 'purple';

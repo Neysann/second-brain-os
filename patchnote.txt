@@ -2,6 +2,18 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.22] - 2026-10-19 (Easter Egg Konami Code : Laboratoire Secret & Sélecteur de Thèmes)
+--------------------------------------------------------------------------------
+1. Détection du Konami Code aux Touches Fléchées :
+- Intégration d'un écouteur clavier réactif dans l'écran des Paramètres validant la séquence des touches fléchées : Haut, Haut, Bas, Bas, Gauche, Droite, Gauche, Droite (↑ ↑ ↓ ↓ ← → ← →).
+- Synthétiseur sonore rétro 8-bit généré en temps réel via l'API native Web Audio (aucun fichier externe requis, compatible 100% hors-ligne).
+
+2. Modale Secrète « Laboratoire des Thèmes » (Developer Room) :
+- Affichage d'une interface cyberpunk exclusive avec lueur néon déverrouillant le choix immédiat des directions artistiques :
+  - Syntropy Classique (Liquid Glass, translucidité ajustable, aurore boréale et palette d'accentuation libre).
+  - Nothing OS Edition (Noir absolu OLED #000000, typographie matricielle NDot 57, accent Rouge vermillon Nothing #D71920 et interface Glyph).
+- Architecture modulaire prête pour l'ajout transparent de futurs thèmes secrets.
+
 #### [V2.6.21] - 2026-10-19 (Synchronisation Google Agenda Directe Native Electron & Contournement CORS)
 --------------------------------------------------------------------------------
 1. Téléchargement Direct Natif dans l'Application Bureau (Electron) :

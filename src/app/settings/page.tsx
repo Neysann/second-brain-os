@@ -60,6 +60,7 @@ import { useAuth } from '@/context/AuthContext';
 import { ADMIN_PRIVILEGES, isSiteAdmin } from '@/lib/admin';
 import AdminControlPanel from '@/components/AdminControlPanel';
 import { CURRENT_VERSION } from '@/components/WhatsNewModal';
+import { SecretThemeModal, playSecretUnlockSound } from '@/components/SecretThemeModal';
 import {
   ThemeSetting,
   AccentColor,
@@ -232,6 +233,57 @@ export default function SettingsPage() {
       setNotification(null);
     }, 3500);
   };
+
+  // Easter Egg : Détection du Konami Code (Touches fléchées : Haut, Haut, Bas, Bas, Gauche, Droite, Gauche, Droite)
+  const [isSecretThemeModalOpen, setIsSecretThemeModalOpen] = useState(false);
+  const konamiSequenceRef = React.useRef<string[]>([]);
+  const KONAMI_ARROW_CODE = [
+    'ArrowUp',
+    'ArrowUp',
+    'ArrowDown',
+    'ArrowDown',
+    'ArrowLeft',
+    'ArrowRight',
+    'ArrowLeft',
+    'ArrowRight',
+  ];
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignorer si l'utilisateur est en train de taper dans un champ de saisie
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable ||
+          target.closest('.w-md-editor'))
+      ) {
+        return;
+      }
+
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        konamiSequenceRef.current.push(e.key);
+        if (konamiSequenceRef.current.length > KONAMI_ARROW_CODE.length) {
+          konamiSequenceRef.current.shift();
+        }
+
+        if (
+          konamiSequenceRef.current.length === KONAMI_ARROW_CODE.length &&
+          konamiSequenceRef.current.every((key, i) => key === KONAMI_ARROW_CODE[i])
+        ) {
+          konamiSequenceRef.current = [];
+          playSecretUnlockSound();
+          setIsSecretThemeModalOpen(true);
+        }
+      } else {
+        konamiSequenceRef.current = [];
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // 1. Export JSON complet
   const handleExportJson = () => {
@@ -2452,6 +2504,13 @@ export default function SettingsPage() {
           </div>
         )
       )}
+
+      {/* Modale Easter Egg : Laboratoire Secret des Thèmes */}
+      <SecretThemeModal
+        isOpen={isSecretThemeModalOpen}
+        onClose={() => setIsSecretThemeModalOpen(false)}
+        onNotification={showNotification}
+      />
     </div>
   );
 }

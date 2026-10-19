@@ -20,7 +20,7 @@ export type DefaultEditorMode = 'write' | 'split' | 'preview';
 export type AutoSaveDelay = 500 | 2000 | 5000;
 export type StartupView = '/' | '/tasks' | '/notes' | '/calendar';
 export type FirstDayOfWeek = 'monday' | 'sunday';
-export type UiStyle = 'syntropy' | 'nothing';
+export type UiStyle = 'syntropy' | 'nothing' | string;
 
 export interface AppSettings {
   // 1. Apparence & Personnalisation (UI / UX)

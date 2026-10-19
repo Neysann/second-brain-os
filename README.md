@@ -7,7 +7,7 @@
   <p>
     <a href="https://second-brain-os-e6a83.web.app"><img src="https://img.shields.io/badge/Live_Demo-Syntropy_Web-6366f1?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Live Demo" /></a>
     <a href="https://github.com/Neysann/second-brain-os/releases"><img src="https://img.shields.io/badge/Desktop_App-Windows_x64-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows App" /></a>
-    <a href="https://github.com/Neysann/second-brain-os/releases/latest"><img src="https://img.shields.io/badge/Version-v2.6.21-10b981?style=for-the-badge" alt="Version" /></a>
+    <a href="https://github.com/Neysann/second-brain-os/releases/latest"><img src="https://img.shields.io/badge/Version-v2.6.22-10b981?style=for-the-badge" alt="Version" /></a>
     <a href="#license"><img src="https://img.shields.io/badge/License-MIT-amber?style=for-the-badge" alt="License" /></a>
   </p>
 
