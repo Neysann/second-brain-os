@@ -198,6 +198,25 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const isAdmin = Boolean(user?.isAdmin || user?.role === 'admin' || (user?.email && isSiteAdmin(user.email)));
 
+  // Synchroniser avec les query params de l'URL (?tab=profile, etc.) au chargement et navigation
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab') as SettingsTab | null;
+    if (tabParam && ['appearance', 'editor', 'para', 'data', 'profile', 'admin'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, []);
+
+  const handleTabChange = (newTab: SettingsTab) => {
+    setActiveTab(newTab);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', newTab);
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
+
   const isDark = effectiveTheme === 'dark';
 
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
@@ -454,7 +473,7 @@ export default function SettingsPage() {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex-shrink-0 ${
                 isActive
                   ? isAdminTab

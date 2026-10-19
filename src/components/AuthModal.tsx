@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
   Sparkles,
   Mail,
@@ -15,6 +16,8 @@ import {
   Brain,
   Shield,
   Loader2,
+  LogOut,
+  X,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -31,7 +34,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   canDismiss = false,
 }) => {
   const { theme } = useTheme();
-  const { loginWithEmail, signupWithEmail, loginWithGoogle, sendPasswordReset, error, clearError } = useAuth();
+  const { user, logout, loginWithEmail, signupWithEmail, loginWithGoogle, sendPasswordReset, error, clearError } = useAuth();
 
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot-password'>('login');
   const [email, setEmail] = useState('');
@@ -43,6 +46,135 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [resetSent, setResetSent] = useState(false);
 
   if (!isOpen) return null;
+
+  // Si l'utilisateur est déjà connecté, afficher son espace compte plutôt qu'un formulaire de connexion
+  if (user) {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200"
+        onClick={canDismiss ? onClose : undefined}
+      >
+        <div
+          className={`w-full max-w-md rounded-3xl border shadow-2xl overflow-hidden flex flex-col transition-all relative ${
+            theme === 'dark'
+              ? 'bg-zinc-950/95 border-zinc-800 text-zinc-100 shadow-purple-950/30'
+              : 'bg-white border-zinc-200 text-zinc-900 shadow-2xl'
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Bouton Fermer */}
+          {canDismiss && onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="absolute top-4 right-4 p-2 rounded-xl text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 transition-colors z-10 cursor-pointer"
+              title="Fermer"
+              aria-label="Fermer la fenêtre"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* En-tête profil */}
+          <div className="pt-8 pb-4 px-6 text-center flex flex-col items-center">
+            <div className="relative mb-3">
+              {user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt={user.displayName || 'Avatar'}
+                  className={`w-16 h-16 rounded-2xl object-cover shadow-lg ${
+                    user.isAdmin ? 'ring-2 ring-amber-500/80 shadow-amber-500/20' : 'ring-2 ring-purple-500/40'
+                  }`}
+                />
+              ) : (
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg ${
+                  user.isAdmin
+                    ? 'bg-gradient-to-tr from-amber-500 to-purple-600 ring-2 ring-amber-400/50 shadow-amber-500/20'
+                    : 'bg-gradient-to-tr from-purple-600 to-indigo-600 ring-2 ring-purple-500/40'
+                }`}>
+                  {user.isAdmin ? '👑' : (user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-zinc-950 flex items-center justify-center shadow">
+                <Shield className="w-2.5 h-2.5 text-white" />
+              </div>
+            </div>
+
+            <h2 className={`text-xl font-black tracking-tight ${theme === 'dark' ? 'text-zinc-100' : 'text-zinc-900'}`}>
+              {user.displayName || 'Mon Compte'}
+            </h2>
+            <p className={`text-xs mt-1 font-mono ${theme === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              {user.email || 'Session active'}
+            </p>
+            {user.isAdmin && (
+              <span className="mt-2 text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-500 dark:text-amber-300 font-bold border border-amber-500/40 flex items-center gap-1 shadow-sm">
+                👑 Super-Administrateur Système
+              </span>
+            )}
+          </div>
+
+          {/* Détails et actions rapides */}
+          <div className="p-6 pt-2 space-y-4">
+            <div className={`p-4 rounded-2xl border text-xs space-y-2.5 ${
+              theme === 'dark' ? 'bg-zinc-900/60 border-zinc-800 text-zinc-300' : 'bg-zinc-50 border-zinc-200 text-zinc-700'
+            }`}>
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-500">Statut</span>
+                <span className="font-semibold text-emerald-500 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Connecté
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-500">Rôle</span>
+                <span className="font-mono font-medium">{user.role || (user.isAdmin ? 'admin' : 'user')}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-500">Base de données</span>
+                <span className="font-semibold text-purple-400">Cloud Firestore</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Link
+                href="/settings?tab=profile"
+                onClick={() => onClose?.()}
+                className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30 transition-all cursor-pointer"
+              >
+                <User className="w-4 h-4" />
+                <span>Gérer mon profil & mes réglages</span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  await logout();
+                  onClose?.();
+                }}
+                className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold border flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  theme === 'dark'
+                    ? 'bg-zinc-900/60 hover:bg-rose-500/10 border-zinc-800 hover:border-rose-500/30 text-rose-400'
+                    : 'bg-white hover:bg-rose-50 border-zinc-200 hover:border-rose-200 text-rose-600'
+                }`}
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Se déconnecter</span>
+              </button>
+            </div>
+
+            {canDismiss && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full py-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors text-center cursor-pointer"
+              >
+                Fermer
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleModeChange = (newMode: 'login' | 'signup' | 'forgot-password') => {
     setMode(newMode);
@@ -115,7 +247,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const activeError = localError || error;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200"
+      onClick={canDismiss ? onClose : undefined}
+    >
       <div
         className={`w-full max-w-md rounded-3xl border shadow-2xl overflow-hidden flex flex-col transition-all relative ${
           theme === 'dark'

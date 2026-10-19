@@ -449,26 +449,40 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             </Link>
 
             {/* Profil utilisateur / Connexion mobile */}
-            <button
-              onClick={() => setIsAuthModalOpen(true)}
-              className={`p-1.5 rounded-lg border transition-colors flex items-center justify-center cursor-pointer ${
-                theme === 'dark'
-                  ? 'border-zinc-700/60 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-300'
-                  : 'border-zinc-200 bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
-              }`}
-              title={user ? `Connecté : ${user.displayName || user.email}` : 'Se connecter'}
-              aria-label="Profil ou connexion"
-            >
-              {user?.photoURL ? (
-                <img src={user.photoURL} alt="" className="w-4 h-4 rounded-md object-cover" />
-              ) : user ? (
-                <div className="w-4 h-4 rounded-md bg-gradient-to-tr from-purple-600 to-indigo-600 text-white font-bold text-[9px] flex items-center justify-center">
-                  {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
-                </div>
-              ) : (
+            {user ? (
+              <Link
+                href="/settings?tab=profile"
+                className={`p-1.5 rounded-lg border transition-colors flex items-center justify-center cursor-pointer ${
+                  theme === 'dark'
+                    ? 'border-zinc-700/60 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-300'
+                    : 'border-zinc-200 bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
+                }`}
+                title={`Profil : ${user.displayName || user.email}`}
+                aria-label="Accéder au profil"
+              >
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="" className="w-4 h-4 rounded-md object-cover" />
+                ) : (
+                  <div className="w-4 h-4 rounded-md bg-gradient-to-tr from-purple-600 to-indigo-600 text-white font-bold text-[9px] flex items-center justify-center">
+                    {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsAuthModalOpen(true)}
+                className={`p-1.5 rounded-lg border transition-colors flex items-center justify-center cursor-pointer ${
+                  theme === 'dark'
+                    ? 'border-zinc-700/60 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-300'
+                    : 'border-zinc-200 bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
+                }`}
+                title="Se connecter"
+                aria-label="Profil ou connexion"
+              >
                 <UserIcon className="w-4 h-4 text-zinc-400" />
-              )}
-            </button>
+              </button>
+            )}
           </div>
         </header>
 

@@ -2,6 +2,17 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.16] - 2026-10-19 (Correction Navigation Profil Utilisateur & Modale de Gestion de Compte Sécurisée)
+--------------------------------------------------------------------------------
+1. Correction de l'Action au Clic sur le Profil :
+- Résolution du bug où cliquer sur le logo/badge ou l'avatar de profil ouvrait le formulaire de connexion alors que l'utilisateur était déjà connecté.
+- Redirection directe et fluide vers la section « Profil & Salutations » des paramètres (/settings?tab=profile) aussi bien depuis la barre latérale Desktop (mode réduit et étendu) que depuis l'en-tête mobile.
+- Prise en charge bidirectionnelle du paramètre d'URL `?tab=...` dans la page des paramètres permettant d'activer directement l'onglet cible lors de la navigation.
+
+2. Modale de Compte Sécurisée & Polyvalente :
+- Lorsque la modale d'authentification est déclenchée alors qu'une session est active, affichage automatique d'une carte d'espace compte ergonomique (avatar, nom, adresse email, badge Super-Administrateur, statut de synchronisation Firestore, raccourci vers les paramètres de profil et bouton de déconnexion sécurisée) en lieu et place des champs de saisie de mot de passe.
+- Possibilité de fermer la modale en cliquant en dehors (backdrop) ou via le bouton dédié.
+
 #### [V2.6.15] - 2026-10-17 (Personnalisation Avancée des Widgets du Tableau de Bord & Recherche Mondiale de Villes)
 --------------------------------------------------------------------------------
 1. Météo & Villes Mondiales Personnalisables :

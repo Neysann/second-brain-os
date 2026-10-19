@@ -364,9 +364,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
         {/* Profil Utilisateur / Gestion de Compte */}
         {user ? (
           collapsed ? (
-            <button
-              type="button"
-              onClick={onOpenAuth}
+            <Link
+              href="/settings?tab=profile"
               className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${
                 user.isAdmin
                   ? theme === 'dark'
@@ -376,7 +375,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
                   ? 'border-zinc-800 bg-zinc-900/60 hover:bg-zinc-850 text-zinc-300'
                   : 'border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-800 shadow-sm'
               }`}
-              title={user.isAdmin ? `Super-Admin : ${user.displayName || user.email}` : `Compte : ${user.displayName || user.email}`}
+              title={user.isAdmin ? `Super-Admin : ${user.displayName || user.email} (Voir mon profil)` : `Mon Profil : ${user.displayName || user.email}`}
             >
               {user.photoURL ? (
                 <img
@@ -393,7 +392,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
                   {user.isAdmin ? '👑' : (user.displayName || user.email || 'U').charAt(0).toUpperCase()}
                 </div>
               )}
-            </button>
+            </Link>
           ) : (
             <div
               className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
@@ -406,10 +405,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
                   : 'bg-white border-zinc-200 text-zinc-900 shadow-sm'
               }`}
             >
-              <div
-                className="flex items-center gap-2.5 truncate cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={onOpenAuth}
-                title={user.isAdmin ? 'Compte Super-Administrateur (ndebeaupuis@gmail.com)' : 'Gérer mon compte'}
+              <Link
+                href="/settings?tab=profile"
+                className="flex items-center gap-2.5 truncate cursor-pointer hover:opacity-80 transition-opacity flex-1 min-w-0"
+                title={user.isAdmin ? 'Super-Admin : Accéder aux réglages de profil' : 'Accéder aux réglages de mon profil'}
               >
                 {user.photoURL ? (
                   <img
@@ -446,10 +445,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
                     {user.email || 'Connecté'}
                   </span>
                 </div>
-              </div>
+              </Link>
               <button
+                type="button"
                 onClick={logout}
-                className={`p-1.5 rounded-lg transition-colors text-zinc-400 hover:text-rose-500 ${
+                className={`p-1.5 rounded-lg transition-colors text-zinc-400 hover:text-rose-500 flex-shrink-0 ml-1 ${
                   theme === 'dark' ? 'hover:bg-zinc-800' : 'hover:bg-zinc-100'
                 }`}
                 title="Se déconnecter"

@@ -17,6 +17,7 @@ import {
   Zap,
   PenTool,
   Users,
+  User,
   Music,
   Eye,
   Cloud,
@@ -82,6 +83,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
   };
 
   const features = [
+    {
+      icon: User,
+      color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
+      title: 'Syntropy OS V2.6.16 : Navigation Profil & Gestion de Compte Sécurisée',
+      desc: 'Correction de la navigation au clic sur le badge ou l\'avatar du profil utilisateur : redirection directe vers l\'onglet « Profil & Salutations » des paramètres (/settings?tab=profile) lorsque vous êtes connecté, et affichage d\'une modale de compte enrichie (statut, rôle, synchronisation Firestore et déconnexion sécurisée) au lieu d\'un formulaire de connexion redondant.',
+    },
     {
       icon: Sparkles,
       color: 'text-violet-400 bg-violet-500/10 border-violet-500/30',
