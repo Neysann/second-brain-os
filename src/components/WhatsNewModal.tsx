@@ -85,10 +85,10 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
   const features = [
     {
-      icon: Zap,
+      icon: Sparkles,
       color: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
-      title: 'Syntropy OS V2.6.22 : Easter Egg Konami Code & Laboratoire Secret',
-      desc: 'Déverrouillez le laboratoire secret des thèmes dans les Paramètres en tapant le Konami Code aux touches fléchées (↑ ↑ ↓ ↓ ← → ← →). Basculez instantanément entre Syntropy Classique (Liquid Glass) et Nothing OS Edition avec bruitage rétro 8-bit et architecture prête pour de futurs thèmes !',
+      title: 'Syntropy OS V2.6.23 : Un Secret se Cache dans les Paramètres...',
+      desc: 'Un menu secret a été discrètement ajouté au sein de l\'application. Il permet d\'accéder à un laboratoire expérimental pour explorer et basculer facilement entre les directions artistiques. Saurez-vous trouver comment le faire apparaître ?',
     },
     {
       icon: CalendarIcon,

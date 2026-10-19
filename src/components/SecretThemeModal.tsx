@@ -125,7 +125,7 @@ export const SecretThemeModal: React.FC<SecretThemeModalProps> = ({
       subtitle: 'Écosystème Matériel, NDot & Glyph',
       description:
         'Immersion intégrale dans les codes industriels de Nothing : noir absolu OLED (#000000), typographie matricielle NDot 57, accent Rouge vermillon Nothing (#D71920) et interface Glyph dynamique.',
-      badge: 'Easter Egg',
+      badge: 'Secret',
       badgeColor: 'bg-red-500/20 text-red-400 border-red-500/40',
       borderColor: 'hover:border-red-500/50',
       icon: Cpu,
@@ -185,7 +185,7 @@ export const SecretThemeModal: React.FC<SecretThemeModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-zinc-400 mt-0.5">
-                Konami Code validé (↑ ↑ ↓ ↓ ← → ← →). Choisissez votre direction artistique.
+                Laboratoire secret déverrouillé. Choisissez votre direction artistique.
               </p>
             </div>
           </div>
@@ -298,7 +298,7 @@ export const SecretThemeModal: React.FC<SecretThemeModalProps> = ({
         <div className="px-6 py-3.5 bg-zinc-900/60 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400 relative z-10">
           <div className="flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-            <span className="font-mono text-[11px]">Syntropy OS • Easter Egg Engine</span>
+            <span className="font-mono text-[11px]">Syntropy OS • Laboratoire Expérimental</span>
           </div>
           <button
             onClick={onClose}
