@@ -2,6 +2,62 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ========================================================================== */
+/* NOTHING OS OFFICIAL TYPOGRAPHY & DESIGN SYSTEM (V2.6.17)                  */
+/* ========================================================================== */
+@font-face {
+  font-family: 'NDot57';
+  src: url('/fonts/Ndot57-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NType82';
+  src: url('/fonts/NType82-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NType82-Headline';
+  src: url('/fonts/NType82-Headline.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Classes typographiques Nothing OS */
+.font-ndot {
+  font-family: 'NDot57', monospace !important;
+  letter-spacing: 0.05em;
+}
+
+.font-ntype {
+  font-family: 'NType82', -apple-system, BlinkMacSystemFont, "Inter", sans-serif !important;
+}
+
+.font-ntype-headline {
+  font-family: 'NType82-Headline', 'NType82', sans-serif !important;
+}
+
+.nothing-red-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background-color: #D71920;
+  box-shadow: 0 0 10px rgba(215, 25, 32, 0.75);
+  display: inline-block;
+  animation: nothingPulse 2.5s infinite ease-in-out;
+}
+
+@keyframes nothingPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.9); }
+}
+
 @layer base {
   :root {
     --bg-main: #fcfcfd;
@@ -372,6 +428,107 @@
     overflow-x: hidden;
     transition: background-color 0.2s ease, color 0.2s ease;
   }
+}
+
+/* ========================================================================== */
+/* DIRECTION ARTISTIQUE NOTHING OS (ACTIVATION VIA data-ui-style="nothing")    */
+/* ========================================================================== */
+[data-ui-style="nothing"] {
+  --color-nothing-red: #D71920;
+  --nothing-red: #D71920;
+  --nothing-red-glow: rgba(215, 25, 32, 0.45);
+}
+
+/* 1. Mode Sombre Authentique Nothing OS (Noir Absolu OLED #000000) */
+[data-ui-style="nothing"].dark,
+body[data-ui-style="nothing"].dark,
+.nothing-os-mode.dark,
+.nothing-os-mode .dark {
+  --bg-main: #000000 !important;
+  --card-main: #0c0c0e !important;
+  --border-main: rgba(255, 255, 255, 0.14) !important;
+  --text-primary: #ffffff !important;
+  --text-secondary: #8e8e93 !important;
+
+  /* Remplacement des tokens de translucidité par les cartes Nothing */
+  --glass-surface-bg: rgba(10, 10, 12, 0.88) !important;
+  --glass-card-bg: rgba(16, 16, 19, 0.94) !important;
+  --glass-border: rgba(255, 255, 255, 0.14) !important;
+  --glass-accent-border: rgba(215, 25, 32, 0.35) !important;
+
+  /* Remplacement des couleurs zinc vers le noir profond Nothing */
+  --color-zinc-950: #000000 !important;
+  --color-zinc-900: #0e0e11 !important;
+  --color-zinc-850: #141418 !important;
+  --color-zinc-800: #1c1c22 !important;
+
+  background-color: #000000 !important;
+}
+
+[data-ui-style="nothing"].light,
+body[data-ui-style="nothing"].light,
+.nothing-os-mode.light {
+  --bg-main: #f5f5f7 !important;
+  --card-main: #ffffff !important;
+  --border-main: rgba(0, 0, 0, 0.12) !important;
+  --text-primary: #000000 !important;
+  --text-secondary: #636366 !important;
+
+  --glass-surface-bg: rgba(255, 255, 255, 0.90) !important;
+  --glass-card-bg: rgba(255, 255, 255, 0.95) !important;
+  --glass-border: rgba(0, 0, 0, 0.12) !important;
+  --glass-accent-border: rgba(215, 25, 32, 0.35) !important;
+}
+
+/* Grille matricielle de points Nothing OS */
+[data-ui-style="nothing"].dark body,
+[data-ui-style="nothing"] .nothing-dot-grid,
+.nothing-os-mode.dark body {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1.2px, transparent 1.2px) !important;
+  background-size: 24px 24px !important;
+  background-position: 0 0 !important;
+}
+
+[data-ui-style="nothing"].light body,
+[data-ui-style="nothing"].light .nothing-dot-grid,
+.nothing-os-mode.light body {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.09) 1.2px, transparent 1.2px) !important;
+  background-size: 24px 24px !important;
+  background-position: 0 0 !important;
+}
+
+/* 2. Typographie : NType82 générale pour une lisibilité parfaite */
+[data-ui-style="nothing"] body,
+[data-ui-style="nothing"] input,
+[data-ui-style="nothing"] textarea {
+  font-family: 'NType82', -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* 3. Chiffres majeurs, horloge, météo, titres sélectionnés en NDOT 57 */
+[data-ui-style="nothing"] .nothing-ndot,
+[data-ui-style="nothing"] .nothing-digit,
+[data-ui-style="nothing"] .font-ndot {
+  font-family: 'NDot57', monospace !important;
+  letter-spacing: 0.05em;
+}
+
+/* Squircles & Bordures nettes façon matériel Nothing */
+[data-ui-style="nothing"] .rounded-3xl {
+  border-radius: 28px !important;
+}
+[data-ui-style="nothing"] .rounded-2xl {
+  border-radius: 20px !important;
+}
+[data-ui-style="nothing"] .rounded-xl {
+  border-radius: 14px !important;
+}
+
+/* Effet de lueur LED Glyph */
+.nothing-glyph-line {
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.8) 50%, transparent 100%);
+  border-radius: 9999px;
+  opacity: 0.85;
 }
 
 /* Scrollbars 100% transparentes et invisibles (avec défilement fluide préservé) */

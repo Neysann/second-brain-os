@@ -2,6 +2,24 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.17] - 2026-10-19 (Direction Artistique & Thème Signature Nothing OS Authentique)
+--------------------------------------------------------------------------------
+1. Direction Artistique Nothing OS Immersive :
+- Ajout d'une nouvelle option de Système Visuel & Direction Artistique dans Paramètres > Apparence : basculez à tout moment entre « Syntropy Liquid Glass (Original) » et « Nothing OS (Authentique) ».
+- Intégration des polices officielles Nothing : typographie matricielle à points NDot 57 (Ndot57-Regular.otf) pour les horloges, la météo, les chronomètres, les titres et les badges clés ; typographie épurée NType 82 (NType82-Headline & NType82-Regular) pour préserver 100 % de la lisibilité des notes et textes longs.
+- Palette Nothing OLED : noir pur #000000, cartes sombres à bordures techniques subtiles, suppression des transparences néons colorées superflues et accent signature rouge vermillon Nothing (#D71920).
+- Grille matricielle Glyph : texture de points discrets en arrière-plan d'écran avec lueurs Glyph légères.
+
+2. Widgets Reconditionnés Style Nothing OS :
+- Horloge Signature Nothing : cadran analogique Nothing épuré avec trotteuse rouge vermillon #D71920 et point pivot, horloge numérique avec secondes rouges en typographie NDot 57, et étiquettes de villes mondiales monochromes.
+- Météo Nothing : affichage de la température en typographie matricielle NDot 57 et prévisions stylisées.
+- Minuteur Focus Nothing : affichage du décompte en chiffres matriciels NDot 57 et anneau de progression rouge vermillon Nothing.
+- En-tête et Barre Latérale Nothing : badge supérieur « NOTHING OS • TABLEAU DE BORD » avec voyant rouge pulsant, logo « SYNTROPY » en matrice NDot et sous-titre technique « NOTHING EDITION • OS ».
+
+3. Persistance & Synchronisation Globale :
+- Sauvegarde instantanée de la préférence `uiStyle` ('syntropy' | 'nothing') dans les paramètres utilisateur, synchronisée en temps réel sur Cloud Firestore et le stockage local.
+- Prise en charge anti-clignotement (FOUC) au chargement de l'application via attribut HTML standard `data-ui-style="nothing"`.
+
 #### [V2.6.16] - 2026-10-19 (Correction Navigation Profil Utilisateur & Modale de Gestion de Compte Sécurisée)
 --------------------------------------------------------------------------------
 1. Correction de l'Action au Clic sur le Profil :

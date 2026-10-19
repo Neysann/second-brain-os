@@ -150,12 +150,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
               <span className={`font-bold text-base tracking-tight flex items-center gap-1.5 ${
                 theme === 'dark' ? 'text-zinc-100' : 'text-zinc-900'
               }`}>
-                Syntropy
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-700 dark:text-purple-300 font-mono border border-purple-500/30 font-semibold">
-                  OS
-                </span>
+                {settings.uiStyle === 'nothing' ? (
+                  <span className="font-ndot text-base tracking-wider flex items-center gap-1.5 text-zinc-900 dark:text-white">
+                    SYNTROPY
+                    <span className="nothing-red-dot ml-0.5" />
+                  </span>
+                ) : (
+                  <>
+                    Syntropy
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-700 dark:text-purple-300 font-mono border border-purple-500/30 font-semibold">
+                      OS
+                    </span>
+                  </>
+                )}
               </span>
-              <span className="text-xs text-zinc-500 truncate">Productivité & Savoir</span>
+              <span className="text-xs text-zinc-500 truncate font-mono">
+                {settings.uiStyle === 'nothing' ? 'NOTHING EDITION • OS' : 'Productivité & Savoir'}
+              </span>
             </div>
           )}
         </Link>

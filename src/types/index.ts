@@ -20,9 +20,11 @@ export type DefaultEditorMode = 'write' | 'split' | 'preview';
 export type AutoSaveDelay = 500 | 2000 | 5000;
 export type StartupView = '/' | '/tasks' | '/notes' | '/calendar';
 export type FirstDayOfWeek = 'monday' | 'sunday';
+export type UiStyle = 'syntropy' | 'nothing';
 
 export interface AppSettings {
   // 1. Apparence & Personnalisation (UI / UX)
+  uiStyle?: UiStyle; // 'syntropy' (Liquid Glass) ou 'nothing' (Nothing OS DA)
   theme: ThemeSetting;
   accentColor: AccentColor;
   darkBgStyle: DarkBgStyle;

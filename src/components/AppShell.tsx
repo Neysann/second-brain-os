@@ -319,14 +319,20 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         theme === 'dark' ? 'bg-zinc-950 text-zinc-100' : 'bg-zinc-50 text-zinc-900'
       }`}
     >
-      {/* 0. Fond d'ambiance Aurora / Mesh Gradient immersif Liquid Glass (macOS / iOS) */}
-      <div
-        className="fixed inset-0 pointer-events-none overflow-hidden z-0 transition-opacity duration-700 select-none"
-        style={{
-          opacity: settings.reduceTransparency ? 0 : 0.85,
-        }}
-        aria-hidden="true"
-      >
+      {/* 0. Fond d'ambiance Aurora / Mesh Gradient Liquid Glass OU Grille Nothing OS */}
+      {settings.uiStyle === 'nothing' ? (
+        <div
+          className="fixed inset-0 pointer-events-none z-0 nothing-grid-bg transition-opacity duration-700 select-none opacity-80"
+          aria-hidden="true"
+        />
+      ) : (
+        <div
+          className="fixed inset-0 pointer-events-none overflow-hidden z-0 transition-opacity duration-700 select-none"
+          style={{
+            opacity: settings.reduceTransparency ? 0 : 0.85,
+          }}
+          aria-hidden="true"
+        >
         {/* Orbe 1 : Haut Gauche */}
         <div
           className="absolute -top-[12%] -left-[10%] w-[65vw] h-[65vw] rounded-full blur-[140px] pointer-events-none transition-all duration-700"
@@ -356,6 +362,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           }}
         />
       </div>
+    )}
 
       {/* Sidebar de navigation latérale (Écrans Desktop et Tablettes >= md) */}
       <Sidebar

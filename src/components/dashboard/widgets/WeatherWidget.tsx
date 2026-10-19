@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSettings } from '@/context/SettingsContext';
 import {
   CloudSun,
   Sun,
@@ -43,6 +44,8 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
   settings,
   onOpenSettings,
 }) => {
+  const { settings: appSettings } = useSettings();
+  const isNothing = appSettings?.uiStyle === 'nothing';
   const city = settings?.city || 'Paris, France';
   const latitude = settings?.latitude ?? 48.8566;
   const longitude = settings?.longitude ?? 2.3522;
@@ -211,7 +214,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
             </div>
             <div>
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-black font-mono text-zinc-900 dark:text-white tracking-tight">
+                <span className={`text-3xl font-black ${isNothing ? 'font-ndot tracking-wider' : 'font-mono tracking-tight'} text-zinc-900 dark:text-white`}>
                   {weather.temp}°
                 </span>
                 <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-normal">
@@ -245,7 +248,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
                       {slot.hour}
                     </span>
                     {renderWeatherIcon(slot.iconCode, 'w-4 h-4')}
-                    <span className="font-mono text-[10px] font-bold text-zinc-800 dark:text-zinc-200">
+                    <span className={`${isNothing ? 'font-ndot' : 'font-mono'} text-[10px] font-bold text-zinc-800 dark:text-zinc-200`}>
                       {slot.temp}°
                     </span>
                   </div>
@@ -332,7 +335,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
         </div>
         <div className="flex flex-col">
           <div className="flex items-baseline gap-1">
-            <span className="text-3xl font-extrabold tracking-tight font-mono text-zinc-900 dark:text-zinc-100">
+            <span className={`text-3xl font-extrabold ${isNothing ? 'font-ndot tracking-wider' : 'font-mono tracking-tight'} text-zinc-900 dark:text-zinc-100`}>
               {weather.temp}°
             </span>
             <span className="text-[10px] text-zinc-400 font-mono">{unitLabel}</span>

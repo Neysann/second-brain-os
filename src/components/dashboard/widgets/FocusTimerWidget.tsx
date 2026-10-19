@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Timer, Play, Pause, RotateCcw, Settings } from 'lucide-react';
+import { useSettings } from '@/context/SettingsContext';
 import { FocusTimerWidgetSettings } from '@/types/dashboard';
 
 interface FocusTimerWidgetProps {
@@ -13,6 +14,8 @@ export const FocusTimerWidget: React.FC<FocusTimerWidgetProps> = ({
   settings,
   onOpenSettings,
 }) => {
+  const { settings: appSettings } = useSettings();
+  const isNothing = appSettings?.uiStyle === 'nothing';
   const focusMinutes = settings?.focusDuration || 25;
   const breakMinutes = settings?.breakDuration || 5;
   const soundAlert = settings?.soundAlert ?? true;
@@ -128,7 +131,7 @@ export const FocusTimerWidget: React.FC<FocusTimerWidgetProps> = ({
           onClick={() => handleModeChange('focus')}
           className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
             mode === 'focus'
-              ? 'bg-purple-600 text-white shadow-xs'
+              ? (isNothing ? 'bg-[#D71920] text-white shadow-xs' : 'bg-purple-600 text-white shadow-xs')
               : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
           }`}
         >
@@ -139,7 +142,7 @@ export const FocusTimerWidget: React.FC<FocusTimerWidgetProps> = ({
           onClick={() => handleModeChange('break')}
           className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
             mode === 'break'
-              ? 'bg-purple-600 text-white shadow-xs'
+              ? (isNothing ? 'bg-zinc-800 text-white shadow-xs' : 'bg-purple-600 text-white shadow-xs')
               : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
           }`}
         >
@@ -163,7 +166,9 @@ export const FocusTimerWidget: React.FC<FocusTimerWidgetProps> = ({
             cy="48"
             r={radius}
             className={`transition-all duration-500 ${
-              mode === 'focus' ? 'stroke-purple-600 dark:stroke-purple-500' : 'stroke-emerald-500 dark:stroke-emerald-400'
+              mode === 'focus'
+                ? (isNothing ? 'stroke-[#D71920]' : 'stroke-purple-600 dark:stroke-purple-500')
+                : (isNothing ? 'stroke-white' : 'stroke-emerald-500 dark:stroke-emerald-400')
             }`}
             strokeWidth="5"
             strokeDasharray={circumference}
@@ -174,10 +179,10 @@ export const FocusTimerWidget: React.FC<FocusTimerWidgetProps> = ({
         </svg>
 
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="font-mono text-xl font-extrabold text-zinc-900 dark:text-zinc-100 tracking-tight">
+          <span className={`${isNothing ? 'font-ndot text-2xl tracking-widest' : 'font-mono text-xl font-extrabold tracking-tight'} text-zinc-900 dark:text-zinc-100`}>
             {formattedTime}
           </span>
-          <span className="text-[9px] text-zinc-500 dark:text-zinc-400 uppercase font-medium">
+          <span className={`text-[9px] ${isNothing ? 'font-mono text-zinc-400 tracking-wider' : 'text-zinc-500 dark:text-zinc-400 font-medium'} uppercase`}>
             {mode === 'focus' ? 'Concentration' : 'Détente'}
           </span>
         </div>
@@ -198,8 +203,8 @@ export const FocusTimerWidget: React.FC<FocusTimerWidgetProps> = ({
           onClick={() => setIsRunning(!isRunning)}
           className={`w-8 h-8 rounded-full flex items-center justify-center text-white transition-transform active:scale-95 shadow-md cursor-pointer ${
             isRunning
-              ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/30'
-              : 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/30'
+              ? (isNothing ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/30')
+              : (isNothing ? 'bg-[#D71920] hover:bg-[#b01319]' : 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/30')
           }`}
           title={isRunning ? 'Mettre en pause' : 'Démarrer'}
         >

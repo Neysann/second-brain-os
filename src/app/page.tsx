@@ -180,16 +180,31 @@ export default function DashboardPage() {
 
           <div>
             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 mb-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
-              <span>SYNTROPY • TABLEAU DE BORD V2</span>
+              {settings.uiStyle === 'nothing' ? (
+                <>
+                  <span className="nothing-red-dot" />
+                  <span className="text-zinc-400 font-mono">NOTHING OS • TABLEAU DE BORD</span>
+                </>
+              ) : (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+                  <span>SYNTROPY • TABLEAU DE BORD V2</span>
+                </>
+              )}
             </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white flex items-center gap-2.5">
-              <span>{greeting},</span>
-              <span className="bg-gradient-to-r from-purple-600 via-indigo-500 to-indigo-600 dark:from-purple-400 dark:via-indigo-300 dark:to-indigo-400 bg-clip-text text-transparent">
-                {userFirstName}
-              </span>
-            </h1>
-            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 capitalize mt-0.5">
+            {settings.uiStyle === 'nothing' ? (
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl tracking-wider text-zinc-900 dark:text-white font-ndot uppercase">
+                {greeting}, {userFirstName}
+              </h1>
+            ) : (
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white flex items-center gap-2.5">
+                <span>{greeting},</span>
+                <span className="bg-gradient-to-r from-purple-600 via-indigo-500 to-indigo-600 dark:from-purple-400 dark:via-indigo-300 dark:to-indigo-400 bg-clip-text text-transparent">
+                  {userFirstName}
+                </span>
+              </h1>
+            )}
+            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 capitalize mt-0.5 font-mono">
               {todayFormatted}
             </p>
           </div>

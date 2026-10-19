@@ -519,6 +519,111 @@ export default function SettingsPage() {
               {/* COLONNE GAUCHE (Contrôles et réglages)              */}
               {/* =================================================== */}
               <div className="xl:col-span-5 space-y-5">
+                {/* 0. Direction Artistique & Système Visuel (Design System) */}
+                <div className={`p-5 rounded-3xl border space-y-4 transition-colors ${
+                  isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className={`text-sm font-bold flex items-center gap-2 ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+                        <Sparkles className="w-4 h-4 text-purple-400" />
+                        Direction Artistique (DA)
+                      </h2>
+                      <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                        Basculez entre le design originel et l'édition Nothing OS.
+                      </p>
+                    </div>
+                    {settings.uiStyle === 'nothing' && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#D71920]/20 text-[#D71920] border border-[#D71920]/40 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#D71920] animate-pulse" />
+                        NOTHING EDITION
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Carte Syntropy Original */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateSetting('uiStyle', 'syntropy');
+                        showNotification('Style Syntropy Liquid Glass activé');
+                      }}
+                      className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer relative flex flex-col justify-between ${
+                        (settings.uiStyle ?? 'syntropy') === 'syntropy'
+                          ? isDark
+                            ? 'ring-2 border-purple-500 bg-purple-500/10'
+                            : 'ring-2 border-purple-500 bg-purple-50'
+                          : isDark
+                          ? 'bg-zinc-950/40 border-zinc-800/80 hover:border-zinc-700'
+                          : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400">
+                            <Sparkles className="w-4 h-4" />
+                          </div>
+                          {(settings.uiStyle ?? 'syntropy') === 'syntropy' && (
+                            <div className="w-4 h-4 rounded-full bg-purple-500 text-white flex items-center justify-center">
+                              <Check className="w-2.5 h-2.5" />
+                            </div>
+                          )}
+                        </div>
+                        <span className={`text-xs font-bold block ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+                          Syntropy Liquid Glass
+                        </span>
+                        <p className={`text-[11px] mt-1 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                          Translucidité iOS, reflets néons cyberpunk et fond orbe fluide Aurora.
+                        </p>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-zinc-200/40 dark:border-zinc-800/60 flex items-center gap-1.5 text-[10px] text-zinc-500">
+                        <span className="w-2 h-2 rounded-full bg-purple-500" />
+                        <span>Style d'origine</span>
+                      </div>
+                    </button>
+
+                    {/* Carte Nothing OS */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateSetting('uiStyle', 'nothing');
+                        showNotification('Style Nothing OS activé (Matrice NDOT & Noir OLED)');
+                      }}
+                      className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer relative flex flex-col justify-between ${
+                        settings.uiStyle === 'nothing'
+                          ? 'ring-2 ring-[#D71920] border-[#D71920] bg-zinc-950 shadow-lg shadow-red-950/20'
+                          : isDark
+                          ? 'bg-zinc-950/40 border-zinc-800/80 hover:border-zinc-700'
+                          : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="w-8 h-8 rounded-xl bg-black border border-white/20 flex items-center justify-center text-white font-ndot text-sm">
+                            (N)
+                          </div>
+                          {settings.uiStyle === 'nothing' && (
+                            <div className="w-4 h-4 rounded-full bg-[#D71920] text-white flex items-center justify-center">
+                              <Check className="w-2.5 h-2.5" />
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-xs font-bold block font-ndot tracking-wide text-zinc-100">
+                          NOTHING OS
+                        </span>
+                        <p className={`text-[11px] mt-1 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                          Noir pur OLED, matrice de points NDOT, grille Glyph et accent rouge vermillon.
+                        </p>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-zinc-200/40 dark:border-zinc-800/60 flex items-center gap-1.5 text-[10px] text-zinc-400">
+                        <span className="w-2 h-2 rounded-full bg-[#D71920]" />
+                        <span className="font-mono">NDOT 57 · #D71920</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
                 {/* 1. Mode de thème */}
                 <div className={`p-5 rounded-3xl border space-y-4 transition-colors ${
                   isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
@@ -937,38 +1042,48 @@ export default function SettingsPage() {
 
                   {/* Toile d'ambiance avec fond fluide abstrait (Papier peint Aurora macOS / iOS) */}
                   <div className="relative rounded-2xl overflow-hidden p-3 sm:p-4 border border-zinc-800/80 shadow-2xl bg-zinc-950 select-none">
-                    {/* Fond d'ondes fluides colorées */}
+                    {/* Fond d'ondes fluides colorées OU matrice Nothing OS */}
                     <div
-                      className="absolute inset-0 pointer-events-none opacity-85 transition-opacity"
-                      style={{
-                        background: `
-                          radial-gradient(circle at 15% 20%, rgba(139, 92, 246, 0.55), transparent 45%),
-                          radial-gradient(circle at 85% 25%, rgba(59, 130, 246, 0.45), transparent 40%),
-                          radial-gradient(circle at 50% 80%, rgba(236, 72, 153, 0.4), transparent 50%),
-                          radial-gradient(circle at 90% 85%, rgba(6, 182, 212, 0.35), transparent 45%),
-                          #0b0c14
-                        `,
-                      }}
+                      className="absolute inset-0 pointer-events-none transition-opacity"
+                      style={
+                        settings.uiStyle === 'nothing'
+                          ? {
+                              backgroundColor: '#000000',
+                              backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.18) 1.2px, transparent 1.2px)',
+                              backgroundSize: '16px 16px',
+                              opacity: 0.95,
+                            }
+                          : {
+                              background: `
+                                radial-gradient(circle at 15% 20%, rgba(139, 92, 246, 0.55), transparent 45%),
+                                radial-gradient(circle at 85% 25%, rgba(59, 130, 246, 0.45), transparent 40%),
+                                radial-gradient(circle at 50% 80%, rgba(236, 72, 153, 0.4), transparent 50%),
+                                radial-gradient(circle at 90% 85%, rgba(6, 182, 212, 0.35), transparent 45%),
+                                #0b0c14
+                              `,
+                              opacity: 0.85,
+                            }
+                      }
                     />
 
                     {/* Fenêtre miniature du Dashboard Syntropy */}
                     <div
                       className="relative z-10 rounded-2xl border flex overflow-hidden shadow-2xl"
                       style={{
-                        borderColor: previewIsDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)',
-                        boxShadow: `0 20px 40px -15px rgba(0, 0, 0, 0.6), 0 0 25px -5px ${activeAccentHex}20`,
+                        borderColor: settings.uiStyle === 'nothing' ? 'rgba(255, 255, 255, 0.16)' : (previewIsDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)'),
+                        boxShadow: settings.uiStyle === 'nothing' ? '0 20px 40px -15px rgba(0, 0, 0, 0.9), 0 0 25px -5px rgba(215, 25, 32, 0.15)' : `0 20px 40px -15px rgba(0, 0, 0, 0.6), 0 0 25px -5px ${activeAccentHex}20`,
                       }}
                     >
                       {/* Mini Sidebar Translucide */}
                       <div
                         className="w-36 sm:w-40 flex-shrink-0 p-2.5 flex flex-col justify-between border-r transition-all duration-200"
                         style={{
-                          backgroundColor: previewIsDark
-                            ? `rgba(18, 18, 24, ${alpha})`
-                            : `rgba(255, 255, 255, ${alpha})`,
-                          backdropFilter: isReduced ? 'none' : `blur(${blurPx}px)`,
-                          WebkitBackdropFilter: isReduced ? 'none' : `blur(${blurPx}px)`,
-                          borderColor: previewIsDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+                          backgroundColor: settings.uiStyle === 'nothing'
+                            ? '#000000'
+                            : (previewIsDark ? `rgba(18, 18, 24, ${alpha})` : `rgba(255, 255, 255, ${alpha})`),
+                          backdropFilter: isReduced || settings.uiStyle === 'nothing' ? 'none' : `blur(${blurPx}px)`,
+                          WebkitBackdropFilter: isReduced || settings.uiStyle === 'nothing' ? 'none' : `blur(${blurPx}px)`,
+                          borderColor: settings.uiStyle === 'nothing' ? 'rgba(255, 255, 255, 0.12)' : (previewIsDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)'),
                           color: previewIsDark ? '#e4e4e7' : '#27272a',
                         }}
                       >
@@ -977,13 +1092,28 @@ export default function SettingsPage() {
                           <div className="flex items-center gap-1.5">
                             <div
                               className="w-5 h-5 rounded-md flex items-center justify-center p-0.5 shadow-sm"
-                              style={{ backgroundColor: `${activeAccentHex}25`, border: `1px solid ${activeAccentHex}50` }}
+                              style={{
+                                backgroundColor: settings.uiStyle === 'nothing' ? '#18181b' : `${activeAccentHex}25`,
+                                border: settings.uiStyle === 'nothing' ? '1px solid rgba(255,255,255,0.2)' : `1px solid ${activeAccentHex}50`,
+                              }}
                             >
-                              <Brain className="w-3 h-3" style={{ color: activeAccentHex }} />
+                              {settings.uiStyle === 'nothing' ? (
+                                <span className="font-ndot text-[8px] text-white">N</span>
+                              ) : (
+                                <Brain className="w-3 h-3" style={{ color: activeAccentHex }} />
+                              )}
                             </div>
                             <div>
-                              <span className="text-[10px] font-bold block leading-tight tracking-tight">Syntropy</span>
-                              <span className="text-[7px] text-zinc-500 block leading-none">Productivité & Savoir</span>
+                              <span className={`text-[10px] font-bold block leading-tight ${settings.uiStyle === 'nothing' ? 'font-ndot tracking-wider text-white' : 'tracking-tight'}`}>
+                                {settings.uiStyle === 'nothing' ? (
+                                  <>SYNTROPY <span className="text-[#D71920]">●</span></>
+                                ) : (
+                                  'Syntropy'
+                                )}
+                              </span>
+                              <span className="text-[7px] text-zinc-500 block leading-none">
+                                {settings.uiStyle === 'nothing' ? 'NOTHING EDITION' : 'Productivité & Savoir'}
+                              </span>
                             </div>
                           </div>
 
@@ -1116,10 +1246,14 @@ export default function SettingsPage() {
                             </div>
                             <div>
                               <h3 className="text-[11px] font-bold leading-tight flex items-center gap-1">
-                                <span className={previewIsDark ? 'text-zinc-100' : 'text-zinc-900'}>Bon matin,</span>
-                                <span style={{ color: activeAccentHex }}>Nathan</span>
+                                <span className={`${previewIsDark ? 'text-zinc-100' : 'text-zinc-900'} ${settings.uiStyle === 'nothing' ? 'font-ndot tracking-wider' : ''}`}>
+                                  {settings.uiStyle === 'nothing' ? 'BON MATIN,' : 'Bon matin,'}
+                                </span>
+                                <span style={{ color: settings.uiStyle === 'nothing' ? '#D71920' : activeAccentHex }} className={settings.uiStyle === 'nothing' ? 'font-ndot tracking-wider' : ''}>
+                                  NATHAN
+                                </span>
                               </h3>
-                              <span className="text-[8px] text-zinc-500 block leading-none">Vendredi 16 Octobre 2026</span>
+                              <span className={`text-[8px] text-zinc-500 block leading-none ${settings.uiStyle === 'nothing' ? 'uppercase tracking-wider' : ''}`}>Vendredi 16 Octobre 2026</span>
                             </div>
                           </div>
 
@@ -1139,7 +1273,7 @@ export default function SettingsPage() {
                             <button
                               type="button"
                               className="w-4 h-4 rounded-md text-white flex items-center justify-center shadow-sm"
-                              style={{ backgroundColor: activeAccentHex }}
+                              style={{ backgroundColor: settings.uiStyle === 'nothing' ? '#D71920' : activeAccentHex }}
                             >
                               <Plus className="w-2.5 h-2.5" />
                             </button>
@@ -1152,32 +1286,32 @@ export default function SettingsPage() {
                           <div
                             className="p-2 rounded-xl border space-y-1.5 transition-all"
                             style={{
-                              backgroundColor: previewIsDark ? `rgba(24, 24, 28, ${cardAlpha})` : `rgba(255, 255, 255, ${cardAlpha})`,
-                              backdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
-                              WebkitBackdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
-                              borderColor: previewIsDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+                              backgroundColor: settings.uiStyle === 'nothing' ? '#09090b' : (previewIsDark ? `rgba(24, 24, 28, ${cardAlpha})` : `rgba(255, 255, 255, ${cardAlpha})`),
+                              backdropFilter: isReduced || settings.uiStyle === 'nothing' ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              WebkitBackdropFilter: isReduced || settings.uiStyle === 'nothing' ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              borderColor: settings.uiStyle === 'nothing' ? 'rgba(255, 255, 255, 0.12)' : (previewIsDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'),
                             }}
                           >
                             <div className="flex items-center justify-between text-[9px]">
-                              <span className={`font-bold flex items-center gap-1 ${previewIsDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                              <span className={`font-bold flex items-center gap-1 ${previewIsDark ? 'text-zinc-200' : 'text-zinc-800'} ${settings.uiStyle === 'nothing' ? 'uppercase tracking-wider' : ''}`}>
                                 <Calendar className="w-2 h-2 text-purple-400" />
                                 <span>Calendriers</span>
                               </span>
                               <span className="text-[7px] text-zinc-500">Voir &gt;</span>
                             </div>
                             <div className="flex items-center gap-0.5 text-[7px]">
-                              <span className="px-1 py-0.2 rounded text-white font-semibold" style={{ backgroundColor: activeAccentHex }}>Tous</span>
+                              <span className="px-1 py-0.2 rounded text-white font-semibold" style={{ backgroundColor: settings.uiStyle === 'nothing' ? '#D71920' : activeAccentHex }}>Tous</span>
                               <span className="px-1 py-0.2 rounded text-zinc-400 bg-zinc-800/50">Perso</span>
                               <span className="px-1 py-0.2 rounded text-zinc-400 bg-zinc-800/50">Travail</span>
                               <span className="px-1 py-0.2 rounded text-zinc-400 bg-zinc-800/50">Google</span>
                             </div>
                             <div className="flex items-start gap-1.5 pt-0.5 text-[8px]">
                               <span className="font-bold text-[7px] text-zinc-500 uppercase leading-none">
-                                VEN.<br/><strong className={`text-[10px] ${previewIsDark ? 'text-zinc-200' : 'text-zinc-800'}`}>16</strong>
+                                VEN.<br/><strong className={`text-[10px] ${previewIsDark ? 'text-zinc-200' : 'text-zinc-800'} ${settings.uiStyle === 'nothing' ? 'font-ndot' : ''}`}>16</strong>
                               </span>
                               <div className="flex-1 min-w-0">
                                 <span className="text-zinc-400 block truncate text-[7px]">Aucun événement aujourd'hui</span>
-                                <span className="text-[7px] font-semibold block mt-0.5" style={{ color: activeAccentHex }}>+ En programmer un</span>
+                                <span className="text-[7px] font-semibold block mt-0.5" style={{ color: settings.uiStyle === 'nothing' ? '#D71920' : activeAccentHex }}>+ En programmer un</span>
                               </div>
                             </div>
                           </div>
@@ -1186,25 +1320,25 @@ export default function SettingsPage() {
                           <div
                             className="p-2 rounded-xl border space-y-1.5 transition-all"
                             style={{
-                              backgroundColor: previewIsDark ? `rgba(24, 24, 28, ${cardAlpha})` : `rgba(255, 255, 255, ${cardAlpha})`,
-                              backdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
-                              WebkitBackdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
-                              borderColor: previewIsDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+                              backgroundColor: settings.uiStyle === 'nothing' ? '#09090b' : (previewIsDark ? `rgba(24, 24, 28, ${cardAlpha})` : `rgba(255, 255, 255, ${cardAlpha})`),
+                              backdropFilter: isReduced || settings.uiStyle === 'nothing' ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              WebkitBackdropFilter: isReduced || settings.uiStyle === 'nothing' ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              borderColor: settings.uiStyle === 'nothing' ? 'rgba(255, 255, 255, 0.12)' : (previewIsDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'),
                             }}
                           >
                             <div className="flex items-center justify-between text-[9px]">
-                              <span className={`font-bold flex items-center gap-1 ${previewIsDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                              <span className={`font-bold flex items-center gap-1 ${previewIsDark ? 'text-zinc-200' : 'text-zinc-800'} ${settings.uiStyle === 'nothing' ? 'uppercase tracking-wider' : ''}`}>
                                 <CloudSun className="w-2 h-2 text-amber-400" />
                                 <span>Météo</span>
                               </span>
-                              <span className="text-[7px] flex items-center gap-0.5" style={{ color: activeAccentHex }}>
+                              <span className="text-[7px] flex items-center gap-0.5" style={{ color: settings.uiStyle === 'nothing' ? '#D71920' : activeAccentHex }}>
                                 <MapPin className="w-1.5 h-1.5" />Paris
                               </span>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <SunMedium className="w-5 h-5 text-amber-400 flex-shrink-0" />
                               <div>
-                                <span className={`text-sm font-black leading-none block ${previewIsDark ? 'text-zinc-100' : 'text-zinc-900'}`}>18°</span>
+                                <span className={`text-sm font-black leading-none block ${previewIsDark ? 'text-zinc-100' : 'text-zinc-900'} ${settings.uiStyle === 'nothing' ? 'font-ndot tracking-wider' : ''}`}>18°</span>
                                 <span className="text-[7px] text-zinc-400 block leading-tight">Nuages épars</span>
                               </div>
                             </div>

@@ -21,6 +21,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '@/lib/firebase';
 
 export const DEFAULT_SETTINGS: AppSettings = {
+  uiStyle: 'syntropy',
   theme: 'dark',
   accentColor: 'purple',
   darkBgStyle: 'zinc',
@@ -246,8 +247,23 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const accentRgb = accentRgbMap[accent] || '139, 92, 246';
     root.style.setProperty('--accent-rgb', accentRgb);
     root.style.setProperty('--glass-accent-border', `rgba(${accentRgb}, ${0.12 + (effectiveTransparency / 100) * 0.15})`);
+
+    // H. Direction Artistique / Style d'Interface (Syntropy Liquid Glass vs Nothing OS)
+    const uiStyle = settings.uiStyle || 'syntropy';
+    root.setAttribute('data-ui-style', uiStyle);
+    body.setAttribute('data-ui-style', uiStyle);
+    if (uiStyle === 'nothing') {
+      root.classList.add('nothing-os-mode');
+      body.classList.add('nothing-os-mode');
+      root.style.setProperty('--nothing-red', '#D71920');
+      root.style.setProperty('--nothing-red-rgb', '215, 25, 32');
+    } else {
+      root.classList.remove('nothing-os-mode');
+      body.classList.remove('nothing-os-mode');
+    }
   }, [
     effectiveTheme,
+    settings.uiStyle,
     settings.accentColor,
     settings.darkBgStyle,
     settings.neonIntensity,
@@ -274,6 +290,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setSettings(newSettings);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(newSettings));
+        localStorage.setItem('syntropy_ui_style', newSettings.uiStyle || 'syntropy');
         localStorage.setItem('second_brain_theme', newSettings.theme === 'auto' ? (systemIsDark ? 'dark' : 'light') : newSettings.theme);
         localStorage.setItem('syntropy_dark_bg_style', newSettings.darkBgStyle || 'zinc');
         localStorage.setItem('syntropy_neon_intensity', newSettings.neonIntensity || 'vibrant');

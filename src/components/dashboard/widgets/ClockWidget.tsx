@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '@/context/ThemeContext';
+import { useSettings } from '@/context/SettingsContext';
 import { Clock as ClockIcon, Bell, Moon, Sun, ArrowRightLeft, Settings } from 'lucide-react';
 import { WidgetSize, ClockWidgetSettings, SecondaryClockCity } from '@/types/dashboard';
 
@@ -25,6 +26,8 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
   onOpenSettings,
 }) => {
   const { theme } = useTheme();
+  const { settings: appSettings } = useSettings();
+  const isNothing = appSettings?.uiStyle === 'nothing';
   const [time, setTime] = useState<Date | null>(null);
   const [secondaryCityIndex, setSecondaryCityIndex] = useState(0);
 
@@ -217,10 +220,14 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
             </div>
 
             <div className="my-2 text-center">
-              <div className="font-mono text-3xl font-black tracking-tight text-zinc-900 dark:text-white flex items-baseline justify-center">
+              <div className={`text-3xl font-black tracking-tight text-zinc-900 dark:text-white flex items-baseline justify-center ${
+                isNothing ? 'font-ndot' : 'font-mono'
+              }`}>
                 <span>{primaryTimeData.digitalShort}</span>
                 {showSeconds && (
-                  <span className="text-xs text-purple-600 dark:text-purple-400 font-normal ml-1">
+                  <span className={`text-xs font-normal ml-1 ${
+                    isNothing ? 'font-ndot text-[#D71920]' : 'text-purple-600 dark:text-purple-400 font-mono'
+                  }`}>
                     :{primaryTimeData.seconds}
                   </span>
                 )}
@@ -249,7 +256,9 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
             </div>
 
             <div className="my-2 text-center">
-              <div className="font-mono text-3xl font-black tracking-tight text-purple-600 dark:text-purple-300">
+              <div className={`text-3xl font-black tracking-tight ${
+                isNothing ? 'font-ndot text-[#D71920]' : 'font-mono text-purple-600 dark:text-purple-300'
+              }`}>
                 {secTimeData.digitalShort}
               </div>
               <div className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
@@ -305,15 +314,19 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
         </div>
 
         <div className="my-auto text-center">
-          <div className="font-mono text-4xl font-black tracking-tight text-zinc-900 dark:text-white flex items-baseline justify-center">
+          <div className={`text-4xl sm:text-5xl font-black tracking-tight text-zinc-900 dark:text-white flex items-baseline justify-center ${
+            isNothing ? 'font-ndot tracking-widest' : 'font-mono'
+          }`}>
             <span>{primaryTimeData.digitalShort}</span>
             {showSeconds && (
-              <span className="text-xs text-purple-500 font-normal ml-1">
+              <span className={`text-xs ml-1 ${
+                isNothing ? 'font-ndot text-[#D71920]' : 'text-purple-500 font-mono font-normal'
+              }`}>
                 :{primaryTimeData.seconds}
               </span>
             )}
           </div>
-          <div className="text-[11px] text-zinc-500 dark:text-zinc-400 capitalize truncate mt-1">
+          <div className="text-[11px] text-zinc-500 dark:text-zinc-400 capitalize truncate mt-1 font-mono">
             {formattedDate}
           </div>
         </div>
@@ -425,24 +438,26 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
               y1="50"
               x2={50 + 37 * Math.sin((secondAngle * Math.PI) / 180)}
               y2={50 - 37 * Math.cos((secondAngle * Math.PI) / 180)}
-              className="stroke-rose-500"
-              strokeWidth="1"
+              className={isNothing ? "stroke-[#D71920]" : "stroke-rose-500"}
+              strokeWidth="1.5"
               strokeLinecap="round"
             />
           )}
 
           {/* Pivot central */}
-          <circle cx="50" cy="50" r="3" className="fill-purple-500" />
+          <circle cx="50" cy="50" r="3" className={isNothing ? "fill-[#D71920]" : "fill-purple-500"} />
           <circle cx="50" cy="50" r="1.5" className="fill-white" />
         </svg>
       </div>
 
       {/* Heure Numérique & Date */}
       <div className="text-center">
-        <div className="font-mono text-xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+        <div className={`text-xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100 ${
+          isNothing ? 'font-ndot' : 'font-mono'
+        }`}>
           {primaryTimeData.digitalShort}
         </div>
-        <div className="text-[10px] text-zinc-500 dark:text-zinc-400 capitalize truncate max-w-[150px]">
+        <div className="text-[10px] text-zinc-500 dark:text-zinc-400 capitalize truncate max-w-[150px] font-mono">
           {formattedDate}
         </div>
       </div>

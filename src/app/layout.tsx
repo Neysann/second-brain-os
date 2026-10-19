@@ -45,6 +45,10 @@ export default function RootLayout({
                     document.documentElement.setAttribute('data-dark-bg', 'oled');
                     document.documentElement.classList.add('oled');
                   }
+                  if (p.uiStyle === 'nothing') {
+                    document.documentElement.setAttribute('data-ui-style', 'nothing');
+                    document.documentElement.classList.add('nothing-os-mode');
+                  }
                 }
               } catch (e) {}
             `,

@@ -1,14 +1,14 @@
 @echo off
 chcp 65001 > nul
-title Syntropy OS Desktop (V2.6.16)
+title Syntropy OS Desktop (V2.6.17)
 color 05
 
 echo =====================================================================
-echo                  SYNTROPY OS - APPLICATION OFFICIELLE (V2.6.16)
+echo                  SYNTROPY OS - APPLICATION OFFICIELLE (V2.6.17)
 echo =====================================================================
 echo.
 echo  Dossier : %~dp0
-echo  Version : 2.6.16
+echo  Version : 2.6.17
 echo.
 echo ---------------------------------------------------------------------
 

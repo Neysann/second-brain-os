@@ -84,6 +84,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
   const features = [
     {
+      icon: Sparkles,
+      color: 'text-red-500 bg-red-500/10 border-red-500/30',
+      title: 'Syntropy OS V2.6.17 : Direction Artistique Nothing OS (Authentique)',
+      desc: 'Nouvelle option de design immersif inspirée de Nothing OS dans Paramètres > Apparence : noir pur OLED (#000000), typographie matricielle à points NDOT 57 officielle pour les compteurs et horloges, accent rouge vermillon Nothing (#D71920), cadran analogique Nothing signature avec trotteuse rouge, matrice de points Glyph subtile et préservation intégrale de la lisibilité pour les notes et contenus textuels.',
+    },
+    {
       icon: User,
       color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
       title: 'Syntropy OS V2.6.16 : Navigation Profil & Gestion de Compte Sécurisée',
