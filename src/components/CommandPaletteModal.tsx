@@ -36,6 +36,8 @@ import {
 import { useData } from '@/context/DataContext';
 import { useDailyLife } from '@/context/DailyLifeContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useSettings } from '@/context/SettingsContext';
+import { CURRENT_VERSION } from '@/lib/version';
 
 interface CommandPaletteModalProps {
   isOpen: boolean;
@@ -72,6 +74,8 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({ isOpen
   const { tasks, projects, notes, events } = useData();
   const { habits } = useDailyLife();
   const { theme, toggleTheme } = useTheme();
+  const { settings } = useSettings();
+  const isNothing = settings?.uiStyle === 'nothing';
 
   // Focus automatique à l'ouverture
   useEffect(() => {
@@ -219,7 +223,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({ isOpen
         id: 'act-whats-new',
         category: 'actions',
         categoryLabel: 'Actions Rapides',
-        title: 'Nouveautés de Version & Patchnotes (V2.3.6)',
+        title: `Nouveautés de Version & Patchnotes (V${CURRENT_VERSION})`,
         subtitle: 'Consulter les dernières améliorations du système et corrections',
         badge: 'Système',
         badgeColor: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/30',
@@ -554,29 +558,39 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({ isOpen
     >
       <div
         className={`w-full max-w-2xl rounded-2xl shadow-2xl border overflow-hidden flex flex-col max-h-[82vh] transition-all transform animate-in zoom-in-95 duration-150 ${
-          theme === 'dark'
+          isNothing
+            ? 'bg-black/95 border-white/20 text-white shadow-[0_0_50px_rgba(0,0,0,0.9)] font-ntype'
+            : theme === 'dark'
             ? 'glass-surface border-zinc-800 text-zinc-100 shadow-zinc-950/90'
             : 'glass-surface border-zinc-200 text-zinc-900 shadow-2xl shadow-zinc-950/20'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 1. Barre de saisie Universelle */}
-        <div className="flex items-center px-4 py-3.5 border-b border-zinc-200 dark:border-zinc-800/80 gap-3">
-          <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
-            <Search className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+        <div className={`flex items-center px-4 py-3.5 border-b gap-3 ${
+          isNothing ? 'border-white/10 bg-black' : 'border-zinc-200 dark:border-zinc-800/80'
+        }`}>
+          <div className={`w-8 h-8 rounded-lg border flex items-center justify-center flex-shrink-0 ${
+            isNothing ? 'bg-zinc-950 border-white/10' : 'bg-purple-500/10 border-purple-500/30'
+          }`}>
+            <Search className={`w-4 h-4 ${isNothing ? 'text-[#D71920]' : 'text-purple-600 dark:text-purple-400'}`} />
           </div>
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher une note, tâche, commande (ex: +note, thème, budget)..."
-            className="w-full bg-transparent border-none outline-none text-base placeholder:text-zinc-400 text-zinc-900 dark:text-zinc-100 font-medium"
+            placeholder={isNothing ? "SEARCH NOTES, TASKS, ACTIONS..." : "Rechercher une note, tâche, commande (ex: +note, thème, budget)..."}
+            className={`w-full bg-transparent border-none outline-none text-base ${
+              isNothing
+                ? 'placeholder:text-zinc-600 text-white font-ntype'
+                : 'placeholder:text-zinc-400 text-zinc-900 dark:text-zinc-100 font-medium'
+            }`}
           />
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="p-1 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
               title="Effacer la recherche"
             >
               <X className="w-4 h-4" />
@@ -584,24 +598,34 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({ isOpen
           )}
           <button
             onClick={onClose}
-            className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-[11px] font-mono font-semibold rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors border border-zinc-200 dark:border-zinc-700 cursor-pointer"
+            className={`hidden sm:inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold rounded-md transition-colors border cursor-pointer ${
+              isNothing
+                ? 'font-ndot bg-zinc-950 text-zinc-400 border-white/10 hover:text-white'
+                : 'font-mono bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 border-zinc-200 dark:border-zinc-700'
+            }`}
           >
             ESC
           </button>
         </div>
 
         {/* 2. Onglets de filtrage par module */}
-        <div className="flex items-center gap-1 px-3 py-2 border-b border-zinc-200 dark:border-zinc-800/60 overflow-x-auto scrollbar-none bg-zinc-50/70 dark:bg-zinc-950/40 flex-shrink-0">
+        <div className={`flex items-center gap-1.5 px-3 py-2 border-b overflow-x-auto scrollbar-none flex-shrink-0 ${
+          isNothing ? 'border-white/10 bg-black' : 'border-zinc-200 dark:border-zinc-800/60 bg-zinc-50/70 dark:bg-zinc-950/40'
+        }`}>
           {categoriesTabs.map((cat) => {
             const isActive = activeCategory === cat.id;
             return (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-                  isActive
-                    ? 'bg-purple-600 text-white shadow-xs'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-zinc-800'
+                className={`px-3 py-1 text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                  isNothing
+                    ? isActive
+                      ? 'rounded-full bg-white text-black font-ndot uppercase tracking-wider shadow-[0_0_10px_rgba(255,255,255,0.2)]'
+                      : 'rounded-full text-zinc-400 hover:text-white font-ndot uppercase tracking-wider hover:bg-zinc-900'
+                    : isActive
+                    ? 'rounded-lg bg-purple-600 text-white shadow-xs'
+                    : 'rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/60 dark:hover:bg-zinc-800'
                 }`}
               >
                 {cat.label}
@@ -617,12 +641,14 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({ isOpen
         >
           {filteredItems.length === 0 ? (
             <div className="text-center py-12 px-4 space-y-2">
-              <Search className="w-8 h-8 mx-auto text-zinc-400 dark:text-zinc-600 mb-2" />
-              <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-                Aucun résultat pour « {query} »
+              <Search className={`w-8 h-8 mx-auto mb-2 ${isNothing ? 'text-zinc-600' : 'text-zinc-400 dark:text-zinc-600'}`} />
+              <p className={`text-sm font-semibold ${isNothing ? 'text-zinc-300 font-ndot uppercase' : 'text-zinc-800 dark:text-zinc-200'}`}>
+                {isNothing ? `NO RESULTS FOR "${query}"` : `Aucun résultat pour « ${query} »`}
               </p>
               <p className="text-xs text-zinc-500 max-w-sm mx-auto">
-                Essayez d'autres mots-clés ou tapez des commandes directes comme <span className="font-mono text-purple-600 dark:text-purple-400">+note</span>, <span className="font-mono text-purple-600 dark:text-purple-400">thème</span>, <span className="font-mono text-purple-600 dark:text-purple-400">tâche</span> ou <span className="font-mono text-purple-600 dark:text-purple-400">calendrier</span>.
+                {isNothing
+                  ? 'TRY +NOTE, THEME, TASK, OR CALENDAR.'
+                  : "Essayez d'autres mots-clés ou tapez des commandes directes comme +note, thème, tâche ou calendrier."}
               </p>
             </div>
           ) : (
@@ -639,7 +665,11 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({ isOpen
                   onClick={() => item.onSelect()}
                   onMouseEnter={() => setSelectedIndex(index)}
                   className={`w-full text-left p-2.5 sm:p-3 rounded-xl border transition-all flex items-center justify-between group cursor-pointer ${
-                    isSelected
+                    isNothing
+                      ? isSelected
+                        ? 'bg-zinc-900/90 border-white/30 text-white shadow-[0_0_15px_rgba(255,255,255,0.06)]'
+                        : 'border-transparent hover:bg-zinc-950 text-zinc-300'
+                      : isSelected
                       ? theme === 'dark'
                         ? 'bg-purple-950/40 border-purple-500/50 shadow-sm'
                         : 'bg-purple-50 border-purple-300 shadow-sm'
@@ -650,15 +680,23 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({ isOpen
                     <div
                       className={`p-2 rounded-xl border flex-shrink-0 transition-transform ${
                         isSelected ? 'scale-105' : ''
-                      } ${item.iconBg}`}
+                      } ${
+                        isNothing
+                          ? isSelected
+                            ? 'bg-zinc-950 border-white/30'
+                            : 'bg-zinc-950/80 border-white/10'
+                          : item.iconBg
+                      }`}
                     >
-                      <Icon className={`w-4 h-4 ${item.iconColor}`} />
+                      <Icon className={`w-4 h-4 ${isNothing ? (isSelected ? 'text-white' : 'text-zinc-300') : item.iconColor}`} />
                     </div>
                     <div className="min-w-0 truncate">
                       <div className="flex items-center gap-2">
                         <span
                           className={`font-semibold text-sm truncate ${
-                            isSelected
+                            isNothing
+                              ? isSelected ? 'text-white font-bold' : 'text-zinc-200'
+                              : isSelected
                               ? theme === 'dark'
                                 ? 'text-white'
                                 : 'text-purple-950 font-bold'
@@ -672,10 +710,12 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({ isOpen
                         {item.badge && (
                           <span
                             className={`text-[10px] px-1.5 py-0.2 rounded font-semibold border flex-shrink-0 ${
-                              item.badgeColor ||
-                              (theme === 'dark'
-                                ? 'bg-zinc-800 text-zinc-300 border-zinc-700'
-                                : 'bg-zinc-100 text-zinc-800 border-zinc-200')
+                              isNothing
+                                ? 'bg-zinc-900 text-zinc-300 border-white/10 font-ndot uppercase text-[8px]'
+                                : item.badgeColor ||
+                                  (theme === 'dark'
+                                    ? 'bg-zinc-800 text-zinc-300 border-zinc-700'
+                                    : 'bg-zinc-100 text-zinc-800 border-zinc-200')
                             }`}
                           >
                             {item.badge}
@@ -685,7 +725,9 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({ isOpen
                       {item.subtitle && (
                         <p
                           className={`text-xs mt-0.5 truncate ${
-                            isSelected
+                            isNothing
+                              ? isSelected ? 'text-zinc-300' : 'text-zinc-500'
+                              : isSelected
                               ? theme === 'dark'
                                 ? 'text-purple-200'
                                 : 'text-purple-800'
@@ -707,7 +749,11 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({ isOpen
                         {item.tags.slice(0, 2).map((tag) => (
                           <span
                             key={tag}
-                            className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-mono"
+                            className={`text-[9px] px-1.5 py-0.5 rounded font-mono ${
+                              isNothing
+                                ? 'bg-zinc-950 text-zinc-400 border border-white/10'
+                                : 'bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300'
+                            }`}
                           >
                             #{tag}
                           </span>
@@ -717,12 +763,16 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({ isOpen
                     <span
                       className={`text-xs flex items-center gap-1 px-1.5 py-0.5 rounded border transition-opacity ${
                         isSelected
-                          ? 'opacity-100 bg-purple-600 text-white border-purple-500 shadow-xs'
+                          ? isNothing
+                            ? 'opacity-100 bg-[#D71920] text-white border-[#D71920] shadow-[0_0_8px_rgba(215,25,32,0.5)] font-ndot'
+                            : 'opacity-100 bg-purple-600 text-white border-purple-500 shadow-xs'
                           : 'opacity-0 text-zinc-400 border-transparent'
                       }`}
                     >
                       <CornerDownLeft className="w-3 h-3" />
-                      <span className="hidden sm:inline text-[10px] font-mono">Entrée</span>
+                      <span className="hidden sm:inline text-[10px] font-mono">
+                        {isNothing ? 'ENTER' : 'Entrée'}
+                      </span>
                     </span>
                   </div>
                 </button>
@@ -732,33 +782,53 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({ isOpen
         </div>
 
         {/* 4. Barre de statut / Pied de page avec raccourcis */}
-        <div className="px-4 py-2.5 border-t border-zinc-200 dark:border-zinc-800/80 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50/80 dark:bg-zinc-950/60 flex-shrink-0">
+        <div className={`px-4 py-2.5 border-t flex items-center justify-between text-xs flex-shrink-0 ${
+          isNothing
+            ? 'border-white/10 bg-black text-zinc-400'
+            : 'border-zinc-200 dark:border-zinc-800/80 text-zinc-500 dark:text-zinc-400 bg-zinc-50/80 dark:bg-zinc-950/60'
+        }`}>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-[10px] font-mono text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700">
+              <kbd className={`px-1 py-0.5 rounded text-[10px] border ${
+                isNothing
+                  ? 'font-ndot bg-zinc-950 text-zinc-300 border-white/10'
+                  : 'font-mono bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700'
+              }`}>
                 ↑
               </kbd>
-              <kbd className="px-1 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-[10px] font-mono text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700">
+              <kbd className={`px-1 py-0.5 rounded text-[10px] border ${
+                isNothing
+                  ? 'font-ndot bg-zinc-950 text-zinc-300 border-white/10'
+                  : 'font-mono bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700'
+              }`}>
                 ↓
               </kbd>
-              <span className="hidden sm:inline">Naviguer</span>
+              <span className="hidden sm:inline">{isNothing ? 'NAVIGATE' : 'Naviguer'}</span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-[10px] font-mono text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700">
+              <kbd className={`px-1.5 py-0.5 rounded text-[10px] border ${
+                isNothing
+                  ? 'font-ndot bg-zinc-950 text-zinc-300 border-white/10'
+                  : 'font-mono bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700'
+              }`}>
                 ↵
               </kbd>
-              <span className="hidden sm:inline">Exécuter</span>
+              <span className="hidden sm:inline">{isNothing ? 'EXECUTE' : 'Exécuter'}</span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-[10px] font-mono text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700">
+              <kbd className={`px-1.5 py-0.5 rounded text-[10px] border ${
+                isNothing
+                  ? 'font-ndot bg-zinc-950 text-zinc-300 border-white/10'
+                  : 'font-mono bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700'
+              }`}>
                 ESC
               </kbd>
-              <span className="hidden sm:inline">Fermer</span>
+              <span className="hidden sm:inline">{isNothing ? 'CLOSE' : 'Fermer'}</span>
             </span>
           </div>
 
-          <div className="font-mono text-[11px] text-zinc-600 dark:text-zinc-400">
-            {filteredItems.length} résultat{filteredItems.length > 1 ? 's' : ''}
+          <div className={`${isNothing ? 'font-ndot tracking-wider' : 'font-mono'} text-[11px] text-zinc-400`}>
+            {filteredItems.length} {isNothing ? 'RESULTS' : `résultat${filteredItems.length > 1 ? 's' : ''}`}
           </div>
         </div>
       </div>

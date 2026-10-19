@@ -164,20 +164,33 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
   };
   const weekNum = getWeekNumber(time);
 
-  // Si taille Medium ou Large : Mode Dual Clock OneUI Samsung
+  // Si taille Medium ou Large : Mode Dual Clock
   if (size === 'medium' || size === 'large' || displayMode === 'dual') {
     return (
       <div className="flex flex-col h-full justify-between p-3.5 select-none animate-in fade-in duration-200 group/widget">
-        {/* En-tête OneUI */}
+        {/* En-tête */}
         <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-800/80 pb-2">
           <div className="flex items-center gap-1.5">
-            <ClockIcon className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-            <span className="text-zinc-800 dark:text-zinc-200 font-bold">Horloge Mondiale & Fuseaux</span>
+            {isNothing ? (
+              <>
+                <span className="nothing-red-dot" />
+                <span className="text-white font-ndot uppercase tracking-wider">HORLOGE // MONDE</span>
+              </>
+            ) : (
+              <>
+                <ClockIcon className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                <span className="text-zinc-800 dark:text-zinc-200 font-bold">Horloge Mondiale & Fuseaux</span>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-amber-500 dark:text-amber-400/90 font-mono flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
-              <Bell className="w-2.5 h-2.5" />
+            <span className={`text-[10px] font-mono flex items-center gap-1 px-2 py-0.5 rounded-full border ${
+              isNothing
+                ? 'font-ndot text-white bg-zinc-900 border-zinc-800'
+                : 'text-amber-500 dark:text-amber-400/90 bg-amber-500/10 border-amber-500/20'
+            }`}>
+              <Bell className={`w-2.5 h-2.5 ${isNothing ? 'text-[#D71920]' : ''}`} />
               <span>07:30</span>
             </span>
             <button
@@ -185,7 +198,11 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
               onClick={() =>
                 setSecondaryCityIndex((prev) => (prev + 1) % secondaryCities.length)
               }
-              className="text-[10px] text-zinc-500 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-300 transition-colors flex items-center gap-1 cursor-pointer bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-800"
+              className={`text-[10px] transition-colors flex items-center gap-1 cursor-pointer px-2 py-0.5 rounded-full border ${
+                isNothing
+                  ? 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border-zinc-800 font-ndot uppercase'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-300 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border-zinc-200 dark:border-zinc-800'
+              }`}
               title="Changer de ville secondaire"
             >
               <ArrowRightLeft className="w-3 h-3" />
@@ -195,7 +212,7 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
               <button
                 type="button"
                 onClick={onOpenSettings}
-                className="p-1 rounded-lg text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors opacity-70 group-hover/widget:opacity-100 cursor-pointer"
+                className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors opacity-70 group-hover/widget:opacity-100 cursor-pointer"
                 title="Options de l'horloge"
               >
                 <Settings className="w-3 h-3" />
@@ -204,24 +221,28 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
           </div>
         </div>
 
-        {/* Zone Centrale : Deux Cadres Villes OneUI */}
+        {/* Zone Centrale : Deux Cadres Villes */}
         <div className="grid grid-cols-2 gap-3 my-auto items-center">
           {/* Ville 1 : Primaire */}
-          <div className="p-3 rounded-2xl bg-zinc-50/90 dark:bg-zinc-950/60 border border-zinc-200/90 dark:border-zinc-800/80 flex flex-col justify-between h-full shadow-2xs">
+          <div className={`p-3 rounded-2xl flex flex-col justify-between h-full shadow-2xs ${
+            isNothing
+              ? 'bg-black border border-white/15'
+              : 'bg-zinc-50/90 dark:bg-zinc-950/60 border border-zinc-200/90 dark:border-zinc-800/80'
+          }`}>
             <div className="flex items-center justify-between text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              <span className="flex items-center gap-1">
-                <span>📍</span> {primaryCityName}
+              <span className={`flex items-center gap-1.5 ${isNothing ? 'font-ndot text-white uppercase' : ''}`}>
+                <span className={isNothing ? 'nothing-red-dot' : ''}>📍</span> {primaryCityName}
               </span>
               {primaryTimeData.isDay ? (
-                <Sun className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+                <Sun className={`w-3.5 h-3.5 ${isNothing ? 'text-white' : 'text-amber-500'}`} />
               ) : (
-                <Moon className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+                <Moon className={`w-3.5 h-3.5 ${isNothing ? 'text-zinc-400' : 'text-indigo-500 dark:text-indigo-400'}`} />
               )}
             </div>
 
             <div className="my-2 text-center">
               <div className={`text-3xl font-black tracking-tight text-zinc-900 dark:text-white flex items-baseline justify-center ${
-                isNothing ? 'font-ndot' : 'font-mono'
+                isNothing ? 'font-ndot tracking-wider' : 'font-mono'
               }`}>
                 <span>{primaryTimeData.digitalShort}</span>
                 {showSeconds && (
@@ -232,54 +253,67 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
                   </span>
                 )}
               </div>
-              <div className="text-[10px] text-zinc-500 dark:text-zinc-400 capitalize truncate mt-0.5">
+              <div className={`text-[10px] text-zinc-400 capitalize truncate mt-0.5 ${
+                isNothing ? 'font-ndot uppercase tracking-wide' : 'font-mono'
+              }`}>
                 {formattedDate}
               </div>
             </div>
 
-            <div className="text-[9px] text-zinc-400 dark:text-zinc-500 text-center font-mono">
+            <div className={`text-[9px] text-zinc-500 text-center ${isNothing ? 'font-ndot uppercase tracking-wider' : 'font-mono'}`}>
               Heure Principale
             </div>
           </div>
 
           {/* Ville 2 : Internationale */}
-          <div className="p-3 rounded-2xl bg-zinc-50/90 dark:bg-zinc-950/60 border border-zinc-200/90 dark:border-zinc-800/80 flex flex-col justify-between h-full shadow-2xs">
+          <div className={`p-3 rounded-2xl flex flex-col justify-between h-full shadow-2xs ${
+            isNothing
+              ? 'bg-black border border-white/15'
+              : 'bg-zinc-50/90 dark:bg-zinc-950/60 border border-zinc-200/90 dark:border-zinc-800/80'
+          }`}>
             <div className="flex items-center justify-between text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              <span className="flex items-center gap-1">
+              <span className={`flex items-center gap-1.5 ${isNothing ? 'font-ndot text-white uppercase' : ''}`}>
                 <span>{activeSecCity.flag || '🌐'}</span> {activeSecCity.name}
               </span>
               {secTimeData.isDay ? (
-                <Sun className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+                <Sun className={`w-3.5 h-3.5 ${isNothing ? 'text-white' : 'text-amber-500'}`} />
               ) : (
-                <Moon className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+                <Moon className={`w-3.5 h-3.5 ${isNothing ? 'text-zinc-400' : 'text-indigo-500 dark:text-indigo-400'}`} />
               )}
             </div>
 
             <div className="my-2 text-center">
-              <div className={`text-3xl font-black tracking-tight ${
-                isNothing ? 'font-ndot text-[#D71920]' : 'font-mono text-purple-600 dark:text-purple-300'
+              <div className={`text-3xl font-black tracking-tight flex items-baseline justify-center ${
+                isNothing ? 'font-ndot tracking-wider text-white' : 'font-mono text-purple-600 dark:text-purple-300'
               }`}>
-                {secTimeData.digitalShort}
+                <span>{secTimeData.digitalShort}</span>
+                {showSeconds && (
+                  <span className={`text-xs font-normal ml-1 ${
+                    isNothing ? 'font-ndot text-[#D71920]' : 'text-zinc-400 font-mono'
+                  }`}>
+                    :{secTimeData.seconds}
+                  </span>
+                )}
               </div>
-              <div className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
+              <div className={`text-[10px] text-zinc-400 truncate mt-0.5 ${
+                isNothing ? 'font-ndot uppercase tracking-wide' : 'font-mono'
+              }`}>
                 {diffStr}
               </div>
             </div>
 
-            <div className="text-[9px] text-zinc-400 dark:text-zinc-500 text-center font-mono">
+            <div className={`text-[9px] text-zinc-500 text-center ${isNothing ? 'font-ndot uppercase tracking-wider' : 'font-mono'}`}>
               {activeSecCity.country}
             </div>
           </div>
         </div>
 
-        {/* Pied OneUI */}
-        <div className="flex items-center justify-between text-[10px] text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-800/80">
-          {showWeekNumber ? (
-            <span className="font-mono">Semaine {weekNum}</span>
-          ) : (
-            <span className="font-mono">{primaryTimezone}</span>
-          )}
-          <span className="text-zinc-400 dark:text-zinc-500">
+        {/* Pied */}
+        <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-800/80">
+          <span className={isNothing ? 'font-ndot uppercase tracking-wider' : 'font-mono'}>
+            {showWeekNumber ? `Semaine ${weekNum}` : primaryTimezone}
+          </span>
+          <span className={`text-zinc-500 ${isNothing ? 'font-ndot uppercase' : ''}`}>
             {secondaryCities.length} ville{secondaryCities.length > 1 ? 's' : ''} configurée{secondaryCities.length > 1 ? 's' : ''}
           </span>
         </div>
@@ -293,18 +327,29 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
       <div className="flex flex-col h-full items-center justify-between p-3 select-none group/widget">
         <div className="w-full flex items-center justify-between text-[11px] font-semibold text-zinc-400">
           <span className="flex items-center gap-1.5">
-            <ClockIcon className="w-3.5 h-3.5 text-purple-400" />
-            <span>Horloge Digitale</span>
+            {isNothing ? (
+              <>
+                <span className="nothing-red-dot" />
+                <span className="font-ndot uppercase tracking-wider text-white">DIGITAL // CLOCK</span>
+              </>
+            ) : (
+              <>
+                <ClockIcon className="w-3.5 h-3.5 text-purple-400" />
+                <span>Horloge Digitale</span>
+              </>
+            )}
           </span>
           <div className="flex items-center gap-1">
-            <span className="text-[10px] text-zinc-500 font-mono truncate max-w-[70px]">
+            <span className={`text-[10px] text-zinc-400 truncate max-w-[80px] ${
+              isNothing ? 'font-ndot uppercase bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800 text-white' : 'font-mono text-zinc-500'
+            }`}>
               {primaryCityName}
             </span>
             {onOpenSettings && (
               <button
                 type="button"
                 onClick={onOpenSettings}
-                className="p-0.5 rounded text-zinc-400 hover:text-purple-400 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+                className="p-0.5 rounded text-zinc-400 hover:text-white opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
                 title="Options"
               >
                 <Settings className="w-2.5 h-2.5" />
@@ -314,49 +359,68 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
         </div>
 
         <div className="my-auto text-center">
-          <div className={`text-4xl sm:text-5xl font-black tracking-tight text-zinc-900 dark:text-white flex items-baseline justify-center ${
+          <div className={`text-4xl sm:text-5xl font-black tracking-tight text-white flex items-baseline justify-center ${
             isNothing ? 'font-ndot tracking-widest' : 'font-mono'
           }`}>
             <span>{primaryTimeData.digitalShort}</span>
             {showSeconds && (
-              <span className={`text-xs ml-1 ${
-                isNothing ? 'font-ndot text-[#D71920]' : 'text-purple-500 font-mono font-normal'
+              <span className={`text-xs ml-1.5 ${
+                isNothing ? 'font-ndot px-1 py-0.5 bg-[#D71920] text-white rounded' : 'text-purple-500 font-mono font-normal'
               }`}>
-                :{primaryTimeData.seconds}
+                {primaryTimeData.seconds}
               </span>
             )}
           </div>
-          <div className="text-[11px] text-zinc-500 dark:text-zinc-400 capitalize truncate mt-1 font-mono">
+          <div className={`text-[11px] text-zinc-400 capitalize truncate mt-1.5 ${
+            isNothing ? 'font-ndot uppercase tracking-widest text-zinc-300' : 'font-mono'
+          }`}>
             {formattedDate}
           </div>
         </div>
 
         <div className="w-full flex items-center justify-between text-[10px] text-zinc-500 pt-1 border-t border-zinc-200 dark:border-zinc-800/60 font-mono">
-          <span>{primaryTimeData.isDay ? '☀️ Jour' : '🌙 Nuit'}</span>
-          {showWeekNumber && <span>S{weekNum}</span>}
+          <span className={isNothing ? 'font-ndot text-zinc-400 uppercase' : ''}>
+            {primaryTimeData.isDay ? '☀️ Jour' : '🌙 Nuit'}
+          </span>
+          {showWeekNumber && (
+            <span className={isNothing ? 'font-ndot text-zinc-400' : ''}>
+              S{weekNum}
+            </span>
+          )}
         </div>
       </div>
     );
   }
 
-  // Si taille Small (Carré classique) : Cadran Analogique SVG
+  // Si taille Small (Carré classique) : Cadran Analogique SVG Nothing OS
   return (
     <div className="flex flex-col h-full items-center justify-between p-3 select-none group/widget">
       {/* En-tête */}
       <div className="w-full flex items-center justify-between text-[11px] font-semibold text-zinc-400">
         <span className="flex items-center gap-1.5">
-          <ClockIcon className="w-3.5 h-3.5 text-purple-400" />
-          <span>Horloge</span>
+          {isNothing ? (
+            <>
+              <span className="nothing-red-dot" />
+              <span className="font-ndot uppercase tracking-wider text-white">NOTHING // DIAL</span>
+            </>
+          ) : (
+            <>
+              <ClockIcon className="w-3.5 h-3.5 text-purple-400" />
+              <span>Horloge</span>
+            </>
+          )}
         </span>
         <div className="flex items-center gap-1">
-          <span className="text-[10px] text-zinc-500 font-mono truncate max-w-[75px]">
+          <span className={`text-[10px] text-zinc-400 truncate max-w-[80px] ${
+            isNothing ? 'font-ndot uppercase bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800 text-white' : 'font-mono text-zinc-500'
+          }`}>
             {primaryCityName}
           </span>
           {onOpenSettings && (
             <button
               type="button"
               onClick={onOpenSettings}
-              className="p-0.5 rounded text-zinc-400 hover:text-purple-400 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+              className="p-0.5 rounded text-zinc-400 hover:text-white opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
               title="Options"
             >
               <Settings className="w-2.5 h-2.5" />
@@ -365,7 +429,7 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
         </div>
       </div>
 
-      {/* Cadran Analogique SVG */}
+      {/* Cadran Analogique SVG Nothing */}
       <div className="relative w-24 h-24 my-auto flex items-center justify-center">
         <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
           {/* Bordure extérieure */}
@@ -373,91 +437,138 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
             cx="50"
             cy="50"
             r="46"
-            className={theme === 'dark' ? 'fill-zinc-950/80 stroke-zinc-800' : 'fill-zinc-100 stroke-zinc-300'}
-            strokeWidth="2"
+            className={
+              isNothing
+                ? 'fill-black stroke-white/20'
+                : theme === 'dark'
+                ? 'fill-zinc-950/80 stroke-zinc-800'
+                : 'fill-zinc-100 stroke-zinc-300'
+            }
+            strokeWidth={isNothing ? "1.5" : "2"}
           />
 
-          {/* Anneau subtil */}
-          <circle
-            cx="50"
-            cy="50"
-            r="40"
-            className="fill-none stroke-purple-500/20"
-            strokeWidth="1"
-            strokeDasharray="2 4"
-          />
+          {isNothing ? (
+            /* Matrice de 60 micro-points Nothing OS */
+            <>
+              {[...Array(60)].map((_, i) => {
+                const angle = (i * 6 * Math.PI) / 180;
+                const isFiveMin = i % 5 === 0;
+                const cx = 50 + 40.5 * Math.sin(angle);
+                const cy = 50 - 40.5 * Math.cos(angle);
+                return (
+                  <circle
+                    key={i}
+                    cx={cx}
+                    cy={cy}
+                    r={i === 0 ? 2 : isFiveMin ? 1.3 : 0.6}
+                    fill={i === 0 ? '#D71920' : isFiveMin ? '#ffffff' : 'rgba(255, 255, 255, 0.25)'}
+                  />
+                );
+              })}
 
-          {/* Graduations des heures */}
-          {[...Array(12)].map((_, i) => {
-            const angle = (i * 30 * Math.PI) / 180;
-            const x1 = 50 + 38 * Math.sin(angle);
-            const y1 = 50 - 38 * Math.cos(angle);
-            const x2 = 50 + 43 * Math.sin(angle);
-            const y2 = 50 - 43 * Math.cos(angle);
-            const isMain = i % 3 === 0;
-            return (
-              <line
-                key={i}
-                x1={x1}
-                y1={y1}
-                x2={x2}
-                y2={y2}
-                stroke={isMain ? '#a855f7' : '#71717a'}
-                strokeWidth={isMain ? '2' : '1'}
-                strokeLinecap="round"
+              {/* Repères majeurs Nothing 12, 3, 6, 9 */}
+              <text x="50" y="24" textAnchor="middle" fill="#D71920" className="font-ndot text-[8px] font-bold">12</text>
+              <text x="78" y="53" textAnchor="middle" fill="#ffffff" className="font-ndot text-[7px]">3</text>
+              <text x="50" y="81" textAnchor="middle" fill="#ffffff" className="font-ndot text-[7px]">6</text>
+              <text x="22" y="53" textAnchor="middle" fill="#ffffff" className="font-ndot text-[7px]">9</text>
+            </>
+          ) : (
+            <>
+              {/* Anneau subtil */}
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                className="fill-none stroke-purple-500/20"
+                strokeWidth="1"
+                strokeDasharray="2 4"
               />
-            );
-          })}
 
-          {/* Aiguille des heures */}
-          <line
-            x1="50"
-            y1="50"
-            x2={50 + 24 * Math.sin((hourAngle * Math.PI) / 180)}
-            y2={50 - 24 * Math.cos((hourAngle * Math.PI) / 180)}
-            className="stroke-purple-300"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-
-          {/* Aiguille des minutes */}
-          <line
-            x1="50"
-            y1="50"
-            x2={50 + 34 * Math.sin((minuteAngle * Math.PI) / 180)}
-            y2={50 - 34 * Math.cos((minuteAngle * Math.PI) / 180)}
-            className="stroke-indigo-400"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-
-          {/* Aiguille des secondes */}
-          {showSeconds && (
-            <line
-              x1="50"
-              y1="50"
-              x2={50 + 37 * Math.sin((secondAngle * Math.PI) / 180)}
-              y2={50 - 37 * Math.cos((secondAngle * Math.PI) / 180)}
-              className={isNothing ? "stroke-[#D71920]" : "stroke-rose-500"}
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            />
+              {/* Graduations des heures */}
+              {[...Array(12)].map((_, i) => {
+                const angle = (i * 30 * Math.PI) / 180;
+                const x1 = 50 + 38 * Math.sin(angle);
+                const y1 = 50 - 38 * Math.cos(angle);
+                const x2 = 50 + 43 * Math.sin(angle);
+                const y2 = 50 - 43 * Math.cos(angle);
+                const isMain = i % 3 === 0;
+                return (
+                  <line
+                    key={i}
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    stroke={isMain ? '#a855f7' : '#71717a'}
+                    strokeWidth={isMain ? '2' : '1'}
+                    strokeLinecap="round"
+                  />
+                );
+              })}
+            </>
           )}
 
-          {/* Pivot central */}
-          <circle cx="50" cy="50" r="3" className={isNothing ? "fill-[#D71920]" : "fill-purple-500"} />
+          {/* Aiguille des heures (Pill hand blanche) */}
+          <line
+            x1="50"
+            y1="50"
+            x2={50 + 22 * Math.sin((hourAngle * Math.PI) / 180)}
+            y2={50 - 22 * Math.cos((hourAngle * Math.PI) / 180)}
+            className={isNothing ? "stroke-white" : "stroke-purple-300"}
+            strokeWidth={isNothing ? "3.5" : "3"}
+            strokeLinecap="round"
+          />
+
+          {/* Aiguille des minutes (Pill hand fine blanche) */}
+          <line
+            x1="50"
+            y1="50"
+            x2={50 + 32 * Math.sin((minuteAngle * Math.PI) / 180)}
+            y2={50 - 32 * Math.cos((minuteAngle * Math.PI) / 180)}
+            className={isNothing ? "stroke-white" : "stroke-indigo-400"}
+            strokeWidth={isNothing ? "2.2" : "2"}
+            strokeLinecap="round"
+          />
+
+          {/* Aiguille des secondes : Aiguille Rouge Nothing iconique avec contrepoids */}
+          {showSeconds && (
+            <>
+              {isNothing && (
+                <circle
+                  cx={50 - 9 * Math.sin((secondAngle * Math.PI) / 180)}
+                  cy={50 + 9 * Math.cos((secondAngle * Math.PI) / 180)}
+                  r="2.2"
+                  className="fill-[#D71920]"
+                />
+              )}
+              <line
+                x1="50"
+                y1="50"
+                x2={50 + 36 * Math.sin((secondAngle * Math.PI) / 180)}
+                y2={50 - 36 * Math.cos((secondAngle * Math.PI) / 180)}
+                className={isNothing ? "stroke-[#D71920]" : "stroke-rose-500"}
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </>
+          )}
+
+          {/* Pivot central avec point rouge Nothing */}
+          <circle cx="50" cy="50" r={isNothing ? "3.5" : "3"} className={isNothing ? "fill-[#D71920]" : "fill-purple-500"} />
           <circle cx="50" cy="50" r="1.5" className="fill-white" />
         </svg>
       </div>
 
       {/* Heure Numérique & Date */}
       <div className="text-center">
-        <div className={`text-xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100 ${
-          isNothing ? 'font-ndot' : 'font-mono'
+        <div className={`text-xl font-extrabold tracking-tight text-white ${
+          isNothing ? 'font-ndot tracking-widest' : 'font-mono'
         }`}>
           {primaryTimeData.digitalShort}
         </div>
-        <div className="text-[10px] text-zinc-500 dark:text-zinc-400 capitalize truncate max-w-[150px] font-mono">
+        <div className={`text-[10px] text-zinc-400 capitalize truncate max-w-[150px] ${
+          isNothing ? 'font-ndot uppercase tracking-wide text-zinc-300' : 'font-mono'
+        }`}>
           {formattedDate}
         </div>
       </div>

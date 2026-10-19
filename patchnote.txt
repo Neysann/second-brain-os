@@ -2,6 +2,25 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ===============================================================================
 
+#### [V2.6.18] - 2026-10-19 (Écosystème Matériel Nothing OS V3.0 : Interface Glyph, Widgets Squircles & Éradication des Fuites)
+--------------------------------------------------------------------------------
+1. Simulation Intégrale de l'Interface Glyph & Schématique Matérielle :
+- Conception vectorielle haute fidélité inspirée du dos transparent des Nothing Phone (2) et Phone (2a) : ruban supérieur caméra LED rétro-éclairé, bobine de charge sans fil centrale segmentée, et barre Glyph verticale inférieure dynamique simulant la jauge de batterie/minuteur avec voyant LED rouge Nothing d'enregistrement (REC) à pulsation lumineuse continue.
+- Marquages techniques industriels sérigraphiés directement en arrière-plan d'écran (coordonnées de Londres 51.5074° N, 0.1278° W et identification matérielle NT-OS // REV-3).
+
+2. Refonte Exhaustive des Widgets du Tableau de Bord aux Standards Nothing :
+- WeatherWidget (Météo) : Refonte complète en modes Compact et Détaillé ; icônes météo monochromes rétro-éclairées par LED blanche, typographie matricielle NDot 57 pour les températures et prévisions horaires 4H, séparateurs Nothing Red (#D71920) et métriques industrielles (vent, humidité, pression).
+- TodoListWidget (Tâches) : Cases à cocher en squircles Nothing géométriques qui s'illuminent en Nothing Red #D71920 lors de la validation, badges de priorités NDot monochromes (URGENT, HIGH, MED, LOW).
+- StreakWidget (Habitudes) : Heatmap miniature convertie en micro-points LED blancs et rouges Nothing avec lueur néon discrète, voyants d'habitudes carrés et typographie NDot.
+- CalendarWidget (Calendrier des Projets) : Carte noire OLED pure (#000000), sélection de date en gélule blanche pleine avec typographie noire inversée, repère de la date du jour Nothing Red et pastille d'échéances NDot.
+- ClockWidget (Horloges) : Cadran analogique à 60 micro-points, aiguilles blanches en gélule, trotteuse rouge vermillon à contrepoids circulaire Nothing et cadran numérique à secondes rouges encadrées.
+- FocusTimerWidget (Minuteur) : Anneau de progression segmenté en 24 barrettes Glyph LED, décompte géant NDot 57 et touches circulaires Nothing.
+
+3. Palette de Commande (⌘K) & Contrôles Système :
+- CommandPaletteModal : Modale adaptée en noir pur OLED avec micro-bordures translucides, loupe de recherche Nothing Red, onglets de filtres en pilules monochromes NDot et badge de validation « ENTER » en Nothing Red.
+- DashboardGrid : Faisceau d'insertion de glisser-déposer (Drag & Drop) transformé en faisceau laser rouge Nothing Red (#D71920) avec lueur incandescente, et grille de fond à points radiaux blancs (Dot Matrix).
+- Éradication totale des fuites de couleurs violettes ou gradients résiduels dans l'ensemble de l'application en mode Nothing OS.
+
 #### [V2.6.17] - 2026-10-19 (Direction Artistique & Thème Signature Nothing OS Authentique)
 --------------------------------------------------------------------------------
 1. Direction Artistique Nothing OS Immersive :

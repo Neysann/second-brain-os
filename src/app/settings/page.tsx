@@ -1352,10 +1352,10 @@ export default function SettingsPage() {
                           <div
                             className="p-2 rounded-xl border space-y-1 transition-all"
                             style={{
-                              backgroundColor: previewIsDark ? `rgba(24, 24, 28, ${cardAlpha})` : `rgba(255, 255, 255, ${cardAlpha})`,
-                              backdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
-                              WebkitBackdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
-                              borderColor: previewIsDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+                              backgroundColor: settings.uiStyle === 'nothing' ? '#09090b' : (previewIsDark ? `rgba(24, 24, 28, ${cardAlpha})` : `rgba(255, 255, 255, ${cardAlpha})`),
+                              backdropFilter: isReduced || settings.uiStyle === 'nothing' ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              WebkitBackdropFilter: isReduced || settings.uiStyle === 'nothing' ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              borderColor: settings.uiStyle === 'nothing' ? 'rgba(255, 255, 255, 0.12)' : (previewIsDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'),
                             }}
                           >
                             <div className="flex items-center justify-between text-[9px]">
@@ -1368,14 +1368,14 @@ export default function SettingsPage() {
                             <div className="space-y-0.5 text-[8px]">
                               <div className="flex items-center justify-between gap-1">
                                 <span className={`truncate flex items-center gap-1 ${previewIsDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-                                  <span className="w-1.5 h-1.5 rounded-full border border-zinc-500 inline-block" />
+                                  <span className={`w-1.5 h-1.5 rounded-full inline-block ${settings.uiStyle === 'nothing' ? 'border border-[#D71920] bg-[#D71920]/20' : 'border border-zinc-500'}`} />
                                   <span>Design MCU</span>
                                 </span>
                                 <span className="text-[6px] px-1 py-0.2 rounded bg-rose-500/20 text-rose-300">Haute</span>
                               </div>
                               <div className="flex items-center justify-between gap-1">
                                 <span className={`truncate flex items-center gap-1 ${previewIsDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-                                  <span className="w-1.5 h-1.5 rounded-full border border-zinc-500 inline-block" />
+                                  <span className={`w-1.5 h-1.5 rounded-full inline-block ${settings.uiStyle === 'nothing' ? 'border border-[#D71920] bg-[#D71920]/20' : 'border border-zinc-500'}`} />
                                   <span>Rapport Robotique</span>
                                 </span>
                                 <span className="text-[6px] px-1 py-0.2 rounded bg-rose-500/20 text-rose-300">Haute</span>
@@ -1388,17 +1388,19 @@ export default function SettingsPage() {
                                 <span className="text-[6px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300">Moyenne</span>
                               </div>
                             </div>
-                            <div className="pt-0.5 text-[7px] text-zinc-500">+ Nouvelle tâche</div>
+                            <div className="pt-0.5 text-[7px]" style={{ color: settings.uiStyle === 'nothing' ? '#D71920' : undefined }}>
+                              + Nouvelle tâche
+                            </div>
                           </div>
 
                           {/* Widget 4: Projets & tâches */}
                           <div
                             className="p-2 rounded-xl border space-y-1.5 transition-all"
                             style={{
-                              backgroundColor: previewIsDark ? `rgba(24, 24, 28, ${cardAlpha})` : `rgba(255, 255, 255, ${cardAlpha})`,
-                              backdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
-                              WebkitBackdropFilter: isReduced ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
-                              borderColor: previewIsDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+                              backgroundColor: settings.uiStyle === 'nothing' ? '#09090b' : (previewIsDark ? `rgba(24, 24, 28, ${cardAlpha})` : `rgba(255, 255, 255, ${cardAlpha})`),
+                              backdropFilter: isReduced || settings.uiStyle === 'nothing' ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              WebkitBackdropFilter: isReduced || settings.uiStyle === 'nothing' ? 'none' : `blur(${Math.round(blurPx * 0.75)}px)`,
+                              borderColor: settings.uiStyle === 'nothing' ? 'rgba(255, 255, 255, 0.12)' : (previewIsDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'),
                             }}
                           >
                             <div className="flex items-center justify-between text-[9px]">
@@ -1412,12 +1414,12 @@ export default function SettingsPage() {
                               <div>
                                 <div className="flex items-center justify-between text-[7px]">
                                   <span className={`font-semibold flex items-center gap-1 ${previewIsDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
-                                    <Folder className="w-2 h-2" style={{ color: activeAccentHex }} />Syntropy
+                                    <Folder className="w-2 h-2" style={{ color: settings.uiStyle === 'nothing' ? '#D71920' : activeAccentHex }} />Syntropy
                                   </span>
                                   <span className="text-zinc-400">4/9 tâches • 44%</span>
                                 </div>
                                 <div className="w-full h-1 bg-zinc-800/80 rounded-full mt-0.5 overflow-hidden">
-                                  <div className="h-full rounded-full" style={{ width: '44%', backgroundColor: activeAccentHex }} />
+                                  <div className="h-full rounded-full" style={{ width: '44%', backgroundColor: settings.uiStyle === 'nothing' ? '#D71920' : activeAccentHex }} />
                                 </div>
                               </div>
                               <div>

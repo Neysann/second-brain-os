@@ -86,6 +86,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
     {
       icon: Sparkles,
       color: 'text-red-500 bg-red-500/10 border-red-500/30',
+      title: 'Syntropy OS V2.6.18 : Écosystème Glyph Matériel & Widgets Nothing OS V3.0',
+      desc: 'Simulation intégrale du dos transparent des Nothing Phone (2/2a) avec anneau Glyph LED dynamique, ruban de charge sans fil et barre de progression de batterie avec LED rouge Nothing. Refonte intégrale de tous les widgets aux codes Nothing : Météo monochrome avec rétro-éclairage LED blanc, Todo list avec cases squircles rouges, Streak heatmap à micro-points, Calendrier OLED noir pur, faisceau drag & drop laser Nothing Red et palette universelle ⌘K Nothing.',
+    },
+    {
+      icon: Sparkles,
+      color: 'text-red-500 bg-red-500/10 border-red-500/30',
       title: 'Syntropy OS V2.6.17 : Direction Artistique Nothing OS (Authentique)',
       desc: 'Nouvelle option de design immersif inspirée de Nothing OS dans Paramètres > Apparence : noir pur OLED (#000000), typographie matricielle à points NDOT 57 officielle pour les compteurs et horloges, accent rouge vermillon Nothing (#D71920), cadran analogique Nothing signature avec trotteuse rouge, matrice de points Glyph subtile et préservation intégrale de la lisibilité pour les notes et contenus textuels.',
     },

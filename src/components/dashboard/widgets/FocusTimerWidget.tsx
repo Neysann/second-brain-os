@@ -104,18 +104,29 @@ export const FocusTimerWidget: React.FC<FocusTimerWidgetProps> = ({
       {/* En-tête */}
       <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
         <span className="flex items-center gap-1.5">
-          <Timer className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
-          <span>Minuteur focus</span>
+          {isNothing ? (
+            <>
+              <span className="nothing-red-dot" />
+              <span className="font-ndot text-white uppercase tracking-wider">GLYPH // TIMER</span>
+            </>
+          ) : (
+            <>
+              <Timer className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" />
+              <span>Minuteur focus</span>
+            </>
+          )}
         </span>
         <div className="flex items-center gap-1">
-          <span className="text-[10px] text-zinc-400 font-mono">
-            {mode === 'focus' ? `${focusMinutes}m` : `${breakMinutes}m`}
+          <span className={`text-[10px] ${
+            isNothing ? 'font-ndot text-white bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded' : 'text-zinc-400 font-mono'
+          }`}>
+            {mode === 'focus' ? `${focusMinutes}M` : `${breakMinutes}M`}
           </span>
           {onOpenSettings && (
             <button
               type="button"
               onClick={onOpenSettings}
-              className="p-0.5 rounded text-zinc-400 hover:text-purple-500 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+              className="p-0.5 rounded text-zinc-400 hover:text-white opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
               title="Paramètres minuteur"
             >
               <Settings className="w-2.5 h-2.5" />
@@ -125,14 +136,18 @@ export const FocusTimerWidget: React.FC<FocusTimerWidgetProps> = ({
       </div>
 
       {/* Onglets Focus / Pause */}
-      <div className="flex items-center justify-center p-0.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 w-fit mx-auto text-[10px] font-semibold">
+      <div className={`flex items-center justify-center p-0.5 rounded-full w-fit mx-auto text-[10px] font-semibold ${
+        isNothing ? 'bg-black border border-white/20' : 'bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl'
+      }`}>
         <button
           type="button"
           onClick={() => handleModeChange('focus')}
-          className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
+          className={`px-3 py-1 transition-colors cursor-pointer ${
+            isNothing ? 'rounded-full font-ndot uppercase tracking-wider' : 'rounded-lg'
+          } ${
             mode === 'focus'
               ? (isNothing ? 'bg-[#D71920] text-white shadow-xs' : 'bg-purple-600 text-white shadow-xs')
-              : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+              : 'text-zinc-400 hover:text-white'
           }`}
         >
           Focus ({focusMinutes}m)
@@ -140,52 +155,111 @@ export const FocusTimerWidget: React.FC<FocusTimerWidgetProps> = ({
         <button
           type="button"
           onClick={() => handleModeChange('break')}
-          className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
+          className={`px-3 py-1 transition-colors cursor-pointer ${
+            isNothing ? 'rounded-full font-ndot uppercase tracking-wider' : 'rounded-lg'
+          } ${
             mode === 'break'
-              ? (isNothing ? 'bg-zinc-800 text-white shadow-xs' : 'bg-purple-600 text-white shadow-xs')
-              : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+              ? (isNothing ? 'bg-white text-black font-bold shadow-xs' : 'bg-purple-600 text-white shadow-xs')
+              : 'text-zinc-400 hover:text-white'
           }`}
         >
           Pause ({breakMinutes}m)
         </button>
       </div>
 
-      {/* Cercle avec le temps restant */}
+      {/* Cercle avec le temps restant & Glyph LED Ring */}
       <div className="relative flex items-center justify-center my-auto">
-        <svg className="w-24 h-24 transform -rotate-90">
-          <circle
-            cx="48"
-            cy="48"
-            r={radius}
-            className="stroke-zinc-200 dark:stroke-zinc-800"
-            strokeWidth="5"
-            fill="transparent"
-          />
-          <circle
-            cx="48"
-            cy="48"
-            r={radius}
-            className={`transition-all duration-500 ${
-              mode === 'focus'
-                ? (isNothing ? 'stroke-[#D71920]' : 'stroke-purple-600 dark:stroke-purple-500')
-                : (isNothing ? 'stroke-white' : 'stroke-emerald-500 dark:stroke-emerald-400')
-            }`}
-            strokeWidth="5"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            fill="transparent"
-          />
-        </svg>
+        {isNothing ? (
+          /* Anneau Glyph LED authentique à 24 segments lumineux */
+          <div className="relative w-28 h-28 flex items-center justify-center">
+            <svg viewBox="0 0 100 100" className="w-full h-full">
+              {[...Array(24)].map((_, i) => {
+                const angle = (i * 15 * Math.PI) / 180;
+                const x1 = 50 + 38 * Math.sin(angle);
+                const y1 = 50 - 38 * Math.cos(angle);
+                const x2 = 50 + 44 * Math.sin(angle);
+                const y2 = 50 - 44 * Math.cos(angle);
+                const segmentProgress = ((24 - i) / 24) * 100;
+                const isLit = progress >= segmentProgress;
+                return (
+                  <line
+                    key={i}
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    stroke={
+                      isLit
+                        ? mode === 'focus'
+                          ? '#D71920'
+                          : '#ffffff'
+                        : 'rgba(255, 255, 255, 0.12)'
+                    }
+                    strokeWidth={isLit ? '2.5' : '1.5'}
+                    strokeLinecap="round"
+                    className={isLit ? 'glyph-led-strip' : ''}
+                  />
+                );
+              })}
+              {/* Cercle central subtil */}
+              <circle
+                cx="50"
+                cy="50"
+                r="32"
+                className="fill-black stroke-white/10"
+                strokeWidth="1"
+                strokeDasharray="2 3"
+              />
+            </svg>
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`${isNothing ? 'font-ndot text-2xl tracking-widest' : 'font-mono text-xl font-extrabold tracking-tight'} text-zinc-900 dark:text-zinc-100`}>
-            {formattedTime}
-          </span>
-          <span className={`text-[9px] ${isNothing ? 'font-mono text-zinc-400 tracking-wider' : 'text-zinc-500 dark:text-zinc-400 font-medium'} uppercase`}>
-            {mode === 'focus' ? 'Concentration' : 'Détente'}
-          </span>
-        </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="font-ndot text-2xl tracking-widest text-white">
+                {formattedTime}
+              </span>
+              <span className="text-[9px] font-ndot uppercase tracking-wider text-zinc-400 flex items-center gap-1 mt-0.5">
+                {isRunning && <span className="w-1.5 h-1.5 rounded-full bg-[#D71920] animate-ping" />}
+                <span>{mode === 'focus' ? 'REC • FOCUS' : 'PAUSE'}</span>
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="relative flex items-center justify-center my-auto">
+            <svg className="w-24 h-24 transform -rotate-90">
+              <circle
+                cx="48"
+                cy="48"
+                r={radius}
+                className="stroke-zinc-200 dark:stroke-zinc-800"
+                strokeWidth="5"
+                fill="transparent"
+              />
+              <circle
+                cx="48"
+                cy="48"
+                r={radius}
+                className={`transition-all duration-500 ${
+                  mode === 'focus'
+                    ? 'stroke-purple-600 dark:stroke-purple-500'
+                    : 'stroke-emerald-500 dark:stroke-emerald-400'
+                }`}
+                strokeWidth="5"
+                strokeDasharray={circumference}
+                strokeDashoffset={offset}
+                strokeLinecap="round"
+                fill="transparent"
+              />
+            </svg>
+
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="font-mono text-xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {formattedTime}
+              </span>
+              <span className="text-[9px] text-zinc-500 dark:text-zinc-400 font-medium uppercase">
+                {mode === 'focus' ? 'Concentration' : 'Détente'}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Contrôles Play/Pause & Reset */}
@@ -193,7 +267,11 @@ export const FocusTimerWidget: React.FC<FocusTimerWidgetProps> = ({
         <button
           type="button"
           onClick={handleReset}
-          className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+          className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+            isNothing
+              ? 'text-zinc-400 hover:text-white hover:bg-zinc-900 border border-zinc-800'
+              : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-800'
+          }`}
           title="Réinitialiser"
         >
           <RotateCcw className="w-3.5 h-3.5" />
@@ -201,10 +279,14 @@ export const FocusTimerWidget: React.FC<FocusTimerWidgetProps> = ({
         <button
           type="button"
           onClick={() => setIsRunning(!isRunning)}
-          className={`w-8 h-8 rounded-full flex items-center justify-center text-white transition-transform active:scale-95 shadow-md cursor-pointer ${
+          className={`w-9 h-9 rounded-full flex items-center justify-center text-white transition-all active:scale-95 cursor-pointer ${
             isRunning
-              ? (isNothing ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/30')
-              : (isNothing ? 'bg-[#D71920] hover:bg-[#b01319]' : 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/30')
+              ? isNothing
+                ? 'bg-zinc-800 hover:bg-zinc-700 border border-zinc-700'
+                : 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/30 shadow-md'
+              : isNothing
+              ? 'bg-[#D71920] hover:bg-[#b01319] shadow-[0_0_14px_rgba(215,25,32,0.8)] border border-[#D71920]'
+              : 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/30 shadow-md'
           }`}
           title={isRunning ? 'Mettre en pause' : 'Démarrer'}
         >

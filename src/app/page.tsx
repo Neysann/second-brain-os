@@ -169,21 +169,29 @@ export default function DashboardPage() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-3 sm:py-4 mb-3 border-b border-zinc-200 dark:border-zinc-800/80 flex-shrink-0">
         <div className="flex items-center gap-3.5 sm:gap-4">
           {/* Logo Officiel Syntropy */}
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden border border-purple-500/30 shadow-lg shadow-purple-500/20 bg-zinc-950 flex items-center justify-center p-1 group hover:scale-105 transition-all flex-shrink-0 relative">
+          <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden flex items-center justify-center p-1 group hover:scale-105 transition-all flex-shrink-0 relative ${
+            settings.uiStyle === 'nothing'
+              ? 'border border-white/20 bg-black shadow-none'
+              : 'border border-purple-500/30 shadow-lg shadow-purple-500/20 bg-zinc-950'
+          }`}>
             <img
               src="/logo.png"
               alt="Syntropy Logo"
               className="w-full h-full object-cover rounded-xl"
             />
-            <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-purple-400/20 pointer-events-none" />
+            {settings.uiStyle !== 'nothing' && (
+              <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-purple-400/20 pointer-events-none" />
+            )}
           </div>
 
           <div>
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 mb-0.5">
+            <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider mb-0.5 ${
+              settings.uiStyle === 'nothing' ? 'text-zinc-400 font-ndot' : 'text-purple-600 dark:text-purple-400'
+            }`}>
               {settings.uiStyle === 'nothing' ? (
                 <>
                   <span className="nothing-red-dot" />
-                  <span className="text-zinc-400 font-mono">NOTHING OS • TABLEAU DE BORD</span>
+                  <span className="text-zinc-300 font-ndot tracking-widest">NOTHING OS // DASHBOARD</span>
                 </>
               ) : (
                 <>
@@ -204,7 +212,7 @@ export default function DashboardPage() {
                 </span>
               </h1>
             )}
-            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 capitalize mt-0.5 font-mono">
+            <p className={`text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 ${settings.uiStyle === 'nothing' ? 'font-ndot uppercase tracking-widest text-[11px]' : 'capitalize font-mono'}`}>
               {todayFormatted}
             </p>
           </div>
@@ -221,34 +229,58 @@ export default function DashboardPage() {
                 window.dispatchEvent(new CustomEvent('open-command-palette'));
               }
             }}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl glass-card hover:border-purple-500/40 text-xs font-semibold text-zinc-700 dark:text-zinc-300 transition-all shadow-xs cursor-pointer group"
+            className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold transition-all shadow-xs cursor-pointer group ${
+              settings.uiStyle === 'nothing'
+                ? 'rounded-full bg-zinc-950 border border-white/10 hover:border-white/30 text-zinc-300 hover:text-white font-ndot uppercase tracking-wider'
+                : 'rounded-xl glass-card hover:border-purple-500/40 text-zinc-700 dark:text-zinc-300'
+            }`}
             title="Ouvrir la palette universelle (Ctrl+K)"
           >
-            <Search className="w-3.5 h-3.5 text-indigo-500 group-hover:scale-110 transition-transform" />
-            <span className="hidden sm:inline">Recherche...</span>
-            <kbd className="px-1.5 py-0.5 text-[10px] font-mono rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
+            <Search className={`w-3.5 h-3.5 group-hover:scale-110 transition-transform ${settings.uiStyle === 'nothing' ? 'text-[#D71920]' : 'text-indigo-500'}`} />
+            <span className="hidden sm:inline">{settings.uiStyle === 'nothing' ? 'SEARCH...' : 'Recherche...'}</span>
+            <kbd className={`px-1.5 py-0.5 text-[10px] rounded border ${
+              settings.uiStyle === 'nothing'
+                ? 'font-ndot bg-black text-zinc-400 border-white/10'
+                : 'font-mono bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700'
+            }`}>
               ⌘K
             </kbd>
           </button>
 
           {/* Compteur de widgets */}
-          <div className="px-3 py-1.5 rounded-xl glass-card text-xs text-zinc-600 dark:text-zinc-400 font-mono shadow-xs">
-            <span className="text-zinc-900 dark:text-zinc-200 font-bold">{widgets.length}</span>
-            <span> / {MAX_WIDGETS} widgets</span>
+          <div className={`px-3 py-1.5 text-xs shadow-xs ${
+            settings.uiStyle === 'nothing'
+              ? 'rounded-full bg-zinc-950 border border-white/10 text-zinc-400 font-ndot tracking-wider'
+              : 'rounded-xl glass-card text-zinc-600 dark:text-zinc-400 font-mono'
+          }`}>
+            <span className={settings.uiStyle === 'nothing' ? 'text-white font-bold' : 'text-zinc-900 dark:text-zinc-200 font-bold'}>{widgets.length}</span>
+            <span> / {MAX_WIDGETS} {settings.uiStyle === 'nothing' ? 'WIDGETS' : 'widgets'}</span>
           </div>
 
           {/* Bouton d'ouverture / fermeture du panneau de modification des widgets */}
           <button
             type="button"
             onClick={() => setIsEditing(!isEditing)}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 shadow-sm ${
-              isEditing
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-purple-600/30 ring-1 ring-purple-400'
-                : 'glass-card hover:border-purple-500/40 text-zinc-700 dark:text-zinc-200'
+            className={`px-4 py-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 shadow-sm ${
+              settings.uiStyle === 'nothing'
+                ? isEditing
+                  ? 'rounded-full bg-white text-black font-ndot uppercase tracking-wider shadow-[0_0_15px_rgba(255,255,255,0.2)]'
+                  : 'rounded-full bg-zinc-950 text-zinc-300 hover:text-white border border-white/10 hover:border-white/30 font-ndot uppercase tracking-wider'
+                : isEditing
+                ? 'rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-purple-600/30 ring-1 ring-purple-400'
+                : 'rounded-xl glass-card hover:border-purple-500/40 text-zinc-700 dark:text-zinc-200'
             }`}
           >
-            <SlidersHorizontal className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            <span>{isEditing ? "Fermer l'édition" : 'Modifier widgets'}</span>
+            <SlidersHorizontal className={`w-4 h-4 ${
+              settings.uiStyle === 'nothing'
+                ? isEditing ? 'text-black' : 'text-white'
+                : 'text-purple-600 dark:text-purple-400'
+            }`} />
+            <span>
+              {settings.uiStyle === 'nothing'
+                ? isEditing ? 'CLOSE EDIT' : 'EDIT WIDGETS'
+                : isEditing ? "Fermer l'édition" : 'Modifier widgets'}
+            </span>
           </button>
         </div>
       </header>

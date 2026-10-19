@@ -155,6 +155,13 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
   }, [latitude, longitude, timezone, tempUnit, windUnit, city]);
 
   const renderWeatherIcon = (code = weather.code, className = 'w-9 h-9') => {
+    if (isNothing) {
+      if (code === 0) return <Sun className={`${className} text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] animate-spin-slow`} />;
+      if (code >= 1 && code <= 3) return <CloudSun className={`${className} text-zinc-200 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]`} />;
+      if ((code >= 51 && code <= 67) || code >= 80) return <CloudRain className={`${className} text-zinc-200 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]`} />;
+      if (code >= 71 && code <= 77) return <Snowflake className={`${className} text-zinc-100 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]`} />;
+      return <Cloud className={`${className} text-zinc-300 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]`} />;
+    }
     if (code === 0) return <Sun className={`${className} text-amber-400 drop-shadow-md animate-spin-slow`} />;
     if (code >= 1 && code <= 3) return <CloudSun className={`${className} text-amber-300 drop-shadow-md`} />;
     if ((code >= 51 && code <= 67) || code >= 80) return <CloudRain className={`${className} text-blue-400 drop-shadow-md`} />;
@@ -172,7 +179,198 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({
     { hour: '+3h', temp: weather.temp - 1, iconCode: 2 },
   ];
 
-  // Si taille Medium ou Large : Mode Prévisions OneUI Samsung
+  // Specific Nothing OS Render (Small)
+  if (isNothing && size === 'small') {
+    return (
+      <div className="flex flex-col h-full justify-between p-3 select-none group/widget font-ntype">
+        {/* Header Nothing */}
+        <div className="flex items-center justify-between text-[10px] font-ndot tracking-wider text-zinc-400">
+          <div className="flex items-center gap-1.5">
+            <span className="nothing-red-dot" />
+            <span className="uppercase text-zinc-200">WEATHER</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              className="text-[9px] uppercase tracking-wider text-zinc-400 hover:text-white transition-colors cursor-pointer truncate max-w-[80px]"
+              title={`Changer de ville (${weather.city})`}
+            >
+              {weather.city.split(',')[0]}
+            </button>
+            {onOpenSettings && (
+              <button
+                type="button"
+                onClick={onOpenSettings}
+                className="p-1 rounded text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                title="Options météo"
+              >
+                <Settings className="w-2.5 h-2.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Center: Monochrome weather container & NDot temp */}
+        <div className="flex items-center justify-center gap-3 my-auto">
+          <div className="p-2.5 rounded-2xl bg-zinc-950 border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.03)] flex-shrink-0">
+            {renderWeatherIcon(weather.code, 'w-8 h-8')}
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-ndot tracking-wider text-white">
+                {weather.temp}°
+              </span>
+              <span className="text-[10px] text-zinc-500 font-ndot">{unitLabel}</span>
+            </div>
+            <span className="text-[10px] uppercase tracking-widest text-zinc-400 truncate max-w-[95px]">
+              {weather.condition}
+            </span>
+          </div>
+        </div>
+
+        {/* Footer: Tech coords & Min/Max */}
+        <div className="flex items-center justify-between text-[9px] font-mono tracking-wider pt-1.5 border-t border-white/10 text-zinc-400">
+          <span className="uppercase tracking-widest text-[8px] text-zinc-500">NT-WTHR</span>
+          <div className="flex items-center gap-2">
+            <span className="text-white font-ndot">H:{weather.maxTemp}°</span>
+            <span className="text-[#D71920] font-bold">•</span>
+            <span className="text-zinc-400 font-ndot">L:{weather.minTemp}°</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Specific Nothing OS Render (Medium / Large)
+  if (isNothing && (size === 'medium' || size === 'large')) {
+    return (
+      <div className="flex flex-col h-full justify-between p-3.5 select-none animate-in fade-in duration-200 group/widget font-ntype">
+        {/* Header Nothing */}
+        <div className="flex items-center justify-between text-[10px] font-ndot tracking-widest text-zinc-400 pb-2 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <span className="nothing-red-dot" />
+            <span className="text-zinc-100 font-bold uppercase">WEATHER // FORECAST</span>
+            {isLoading && <span className="text-[8px] text-[#D71920] font-mono animate-pulse">SYNC</span>}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              className="text-[9px] uppercase tracking-wider text-zinc-300 hover:text-white flex items-center gap-1.5 bg-zinc-950 px-2.5 py-1 rounded-full border border-white/10 transition-colors cursor-pointer hover:border-white/30"
+              title="Changer de ville"
+            >
+              <MapPin className="w-2.5 h-2.5 text-[#D71920]" />
+              <span className="truncate max-w-[120px]">{weather.city}</span>
+            </button>
+            {onOpenSettings && (
+              <button
+                type="button"
+                onClick={onOpenSettings}
+                className="p-1 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors cursor-pointer"
+                title="Options météo"
+              >
+                <Settings className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Central cards Nothing */}
+        <div className="grid grid-cols-2 gap-3 my-auto items-center">
+          {/* Left card: Current */}
+          <div className="p-3 rounded-2xl bg-zinc-950 border border-white/10 flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-black border border-white/10 flex-shrink-0">
+              {renderWeatherIcon(weather.code, 'w-10 h-10')}
+            </div>
+            <div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-ndot tracking-wider text-white">
+                  {weather.temp}°
+                </span>
+                <span className="text-[10px] text-zinc-500 font-ndot">{unitLabel}</span>
+              </div>
+              <div className="text-[11px] uppercase tracking-wider font-semibold text-zinc-300 truncate">
+                {weather.condition}
+              </div>
+              <div className="flex items-center gap-2 text-[10px] font-ndot mt-1 text-zinc-400">
+                <span className="text-white">H:{weather.maxTemp}°</span>
+                <span className="text-[#D71920]">•</span>
+                <span>L:{weather.minTemp}°</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right card: Hourly or Stats */}
+          <div className="p-2.5 rounded-2xl bg-zinc-950 border border-white/10 flex flex-col justify-between">
+            <div className="text-[9px] font-ndot uppercase tracking-widest text-zinc-400 mb-1.5 flex items-center justify-between">
+              <span>{showHourly ? 'HOURLY // PREV' : 'METRICS'}</span>
+              <span className="text-[8px] font-mono text-zinc-500">4H</span>
+            </div>
+            {showHourly ? (
+              <div className="grid grid-cols-4 gap-1 text-center">
+                {hourlyForecast.map((slot, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-1.5 rounded-xl border flex flex-col items-center gap-1 transition-all ${
+                      idx === 0
+                        ? 'bg-zinc-900/90 border-[#D71920]/40 shadow-[0_0_8px_rgba(215,25,32,0.15)]'
+                        : 'bg-black/60 border-white/5 hover:border-white/20'
+                    }`}
+                  >
+                    <span className="text-[8px] text-zinc-400 truncate w-full font-mono uppercase">
+                      {idx === 0 ? 'NOW' : slot.hour}
+                    </span>
+                    {renderWeatherIcon(slot.iconCode, 'w-4 h-4')}
+                    <span className="font-ndot text-[10px] text-white">
+                      {slot.temp}°
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col justify-center h-full gap-2 py-1">
+                <div className="flex items-center justify-between text-xs text-zinc-300 font-ntype">
+                  <span className="flex items-center gap-1.5 text-zinc-400">
+                    <Wind className="w-3.5 h-3.5 text-white" /> WIND
+                  </span>
+                  <span className="font-ndot text-white">{weather.windSpeed} {windUnitLabel}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-zinc-300 font-ntype">
+                  <span className="flex items-center gap-1.5 text-zinc-400">
+                    <Droplets className="w-3.5 h-3.5 text-white" /> HUMIDITY
+                  </span>
+                  <span className="font-ndot text-white">{weather.humidity}%</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer Nothing */}
+        <div className="flex items-center justify-between text-[9px] font-mono uppercase tracking-wider text-zinc-400 pt-2 border-t border-white/10">
+          {showWind && (
+            <div className="flex items-center gap-1.5">
+              <Wind className="w-3 h-3 text-zinc-400" />
+              <span>WIND: {weather.windSpeed} {windUnitLabel}</span>
+            </div>
+          )}
+          {showHumidity && (
+            <div className="flex items-center gap-1.5">
+              <Droplets className="w-3 h-3 text-zinc-400" />
+              <span>HUM: {weather.humidity}%</span>
+            </div>
+          )}
+          <div className="flex items-center gap-1">
+            <span className="nothing-red-dot scale-75" />
+            <span className="text-zinc-500">SYS.OK</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Si taille Medium ou Large : Mode Prévisions Standard
   if (size === 'medium' || size === 'large') {
     return (
       <div className="flex flex-col h-full justify-between p-3.5 select-none animate-in fade-in duration-200 group/widget">

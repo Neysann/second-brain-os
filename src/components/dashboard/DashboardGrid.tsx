@@ -11,6 +11,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { DashboardWidgetConfig, WidgetSize } from '@/types/dashboard';
+import { useSettings } from '@/context/SettingsContext';
 import CalendarWidget from './widgets/CalendarWidget';
 import ClockWidget from './widgets/ClockWidget';
 import WeatherWidget from './widgets/WeatherWidget';
@@ -48,6 +49,8 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
   onReorderWidgets,
   onOpenWidgetSettings,
 }) => {
+  const { settings } = useSettings();
+  const isNothing = settings?.uiStyle === 'nothing';
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverInfo, setDragOverInfo] = useState<{
     index: number;
@@ -247,21 +250,35 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
                 config
               )} ${
                 isEditing
-                  ? 'border-purple-500/50 hover:border-purple-400 glass-card shadow-lg ring-1 ring-purple-500/30'
+                  ? isNothing
+                    ? 'border-white/50 glass-card shadow-[0_0_15px_rgba(255,255,255,0.08)] ring-1 ring-white/30'
+                    : 'border-purple-500/50 hover:border-purple-400 glass-card shadow-lg ring-1 ring-purple-500/30'
                   : 'glass-card hover:border-zinc-300 dark:hover:border-zinc-700/80 shadow-xs'
-              } ${isDraggingThis ? 'opacity-30 scale-95 border-dashed border-purple-400' : ''}`}
+              } ${isDraggingThis ? 'opacity-30 scale-95 border-dashed border-white/50' : ''}`}
             >
-              {/* Ligne visuelle violette indiquant l'endroit exact de dépose */}
+              {/* Ligne visuelle indiquant l'endroit exact de dépose (Nothing Red en Nothing OS) */}
               {isInsertBefore && !isDraggingThis && (
-                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-purple-400 to-indigo-500 rounded-full shadow-lg shadow-purple-500/80 ring-2 ring-purple-300 z-30 animate-pulse" />
+                <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-full z-30 animate-pulse ${
+                  isNothing
+                    ? 'bg-[#D71920] shadow-[0_0_12px_#D71920] ring-1 ring-[#D71920]'
+                    : 'bg-gradient-to-b from-purple-400 to-indigo-500 shadow-lg shadow-purple-500/80 ring-2 ring-purple-300'
+                }`} />
               )}
               {isInsertAfter && !isDraggingThis && (
-                <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-purple-400 to-indigo-500 rounded-full shadow-lg shadow-purple-500/80 ring-2 ring-purple-300 z-30 animate-pulse" />
+                <div className={`absolute right-0 top-0 bottom-0 w-1.5 rounded-full z-30 animate-pulse ${
+                  isNothing
+                    ? 'bg-[#D71920] shadow-[0_0_12px_#D71920] ring-1 ring-[#D71920]'
+                    : 'bg-gradient-to-b from-purple-400 to-indigo-500 shadow-lg shadow-purple-500/80 ring-2 ring-purple-300'
+                }`} />
               )}
 
               {/* Barre de contrôle d'édition flottante avec déplacement libre */}
               {isEditing && (
-                <div className="absolute top-1.5 right-1.5 z-20 flex items-center gap-1 p-1 rounded-xl bg-white/95 dark:bg-zinc-950/95 border border-zinc-200 dark:border-zinc-700 backdrop-blur-md shadow-xl">
+                <div className={`absolute top-1.5 right-1.5 z-20 flex items-center gap-1 p-1 rounded-xl backdrop-blur-md shadow-xl ${
+                  isNothing
+                    ? 'bg-black/95 border border-white/20'
+                    : 'bg-white/95 dark:bg-zinc-950/95 border border-zinc-200 dark:border-zinc-700'
+                }`}>
                   {/* Boutons de déplacement direct gauche / droite pour un contrôle total */}
                   <button
                     type="button"
@@ -285,7 +302,9 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
 
                   {/* Poignée de drag & drop tactile ou souris */}
                   <div
-                    className="p-1 text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-white cursor-grab active:cursor-grabbing"
+                    className={`p-1 cursor-grab active:cursor-grabbing ${
+                      isNothing ? 'text-[#D71920] hover:text-white' : 'text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-white'
+                    }`}
                     title="Glisser-déposer pour déplacer librement"
                   >
                     <GripVertical className="w-3 h-3" />
@@ -296,7 +315,11 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
                     <button
                       type="button"
                       onClick={() => onOpenWidgetSettings(config)}
-                      className="p-1 rounded-md text-zinc-500 hover:text-purple-600 dark:text-zinc-400 dark:hover:text-purple-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                      className={`p-1 rounded-md transition-colors cursor-pointer ${
+                        isNothing
+                          ? 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                          : 'text-zinc-500 hover:text-purple-600 dark:text-zinc-400 dark:hover:text-purple-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                      }`}
                       title="Personnaliser ce widget"
                     >
                       <Settings className="w-3 h-3" />
@@ -307,7 +330,11 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
                   <button
                     type="button"
                     onClick={() => toggleSize(config)}
-                    className="p-1 rounded-md text-zinc-500 hover:text-purple-600 dark:text-zinc-400 dark:hover:text-purple-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                    className={`p-1 rounded-md transition-colors cursor-pointer ${
+                      isNothing
+                        ? 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                        : 'text-zinc-500 hover:text-purple-600 dark:text-zinc-400 dark:hover:text-purple-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                    }`}
                     title={`Changer la taille (actuelle : ${config.size})`}
                   >
                     {config.size === 'small' ? (
@@ -344,7 +371,9 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
 
       <style jsx>{`
         .dashboard-grid-pattern {
-          background-image: radial-gradient(rgba(168, 85, 247, 0.18) 1px, transparent 1px);
+          background-image: ${isNothing
+            ? 'radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px)'
+            : 'radial-gradient(rgba(168, 85, 247, 0.18) 1px, transparent 1px)'};
           background-size: 24px 24px;
         }
       `}</style>

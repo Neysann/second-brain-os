@@ -319,12 +319,134 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         theme === 'dark' ? 'bg-zinc-950 text-zinc-100' : 'bg-zinc-50 text-zinc-900'
       }`}
     >
-      {/* 0. Fond d'ambiance Aurora / Mesh Gradient Liquid Glass OU Grille Nothing OS */}
+      {/* 0. Fond d'ambiance Aurora / Mesh Gradient Liquid Glass OU Grille & Interface Glyph Nothing OS */}
       {settings.uiStyle === 'nothing' ? (
         <div
-          className="fixed inset-0 pointer-events-none z-0 nothing-grid-bg transition-opacity duration-700 select-none opacity-80"
+          className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none bg-black nothing-grid-bg transition-opacity duration-700"
           aria-hidden="true"
-        />
+        >
+          {/* Simulation Hardware Transparent & Bandes LED Glyph Nothing OS */}
+          <svg
+            className="absolute inset-0 w-full h-full opacity-35"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <filter id="glyphGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
+            {/* Repères techniques & coordonnées Nothing HQ London */}
+            <g className="font-ndot fill-zinc-600 text-[10px] tracking-widest select-none">
+              <text x="36" y="45">NOTHING OS // V3.0</text>
+              <text x="36" y="60">GLYPH INTERFACE • ACTIVE</text>
+              <text x="36" y="75">COORD: 51.5074° N, 0.1278° W</text>
+              <text x="36" y="90">(R) HARDWARE SIMULATION</text>
+            </g>
+
+            {/* Traces de circuits en filigrane */}
+            <path
+              d="M 120 40 L 260 40 L 290 70 L 450 70"
+              fill="none"
+              stroke="rgba(255, 255, 255, 0.08)"
+              strokeWidth="1.5"
+              strokeDasharray="4 6"
+            />
+            <circle cx="120" cy="40" r="3" fill="rgba(255, 255, 255, 0.2)" />
+            <circle cx="450" cy="70" r="3" fill="rgba(255, 255, 255, 0.2)" />
+
+            {/* Glyphe 1 : Arc Caméra Supérieur Droit */}
+            <g className="glyph-pulse">
+              <path
+                d="M calc(100vw - 320px) 60 A 80 80 0 0 1 calc(100vw - 160px) 160"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="4"
+                strokeLinecap="round"
+                filter="url(#glyphGlow)"
+              />
+              <path
+                d="M calc(100vw - 310px) 60 L calc(100vw - 260px) 20"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="4"
+                strokeLinecap="round"
+                filter="url(#glyphGlow)"
+              />
+            </g>
+
+            {/* Glyphe 2 : Grande Bobine Centrale Nothing (Segmentée avec découpes) */}
+            <g className="glyph-pulse">
+              {/* Arc supérieur gauche de la bobine */}
+              <path
+                d="M calc(50vw - 120px) calc(50vh - 80px) A 160 160 0 0 1 calc(50vw + 90px) calc(50vh - 120px)"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                filter="url(#glyphGlow)"
+              />
+              {/* Arc droit de la bobine */}
+              <path
+                d="M calc(50vw + 140px) calc(50vh - 60px) A 160 160 0 0 1 calc(50vw + 110px) calc(50vh + 110px)"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                filter="url(#glyphGlow)"
+              />
+              {/* Arc inférieur gauche de la bobine */}
+              <path
+                d="M calc(50vw - 110px) calc(50vh + 100px) A 160 160 0 0 1 calc(50vw - 150px) calc(50vh - 40px)"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                filter="url(#glyphGlow)"
+              />
+            </g>
+
+            {/* Glyphe 3 : Barre Verticale Minuteur / Batterie Glyph en bas avec point rouge */}
+            <g>
+              <line
+                x1="calc(50vw)"
+                y1="calc(100vh - 160px)"
+                x2="calc(50vw)"
+                y2="calc(100vh - 60px)"
+                stroke="#ffffff"
+                strokeWidth="4"
+                strokeLinecap="round"
+                filter="url(#glyphGlow)"
+                className="glyph-pulse"
+              />
+              {/* Point rouge iconique Nothing sous la barre Glyph */}
+              <circle
+                cx="calc(50vw)"
+                cy="calc(100vh - 42px)"
+                r="4.5"
+                fill="#D71920"
+                filter="drop-shadow(0 0 8px #D71920)"
+              />
+            </g>
+
+            {/* Croix de calage industrielles */}
+            <g stroke="rgba(255, 255, 255, 0.15)" strokeWidth="1">
+              <line x1="25" y1="20" x2="35" y2="20" />
+              <line x1="30" y1="15" x2="30" y2="25" />
+
+              <line x1="calc(100vw - 35px)" y1="20" x2="calc(100vw - 25px)" y2="20" />
+              <line x1="calc(100vw - 30px)" y1="15" x2="calc(100vw - 30px)" y2="25" />
+
+              <line x1="25" y1="calc(100vh - 20px)" x2="35" y2="calc(100vh - 20px)" />
+              <line x1="30" y1="calc(100vh - 25px)" x2="30" y2="calc(100vh - 15px)" />
+            </g>
+          </svg>
+        </div>
       ) : (
         <div
           className="fixed inset-0 pointer-events-none overflow-hidden z-0 transition-opacity duration-700 select-none"
@@ -376,21 +498,38 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         <header
           className={`flex md:hidden items-center justify-between px-3 sm:px-4 py-2 border-b z-20 select-none flex-shrink-0
             ${
-              theme === 'dark'
+              settings.uiStyle === 'nothing'
+                ? 'bg-black border-zinc-800 text-white'
+                : theme === 'dark'
                 ? 'glass-surface border-zinc-800/80 text-zinc-100'
                 : 'glass-surface border-zinc-200 text-zinc-900'
             }`}
         >
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg overflow-hidden border border-purple-500/30 shadow-sm shadow-purple-500/20 bg-zinc-950 flex items-center justify-center flex-shrink-0 p-0.5">
+            <div className={`w-8 h-8 rounded-lg overflow-hidden border flex items-center justify-center flex-shrink-0 p-0.5 ${
+              settings.uiStyle === 'nothing'
+                ? 'border-white/20 bg-black'
+                : 'border-purple-500/30 shadow-sm shadow-purple-500/20 bg-zinc-950'
+            }`}>
               <img src="/logo.png" alt="Syntropy Logo" className="w-full h-full object-cover rounded-md" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-sm tracking-tight flex items-center gap-1.5">
-                Syntropy
-                <span className="text-[9px] px-1 py-0.2 rounded bg-purple-500/20 text-purple-600 dark:text-purple-300 font-mono border border-purple-500/30 font-semibold">
-                  OS
-                </span>
+              <span className={`font-bold text-sm tracking-tight flex items-center gap-1.5 ${
+                settings.uiStyle === 'nothing' ? 'font-ndot uppercase tracking-wider text-white' : ''
+              }`}>
+                {settings.uiStyle === 'nothing' ? (
+                  <>
+                    NOTHING OS
+                    <span className="nothing-red-dot ml-0.5" />
+                  </>
+                ) : (
+                  <>
+                    Syntropy
+                    <span className="text-[9px] px-1 py-0.2 rounded bg-purple-500/20 text-purple-600 dark:text-purple-300 font-mono border border-purple-500/30 font-semibold">
+                      OS
+                    </span>
+                  </>
+                )}
               </span>
             </div>
           </Link>

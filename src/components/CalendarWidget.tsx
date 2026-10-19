@@ -189,10 +189,14 @@ export const CalendarWidget: React.FC = () => {
       : ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
   }, [settings.firstDayOfWeek]);
 
+  const isNothing = settings.uiStyle === 'nothing';
+
   return (
     <div
       className={`p-6 rounded-2xl border transition-all duration-300 ${
-        theme === 'dark'
+        isNothing
+          ? 'bg-black border-white/10 text-white shadow-none font-ntype'
+          : theme === 'dark'
           ? 'bg-zinc-900/80 border-zinc-800/80 text-zinc-100 shadow-md shadow-black/20'
           : 'bg-white border-zinc-200 text-zinc-900 shadow-sm'
       }`}
@@ -200,29 +204,49 @@ export const CalendarWidget: React.FC = () => {
       {/* Header du Widget */}
       <div className="flex items-center justify-between pb-4 border-b border-inherit mb-4">
         <div className="flex items-center gap-2">
-          <CalendarIcon className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
-          <h2 className="text-base font-bold">Calendrier des Projets</h2>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-mono font-semibold">
-            {projects.filter((p) => p.deadline).length} échéances
+          {isNothing ? (
+            <span className="nothing-red-dot" />
+          ) : (
+            <CalendarIcon
+              className="w-5 h-5 text-indigo-500 dark:text-indigo-400"
+            />
+          )}
+          <h2 className={`text-base font-bold ${isNothing ? 'font-ndot tracking-widest uppercase text-white' : ''}`}>
+            {isNothing ? 'CALENDAR // PROJECTS' : 'Calendrier des Projets'}
+          </h2>
+          <span
+            className={`text-xs px-2.5 py-0.5 rounded-full ${
+              isNothing
+                ? 'bg-zinc-950 text-zinc-400 border border-white/10 font-ndot tracking-wider'
+                : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-mono font-semibold'
+            }`}
+          >
+            {projects.filter((p) => p.deadline).length} {isNothing ? 'DEADLINES' : 'échéances'}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={goToToday}
-            className={`text-xs px-2.5 py-1 rounded-lg border font-medium transition-colors ${
-              theme === 'dark'
+            className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-colors cursor-pointer ${
+              isNothing
+                ? 'border-white/10 bg-zinc-950 text-zinc-300 hover:text-white hover:border-white/30 font-ndot uppercase text-[10px]'
+                : theme === 'dark'
                 ? 'border-zinc-700 bg-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-700'
                 : 'border-zinc-300 bg-zinc-100 text-zinc-700 hover:text-zinc-900 hover:bg-zinc-200'
             }`}
           >
-            Aujourd'hui
+            {isNothing ? 'TODAY' : "Aujourd'hui"}
           </button>
           <Link
             href="/calendar"
-            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 flex items-center gap-1"
+            className={`text-xs font-semibold flex items-center gap-1 ${
+              isNothing
+                ? 'text-zinc-400 hover:text-white font-ndot uppercase tracking-wider text-[10px]'
+                : 'text-indigo-600 dark:text-indigo-400 hover:text-indigo-500'
+            }`}
           >
-            Vue complète
+            {isNothing ? 'FULL VIEW' : 'Vue complète'}
             <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -233,20 +257,34 @@ export const CalendarWidget: React.FC = () => {
         <div className="lg:col-span-7 space-y-3">
           {/* Navigation du mois */}
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold capitalize tracking-tight text-zinc-300 dark:text-zinc-200">
+            <h3
+              className={`${
+                isNothing
+                  ? 'text-sm font-ndot uppercase tracking-widest text-white'
+                  : 'text-sm font-semibold capitalize tracking-tight text-zinc-300 dark:text-zinc-200'
+              }`}
+            >
               {monthName}
             </h3>
             <div className="flex items-center gap-1">
               <button
                 onClick={goToPreviousMonth}
-                className="p-1 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
+                className={`p-1 rounded-lg transition-colors ${
+                  isNothing
+                    ? 'hover:bg-zinc-900 text-zinc-400 hover:text-white border border-transparent hover:border-zinc-800'
+                    : 'hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200'
+                }`}
                 title="Mois précédent"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={goToNextMonth}
-                className="p-1 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
+                className={`p-1 rounded-lg transition-colors ${
+                  isNothing
+                    ? 'hover:bg-zinc-900 text-zinc-400 hover:text-white border border-transparent hover:border-zinc-800'
+                    : 'hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200'
+                }`}
                 title="Mois suivant"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -255,7 +293,11 @@ export const CalendarWidget: React.FC = () => {
           </div>
 
           {/* Jours de la semaine */}
-          <div className="grid grid-cols-7 text-center text-[11px] font-semibold text-zinc-500 py-1 border-b border-inherit">
+          <div
+            className={`grid grid-cols-7 text-center py-1 border-b border-inherit ${
+              isNothing ? 'text-[10px] font-mono text-zinc-400' : 'text-[11px] font-semibold text-zinc-500'
+            }`}
+          >
             {weekdays.map((wd) => (
               <span key={wd}>{wd}</span>
             ))}
@@ -275,21 +317,34 @@ export const CalendarWidget: React.FC = () => {
                   className={`min-h-[42px] p-1 rounded-xl flex flex-col items-center justify-between text-xs transition-all relative group
                     ${
                       isSelected
-                        ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30 ring-2 ring-indigo-400/50'
+                        ? isNothing
+                          ? 'bg-white text-black font-bold ring-1 ring-white shadow-none'
+                          : 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30 ring-2 ring-indigo-400/50'
                         : item.isToday
-                        ? theme === 'dark'
+                        ? isNothing
+                          ? 'bg-zinc-900 border border-[#D71920] text-white font-bold'
+                          : theme === 'dark'
                           ? 'bg-zinc-800 border border-indigo-500/50 text-indigo-400 font-bold'
                           : 'bg-indigo-50 border border-indigo-400 text-indigo-700 font-bold'
                         : item.isCurrentMonth
-                        ? theme === 'dark'
+                        ? isNothing
+                          ? 'hover:bg-zinc-900 text-zinc-200'
+                          : theme === 'dark'
                           ? 'hover:bg-zinc-800/60 text-zinc-300'
                           : 'hover:bg-zinc-100 text-zinc-800'
+                        : isNothing
+                        ? 'text-zinc-700 hover:bg-zinc-950/40'
                         : theme === 'dark'
                         ? 'text-zinc-600 hover:bg-zinc-850/30'
                         : 'text-zinc-400 hover:bg-zinc-100/50'
                     }`}
                 >
-                  <span className="text-[11px]">{item.dayNumber}</span>
+                  <span className={`${isNothing ? 'font-ndot text-xs tracking-wider' : 'text-[11px]'}`}>
+                    {item.dayNumber}
+                  </span>
+                  {isNothing && item.isToday && !isSelected && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#D71920] absolute top-1 right-1" />
+                  )}
 
                   {/* Puces de couleur pour les événements et projets de ce jour */}
                   {(hasEvents || hasProjects) && (
@@ -366,7 +421,9 @@ export const CalendarWidget: React.FC = () => {
                   <div
                     key={ev.id}
                     className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-colors ${
-                      theme === 'dark'
+                      isNothing
+                        ? 'bg-[#0b0b0d] border-zinc-800/90'
+                        : theme === 'dark'
                         ? 'bg-zinc-950/60 border-zinc-800'
                         : 'bg-zinc-50 border-zinc-200'
                     }`}
@@ -374,7 +431,7 @@ export const CalendarWidget: React.FC = () => {
                     <div className="flex items-center gap-2.5 truncate">
                       <span
                         className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: ev.color || '#3b82f6' }}
+                        style={{ backgroundColor: isNothing ? '#ffffff' : (ev.color || '#3b82f6') }}
                       />
                       <div className="truncate">
                         <span className="font-semibold truncate block text-zinc-200 dark:text-zinc-100">
@@ -386,7 +443,13 @@ export const CalendarWidget: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                    <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-blue-500/20 text-blue-400">
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded font-mono font-bold ${
+                        isNothing
+                          ? 'bg-zinc-900 text-zinc-300 border border-zinc-800 uppercase text-[9px]'
+                          : 'bg-blue-500/20 text-blue-400'
+                      }`}
+                    >
                       Événement
                     </span>
                   </div>
@@ -397,7 +460,9 @@ export const CalendarWidget: React.FC = () => {
                   <div
                     key={p.id}
                     className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-colors ${
-                      theme === 'dark'
+                      isNothing
+                        ? 'bg-[#0b0b0d] border-zinc-800/90'
+                        : theme === 'dark'
                         ? 'bg-zinc-950/60 border-zinc-800'
                         : 'bg-zinc-50 border-zinc-200'
                     }`}
@@ -405,7 +470,7 @@ export const CalendarWidget: React.FC = () => {
                     <div className="flex items-center gap-2.5 truncate">
                       <span
                         className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: p.color || '#6366f1' }}
+                        style={{ backgroundColor: isNothing ? '#D71920' : (p.color || '#6366f1') }}
                       />
                       <div className="truncate">
                         <span className="font-semibold truncate block text-zinc-200 dark:text-zinc-100">
@@ -414,7 +479,13 @@ export const CalendarWidget: React.FC = () => {
                         <span className="text-[10px] text-zinc-500 capitalize">{p.category}</span>
                       </div>
                     </div>
-                    <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-indigo-500/20 text-indigo-400">
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded font-mono font-bold ${
+                        isNothing
+                          ? 'bg-zinc-900 text-zinc-300 border border-zinc-800 uppercase text-[9px]'
+                          : 'bg-indigo-500/20 text-indigo-400'
+                      }`}
+                    >
                       Échéance
                     </span>
                   </div>
@@ -425,13 +496,15 @@ export const CalendarWidget: React.FC = () => {
                   <div
                     key={t.id}
                     className={`p-2.5 rounded-xl border flex items-center justify-between text-xs ${
-                      theme === 'dark'
+                      isNothing
+                        ? 'bg-[#0b0b0d] border-zinc-800/80 text-zinc-300'
+                        : theme === 'dark'
                         ? 'bg-zinc-950/40 border-zinc-800/60 text-zinc-400'
                         : 'bg-zinc-50 border-zinc-200 text-zinc-600'
                     }`}
                   >
                     <span className="truncate">Tâche : {t.title}</span>
-                    <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-zinc-800">
+                    <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700/50">
                       {t.priority}
                     </span>
                   </div>
@@ -443,8 +516,12 @@ export const CalendarWidget: React.FC = () => {
           {/* Prochaines échéances globales */}
           <div className="pt-2 border-t border-inherit">
             <h4 className="text-xs font-semibold text-zinc-400 mb-2 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-amber-500" />
-              Prochaines livraisons de projets
+              <Clock
+                className={`w-3.5 h-3.5 ${isNothing ? 'text-[#D71920]' : 'text-amber-500'}`}
+              />
+              <span className={isNothing ? 'font-mono uppercase tracking-wider text-[11px]' : ''}>
+                Prochaines livraisons de projets
+              </span>
             </h4>
 
             {upcomingProjects.length === 0 ? (
@@ -459,7 +536,9 @@ export const CalendarWidget: React.FC = () => {
                     <div
                       key={p.id}
                       className={`p-2.5 rounded-xl border flex items-center justify-between text-xs transition-colors ${
-                        theme === 'dark'
+                        isNothing
+                          ? 'bg-[#0b0b0d] border-zinc-800/80 hover:border-zinc-700'
+                          : theme === 'dark'
                           ? 'bg-zinc-950/30 border-zinc-800/70 hover:border-zinc-700'
                           : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300'
                       }`}
@@ -467,7 +546,7 @@ export const CalendarWidget: React.FC = () => {
                       <div className="flex items-center gap-2 truncate">
                         <span
                           className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: p.color || '#6366f1' }}
+                          style={{ backgroundColor: isNothing ? '#D71920' : (p.color || '#6366f1') }}
                         />
                         <span className="font-medium truncate text-zinc-300 dark:text-zinc-200">
                           {p.title}
@@ -477,9 +556,15 @@ export const CalendarWidget: React.FC = () => {
                       <span
                         className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold flex-shrink-0 ${
                           isLate
-                            ? 'bg-rose-500/20 text-rose-400'
+                            ? isNothing
+                              ? 'bg-[#D71920]/20 text-[#D71920] border border-[#D71920]/40'
+                              : 'bg-rose-500/20 text-rose-400'
                             : isToday
-                            ? 'bg-amber-500/20 text-amber-400'
+                            ? isNothing
+                              ? 'bg-white/10 text-white border border-white/30'
+                              : 'bg-amber-500/20 text-amber-400'
+                            : isNothing
+                            ? 'bg-zinc-900 text-zinc-300 border border-zinc-800'
                             : 'bg-zinc-800 text-zinc-400'
                         }`}
                       >

@@ -222,9 +222,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
                 } rounded-xl text-sm font-medium transition-all cursor-pointer group relative
                   ${
                     isActive
-                      ? isPurple
+                      ? settings.uiStyle === 'nothing'
+                        ? 'bg-white text-black font-bold border border-white shadow-none font-ntype'
+                        : isPurple
                         ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/30 font-semibold ring-1 ring-purple-400/40'
                         : 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 font-semibold'
+                      : settings.uiStyle === 'nothing'
+                      ? 'text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent'
                       : isPurple
                       ? theme === 'dark'
                         ? 'text-purple-300/80 hover:text-purple-200 hover:bg-purple-950/30'
@@ -238,22 +242,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
                 <Icon
                   className={`w-5 h-5 flex-shrink-0 pointer-events-none transition-colors ${
                     isActive
-                      ? 'text-white'
+                      ? settings.uiStyle === 'nothing'
+                        ? 'text-black'
+                        : 'text-white'
+                      : settings.uiStyle === 'nothing'
+                      ? 'text-zinc-400 group-hover:text-white'
                       : isPurple
                       ? 'text-purple-400 group-hover:text-purple-300'
                       : 'text-zinc-400 group-hover:text-zinc-200'
                   }`}
                 />
                 {!collapsed && (
-                  <span className="truncate flex-1 pointer-events-none">{link.name}</span>
+                  <span className={`truncate flex-1 pointer-events-none ${settings.uiStyle === 'nothing' ? 'tracking-wide' : ''}`}>{link.name}</span>
                 )}
                 {!collapsed && link.badge !== null && (
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full font-mono font-medium pointer-events-none ${
                       isActive
-                        ? isPurple
+                        ? settings.uiStyle === 'nothing'
+                          ? 'bg-black text-white border border-black/40 font-ndot'
+                          : isPurple
                           ? 'bg-purple-950/60 text-white border border-purple-400/40'
                           : 'bg-indigo-700 text-white'
+                        : settings.uiStyle === 'nothing'
+                        ? 'bg-zinc-900 text-zinc-300 border border-zinc-800 font-ndot'
                         : isPurple
                         ? theme === 'dark'
                           ? 'bg-purple-950/50 text-purple-300 border border-purple-800/60'
@@ -269,7 +281,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
                 {collapsed && link.badge !== null && (
                   <span
                     className={`absolute top-1.5 right-1.5 w-2 h-2 rounded-full ring-2 ring-zinc-950 ${
-                      isPurple ? 'bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]' : 'bg-indigo-500'
+                      settings.uiStyle === 'nothing'
+                        ? 'bg-[#D71920] shadow-[0_0_8px_#D71920]'
+                        : isPurple
+                        ? 'bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]'
+                        : 'bg-indigo-500'
                     }`}
                   />
                 )}
@@ -281,7 +297,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
         {/* Section Daily Life */}
         <div className="space-y-1 pt-2 border-t border-inherit">
           {!collapsed && (
-            <div className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 select-none">
+            <div className={`px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 select-none ${
+              settings.uiStyle === 'nothing' ? 'font-ndot text-zinc-400' : ''
+            }`}>
               Daily Life
             </div>
           )}
@@ -297,7 +315,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
                 } rounded-xl text-sm font-medium transition-all cursor-pointer group relative
                   ${
                     isActive
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 font-semibold'
+                      ? settings.uiStyle === 'nothing'
+                        ? 'bg-white text-black font-bold border border-white shadow-none font-ntype'
+                        : 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 font-semibold'
+                      : settings.uiStyle === 'nothing'
+                      ? 'text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent'
                       : theme === 'dark'
                       ? 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/80'
                       : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/70'
@@ -307,18 +329,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
                 <Icon
                   className={`w-5 h-5 flex-shrink-0 pointer-events-none transition-colors ${
                     isActive
-                      ? 'text-white'
+                      ? settings.uiStyle === 'nothing'
+                        ? 'text-black'
+                        : 'text-white'
+                      : settings.uiStyle === 'nothing'
+                      ? 'text-zinc-400 group-hover:text-white'
                       : 'text-zinc-400 group-hover:text-zinc-200'
                   }`}
                 />
                 {!collapsed && (
-                  <span className="truncate flex-1 pointer-events-none">{link.name}</span>
+                  <span className={`truncate flex-1 pointer-events-none ${settings.uiStyle === 'nothing' ? 'tracking-wide' : ''}`}>{link.name}</span>
                 )}
                 {!collapsed && link.badge !== null && (
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full font-mono font-medium pointer-events-none ${
                       isActive
-                        ? 'bg-indigo-700 text-white'
+                        ? settings.uiStyle === 'nothing'
+                          ? 'bg-black text-white border border-black/40 font-ndot'
+                          : 'bg-indigo-700 text-white'
+                        : settings.uiStyle === 'nothing'
+                        ? 'bg-zinc-900 text-zinc-300 border border-zinc-800 font-ndot'
                         : theme === 'dark'
                         ? 'bg-zinc-800 text-zinc-300 border border-zinc-700'
                         : 'bg-zinc-200 text-zinc-700 border border-zinc-300'
@@ -329,7 +359,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
                 )}
                 {collapsed && link.badge !== null && (
                   <span
-                    className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full ring-2 ring-zinc-950 bg-indigo-500"
+                    className={`absolute top-1.5 right-1.5 w-2 h-2 rounded-full ring-2 ring-zinc-950 ${
+                      settings.uiStyle === 'nothing'
+                        ? 'bg-[#D71920] shadow-[0_0_8px_#D71920]'
+                        : 'bg-indigo-500'
+                    }`}
                   />
                 )}
               </Link>
@@ -552,6 +586,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
                   ? settings.uiStyle === 'nothing'
                     ? 'bg-white text-black font-bold'
                     : 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                  : settings.uiStyle === 'nothing'
+                  ? 'hover:bg-zinc-900 text-zinc-400 hover:text-white'
                   : theme === 'dark'
                   ? 'hover:bg-zinc-900 text-zinc-400 hover:text-purple-400'
                   : 'hover:bg-zinc-200 text-zinc-600 hover:text-purple-600'
@@ -583,6 +619,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
                     ? settings.uiStyle === 'nothing'
                       ? 'bg-white text-black font-bold'
                       : 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                    : settings.uiStyle === 'nothing'
+                    ? 'hover:bg-zinc-900 text-zinc-400 hover:text-white'
                     : theme === 'dark'
                     ? 'hover:bg-zinc-900 text-zinc-400 hover:text-purple-400'
                     : 'hover:bg-zinc-200 text-zinc-600 hover:text-purple-600'
