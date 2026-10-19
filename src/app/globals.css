@@ -523,12 +523,99 @@ body[data-ui-style="nothing"].light,
   border-radius: 14px !important;
 }
 
-/* Effet de lueur LED Glyph */
+/* 4. Sélection & Curseur Nothing Rouge Vermillon */
+[data-ui-style="nothing"] ::selection {
+  background-color: #D71920 !important;
+  color: #ffffff !important;
+}
+
+/* 5. Boutons Matériels Nothing OS (Pilules monochromes & contrastées) */
+[data-ui-style="nothing"] .btn-primary,
+[data-ui-style="nothing"] button[class*="bg-indigo-600"],
+[data-ui-style="nothing"] button[class*="bg-purple-600"],
+[data-ui-style="nothing"] a[class*="bg-indigo-600"],
+[data-ui-style="nothing"] a[class*="bg-purple-600"] {
+  border-radius: 9999px !important;
+  letter-spacing: 0.02em !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+[data-ui-style="nothing"].dark button[class*="bg-indigo-600"],
+[data-ui-style="nothing"].dark button[class*="bg-purple-600"],
+[data-ui-style="nothing"].dark a[class*="bg-indigo-600"],
+[data-ui-style="nothing"].dark a[class*="bg-purple-600"] {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #ffffff !important;
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-ui-style="nothing"].dark button[class*="bg-indigo-600"]:hover,
+[data-ui-style="nothing"].dark button[class*="bg-purple-600"]:hover,
+[data-ui-style="nothing"].dark a[class*="bg-indigo-600"]:hover,
+[data-ui-style="nothing"].dark a[class*="bg-purple-600"]:hover {
+  background: #e4e4e7 !important;
+  border-color: #e4e4e7 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* 6. Formulaires & Champs de saisie Nothing OS */
+[data-ui-style="nothing"].dark input:not([type="checkbox"]):not([type="radio"]),
+[data-ui-style="nothing"].dark textarea,
+[data-ui-style="nothing"].dark select {
+  background-color: #08080a !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border-radius: 14px !important;
+}
+
+[data-ui-style="nothing"].dark input:not([type="checkbox"]):not([type="radio"]):focus,
+[data-ui-style="nothing"].dark textarea:focus,
+[data-ui-style="nothing"].dark select:focus {
+  border-color: #D71920 !important;
+  box-shadow: 0 0 0 1px #D71920 !important;
+  outline: none !important;
+}
+
+[data-ui-style="nothing"] input[type="checkbox"] {
+  accent-color: #D71920 !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+}
+
+/* 7. Cartes & Surfaces Noir Pur OLED */
+[data-ui-style="nothing"].dark .glass-card,
+[data-ui-style="nothing"].dark .glass-surface {
+  background-color: #0b0b0d !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none !important;
+}
+
+[data-ui-style="nothing"].dark .glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.28) !important;
+}
+
+/* 8. Effet de lueur LED Glyph */
 .nothing-glyph-line {
   height: 2px;
   background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.8) 50%, transparent 100%);
   border-radius: 9999px;
   opacity: 0.85;
+}
+
+/* Badge Nothing avec point rouge */
+.nothing-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.05);
+  font-family: 'NDot57', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 /* Scrollbars 100% transparentes et invisibles (avec défilement fluide préservé) */

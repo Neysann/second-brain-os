@@ -474,7 +474,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
             onClick={onOpenAuth}
             className={`${
               collapsed ? 'w-10 h-10 p-0 justify-center' : 'w-full py-2 px-3 justify-center'
-            } rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white flex items-center gap-2 shadow-md shadow-purple-600/20 transition-all`}
+            } rounded-xl text-xs font-semibold ${
+              settings.uiStyle === 'nothing'
+                ? 'bg-white text-black hover:bg-zinc-200 border border-white'
+                : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-purple-600/20'
+            } flex items-center gap-2 transition-all`}
             title="Se connecter ou créer un compte"
           >
             <UserIcon className="w-4 h-4 flex-shrink-0" />
@@ -492,13 +496,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
               }
             }}
             className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors border cursor-pointer ${
-              theme === 'dark'
+              settings.uiStyle === 'nothing'
+                ? 'bg-zinc-900 border-zinc-800 text-white hover:border-zinc-700'
+                : theme === 'dark'
                 ? 'bg-purple-950/30 hover:bg-purple-950/60 border-purple-800/40 text-purple-300'
                 : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700'
             }`}
             title="Consulter les dernières nouveautés de version"
           >
-            <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping" />
+            <span
+              className={`w-2 h-2 rounded-full ${
+                settings.uiStyle === 'nothing' ? 'bg-[#D71920]' : 'bg-purple-500 animate-ping'
+              }`}
+            />
           </button>
         ) : (
           <button
@@ -508,15 +518,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
               }
             }}
             className={`w-full py-1.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors border cursor-pointer ${
-              theme === 'dark'
+              settings.uiStyle === 'nothing'
+                ? 'bg-zinc-900 border-zinc-800 text-white hover:border-zinc-700'
+                : theme === 'dark'
                 ? 'bg-purple-950/30 hover:bg-purple-950/60 border-purple-800/40 text-purple-300'
                 : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700'
             }`}
             title="Consulter les dernières nouveautés de version"
           >
             <div className="flex items-center gap-2 truncate">
-              <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping flex-shrink-0" />
-              <span className="truncate">Nouveautés v{CURRENT_VERSION}</span>
+              <span
+                className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                  settings.uiStyle === 'nothing'
+                    ? 'bg-[#D71920] shadow-[0_0_8px_#D71920]'
+                    : 'bg-purple-500 animate-ping'
+                }`}
+              />
+              <span className={`truncate ${settings.uiStyle === 'nothing' ? 'font-mono' : ''}`}>
+                Nouveautés v{CURRENT_VERSION}
+              </span>
             </div>
             <span className="text-[10px] opacity-75 font-mono">Voir →</span>
           </button>
@@ -529,14 +549,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
               href="/settings"
               className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                 pathname === '/settings'
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                  ? settings.uiStyle === 'nothing'
+                    ? 'bg-white text-black font-bold'
+                    : 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
                   : theme === 'dark'
                   ? 'hover:bg-zinc-900 text-zinc-400 hover:text-purple-400'
                   : 'hover:bg-zinc-200 text-zinc-600 hover:text-purple-600'
               }`}
               title="Accéder aux Paramètres"
             >
-              <SettingsIcon className={`w-4 h-4 flex-shrink-0 ${pathname === '/settings' ? 'text-white' : ''}`} />
+              <SettingsIcon className={`w-4 h-4 flex-shrink-0 ${pathname === '/settings' ? settings.uiStyle === 'nothing' ? 'text-black' : 'text-white' : ''}`} />
             </Link>
 
             <button
@@ -558,15 +580,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
               className={`flex items-center justify-start p-2 rounded-xl transition-all flex-1 cursor-pointer
                 ${
                   pathname === '/settings'
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                    ? settings.uiStyle === 'nothing'
+                      ? 'bg-white text-black font-bold'
+                      : 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
                     : theme === 'dark'
                     ? 'hover:bg-zinc-900 text-zinc-400 hover:text-purple-400'
                     : 'hover:bg-zinc-200 text-zinc-600 hover:text-purple-600'
                 }`}
               title="Accéder aux Paramètres"
             >
-              <SettingsIcon className={`w-4 h-4 flex-shrink-0 ${pathname === '/settings' ? 'text-white' : ''}`} />
-              <span className={`ml-2 text-xs font-medium ${pathname === '/settings' ? 'text-white font-semibold' : theme === 'dark' ? 'text-zinc-400' : 'text-zinc-700'}`}>
+              <SettingsIcon className={`w-4 h-4 flex-shrink-0 ${pathname === '/settings' ? settings.uiStyle === 'nothing' ? 'text-black' : 'text-white' : ''}`} />
+              <span className={`ml-2 text-xs font-medium ${pathname === '/settings' ? settings.uiStyle === 'nothing' ? 'text-black font-bold' : 'text-white font-semibold' : theme === 'dark' ? 'text-zinc-400' : 'text-zinc-700'}`}>
                 Paramètres
               </span>
             </Link>
