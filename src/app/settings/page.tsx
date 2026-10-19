@@ -142,10 +142,10 @@ const DARK_BG_OPTIONS: { id: DarkBgStyle; name: string; hex: string; desc: strin
   },
   {
     id: 'oled',
-    name: 'Noir Pur OLED',
+    name: 'Sombre absolu',
     hex: '#000000',
-    desc: 'Noir absolu (#000000). Éteint les pixels sur écrans OLED/AMOLED et maximise les contrastes.',
-    badge: 'Éco-Énergie & Contraste Max',
+    desc: 'Noir pur profond (#000000). Contraste absolu, pureté minimale et immersion totale.',
+    badge: 'Contraste Absolu',
   },
 ];
 
@@ -505,8 +505,11 @@ export default function SettingsPage() {
         const blurPx = isReduced ? 0 : Math.round((effectiveTrans / 45) * 20);
         const alpha = isReduced ? 1 : Math.max(0.45, 1 - (effectiveTrans / 100));
         const cardAlpha = isReduced ? 1 : Math.max(0.55, 1 - (effectiveTrans * 0.75 / 100));
-        const activeAccent = ACCENT_OPTIONS.find((c) => c.id === settings.accentColor || (c.id === 'red' && settings.accentColor === 'rose')) || ACCENT_OPTIONS[0];
-        const activeAccentHex = activeAccent.colorHex;
+        const isNothingActive = settings.uiStyle === 'nothing' || (settings.darkBgStyle || 'zinc') === 'oled';
+        const activeAccent = isNothingActive
+          ? (ACCENT_OPTIONS.find((c) => c.id === 'red') || ACCENT_OPTIONS[0])
+          : (ACCENT_OPTIONS.find((c) => c.id === settings.accentColor || (c.id === 'red' && settings.accentColor === 'rose')) || ACCENT_OPTIONS[0]);
+        const activeAccentHex = isNothingActive ? '#D71920' : activeAccent.colorHex;
         const previewIsDark = effectiveTheme === 'dark';
 
         const MAIN_ACCENTS = ACCENT_OPTIONS;
@@ -519,110 +522,7 @@ export default function SettingsPage() {
               {/* COLONNE GAUCHE (Contrôles et réglages)              */}
               {/* =================================================== */}
               <div className="xl:col-span-5 space-y-5">
-                {/* 0. Direction Artistique & Système Visuel (Design System) */}
-                <div className={`p-5 rounded-3xl border space-y-4 transition-colors ${
-                  isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className={`text-sm font-bold flex items-center gap-2 ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                        <Sparkles className="w-4 h-4 text-purple-400" />
-                        Direction Artistique (DA)
-                      </h2>
-                      <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                        Basculez entre le design originel et l'édition Nothing OS.
-                      </p>
-                    </div>
-                    {settings.uiStyle === 'nothing' && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#D71920]/20 text-[#D71920] border border-[#D71920]/40 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#D71920] animate-pulse" />
-                        NOTHING EDITION
-                      </span>
-                    )}
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* Carte Syntropy Original */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        updateSetting('uiStyle', 'syntropy');
-                        showNotification('Style Syntropy Liquid Glass activé');
-                      }}
-                      className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer relative flex flex-col justify-between ${
-                        (settings.uiStyle ?? 'syntropy') === 'syntropy'
-                          ? isDark
-                            ? 'ring-2 border-purple-500 bg-purple-500/10'
-                            : 'ring-2 border-purple-500 bg-purple-50'
-                          : isDark
-                          ? 'bg-zinc-950/40 border-zinc-800/80 hover:border-zinc-700'
-                          : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300'
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400">
-                            <Sparkles className="w-4 h-4" />
-                          </div>
-                          {(settings.uiStyle ?? 'syntropy') === 'syntropy' && (
-                            <div className="w-4 h-4 rounded-full bg-purple-500 text-white flex items-center justify-center">
-                              <Check className="w-2.5 h-2.5" />
-                            </div>
-                          )}
-                        </div>
-                        <span className={`text-xs font-bold block ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                          Syntropy Liquid Glass
-                        </span>
-                        <p className={`text-[11px] mt-1 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                          Translucidité iOS, reflets néons cyberpunk et fond orbe fluide Aurora.
-                        </p>
-                      </div>
-                      <div className="mt-3 pt-2 border-t border-zinc-200/40 dark:border-zinc-800/60 flex items-center gap-1.5 text-[10px] text-zinc-500">
-                        <span className="w-2 h-2 rounded-full bg-purple-500" />
-                        <span>Style d'origine</span>
-                      </div>
-                    </button>
-
-                    {/* Carte Nothing OS */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        updateSetting('uiStyle', 'nothing');
-                        showNotification('Style Nothing OS activé (Matrice NDOT & Noir OLED)');
-                      }}
-                      className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer relative flex flex-col justify-between ${
-                        settings.uiStyle === 'nothing'
-                          ? 'ring-2 ring-[#D71920] border-[#D71920] bg-zinc-950 shadow-lg shadow-red-950/20'
-                          : isDark
-                          ? 'bg-zinc-950/40 border-zinc-800/80 hover:border-zinc-700'
-                          : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300'
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="w-8 h-8 rounded-xl bg-black border border-white/20 flex items-center justify-center text-white font-ndot text-sm">
-                            (N)
-                          </div>
-                          {settings.uiStyle === 'nothing' && (
-                            <div className="w-4 h-4 rounded-full bg-[#D71920] text-white flex items-center justify-center">
-                              <Check className="w-2.5 h-2.5" />
-                            </div>
-                          )}
-                        </div>
-                        <span className="text-xs font-bold block font-ndot tracking-wide text-zinc-100">
-                          NOTHING OS
-                        </span>
-                        <p className={`text-[11px] mt-1 leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                          Noir pur OLED, matrice de points NDOT, grille Glyph et accent rouge vermillon.
-                        </p>
-                      </div>
-                      <div className="mt-3 pt-2 border-t border-zinc-200/40 dark:border-zinc-800/60 flex items-center gap-1.5 text-[10px] text-zinc-400">
-                        <span className="w-2 h-2 rounded-full bg-[#D71920]" />
-                        <span className="font-mono">NDOT 57 · #D71920</span>
-                      </div>
-                    </button>
-                  </div>
-                </div>
 
                 {/* 1. Mode de thème */}
                 <div className={`p-5 rounded-3xl border space-y-4 transition-colors ${
@@ -781,74 +681,123 @@ export default function SettingsPage() {
                       </div>
                     </button>
                   </div>
+
+                  {/* Nuance du thème sombre (Zinc vs Sombre absolu) */}
+                  {effectiveTheme === 'dark' && (
+                    <div className="pt-3.5 border-t border-zinc-200/60 dark:border-zinc-800/80 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs font-semibold flex items-center gap-1.5 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                          <Moon className="w-3.5 h-3.5 text-purple-400" />
+                          Nuance du mode sombre
+                        </span>
+                        <span className="text-[10px] font-mono text-zinc-500">
+                          {(settings.darkBgStyle || 'zinc') === 'oled' ? 'Sombre absolu (#000000)' : 'Zinc (#09090b)'}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {DARK_BG_OPTIONS.map((opt) => {
+                          const isSelected = (settings.darkBgStyle || 'zinc') === opt.id;
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => {
+                                updateSetting('darkBgStyle', opt.id);
+                                showNotification(opt.id === 'oled' ? 'Mode Sombre absolu activé' : 'Nuance Zinc activée');
+                              }}
+                              className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'border-purple-500 bg-purple-500/10 text-purple-400 font-bold'
+                                  : isDark
+                                  ? 'border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200'
+                                  : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:text-zinc-900'
+                              }`}
+                              style={isSelected && opt.id === 'oled' ? { borderColor: '#D71920', backgroundColor: 'rgba(215, 25, 32, 0.1)', color: '#D71920' } : undefined}
+                            >
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className="w-3 h-3 rounded-full border border-zinc-700"
+                                  style={{ backgroundColor: opt.hex }}
+                                />
+                                <span className="text-xs font-semibold">{opt.name}</span>
+                              </div>
+                              <span className="text-[9px] text-zinc-500 block mt-1">{opt.badge}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* 2. Couleur d'accentuation */}
-                <div className={`p-5 rounded-3xl border space-y-4 transition-colors ${
-                  isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
-                }`}>
-                  <div>
-                    <h2 className={`text-sm font-bold flex items-center gap-2 ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                      <Palette className="w-4 h-4 text-purple-400" />
-                      Couleur d'accentuation
-                    </h2>
-                    <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                      Personnalisez la couleur principale de Syntropy.
-                    </p>
-                  </div>
+                {/* 2. Couleur d'accentuation (Masquée en mode Sombre absolu) */}
+                {((settings.darkBgStyle || 'zinc') !== 'oled' && settings.uiStyle !== 'nothing') && (
+                  <div className={`p-5 rounded-3xl border space-y-4 transition-colors ${
+                    isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
+                  }`}>
+                    <div>
+                      <h2 className={`text-sm font-bold flex items-center gap-2 ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+                        <Palette className="w-4 h-4 text-purple-400" />
+                        Couleur d'accentuation
+                      </h2>
+                      <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                        Personnalisez la couleur principale de Syntropy.
+                      </p>
+                    </div>
 
-                  <div className="flex items-center justify-between gap-1 overflow-x-auto pb-1 pt-1">
-                    {MAIN_ACCENTS.map((color) => {
-                      const isSelected = settings.accentColor === color.id || (color.id === 'red' && settings.accentColor === 'rose');
-                      return (
-                        <button
-                          key={color.id}
-                          type="button"
-                          onClick={() => {
-                            updateSetting('accentColor', color.id);
-                            showNotification(`Couleur d'accentuation réglée sur "${color.shortName}"`);
-                          }}
-                          className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none flex-1 min-w-[50px]"
-                          title={color.name}
-                        >
-                          <div
-                            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
-                              isSelected
-                                ? 'ring-2 ring-offset-2 ring-offset-zinc-950 scale-105 shadow-md'
-                                : 'hover:scale-105 opacity-85 hover:opacity-100'
-                            }`}
-                            style={{
-                              background: color.hex,
-                              boxShadow: isSelected
-                                ? color.isGradient
-                                  ? '0 0 14px rgba(6, 182, 212, 0.6)'
-                                  : `0 0 12px ${color.colorHex}60`
-                                : undefined,
-                              ['--tw-ring-color' as any]: color.colorHex,
+                    <div className="flex items-center justify-between gap-1 overflow-x-auto pb-1 pt-1">
+                      {MAIN_ACCENTS.map((color) => {
+                        const isSelected = settings.accentColor === color.id || (color.id === 'red' && settings.accentColor === 'rose');
+                        return (
+                          <button
+                            key={color.id}
+                            type="button"
+                            onClick={() => {
+                              updateSetting('accentColor', color.id);
+                              showNotification(`Couleur d'accentuation réglée sur "${color.shortName}"`);
                             }}
+                            className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none flex-1 min-w-[50px]"
+                            title={color.name}
                           >
-                            {isSelected && (
-                              <div className="w-2.5 h-2.5 rounded-full bg-white shadow-sm" />
-                            )}
-                          </div>
-                          <span
-                            className={`text-[11px] transition-colors ${
-                              isSelected
-                                ? isDark
-                                  ? 'text-zinc-100 font-bold'
-                                  : 'text-zinc-900 font-bold'
-                                : isDark
-                                ? 'text-zinc-400 group-hover:text-zinc-200'
-                                : 'text-zinc-500 group-hover:text-zinc-800'
-                            }`}
-                          >
-                            {color.shortName}
-                          </span>
-                        </button>
-                      );
-                    })}
+                            <div
+                              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+                                isSelected
+                                  ? 'ring-2 ring-offset-2 ring-offset-zinc-950 scale-105 shadow-md'
+                                  : 'hover:scale-105 opacity-85 hover:opacity-100'
+                              }`}
+                              style={{
+                                background: color.hex,
+                                boxShadow: isSelected
+                                  ? color.isGradient
+                                    ? '0 0 14px rgba(6, 182, 212, 0.6)'
+                                    : `0 0 12px ${color.colorHex}60`
+                                  : undefined,
+                                ['--tw-ring-color' as any]: color.colorHex,
+                              }}
+                            >
+                              {isSelected && (
+                                <div className="w-2.5 h-2.5 rounded-full bg-white shadow-sm" />
+                              )}
+                            </div>
+                            <span
+                              className={`text-[11px] transition-colors ${
+                                isSelected
+                                  ? isDark
+                                    ? 'text-zinc-100 font-bold'
+                                    : 'text-zinc-900 font-bold'
+                                  : isDark
+                                  ? 'text-zinc-400 group-hover:text-zinc-200'
+                                  : 'text-zinc-500 group-hover:text-zinc-800'
+                              }`}
+                            >
+                              {color.shortName}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* 3. Transparence des surfaces (Liquid Glass - V2.6) */}
                 <div className={`p-5 rounded-3xl border space-y-4 transition-colors ${
@@ -1112,7 +1061,7 @@ export default function SettingsPage() {
                                 )}
                               </span>
                               <span className="text-[7px] text-zinc-500 block leading-none">
-                                {settings.uiStyle === 'nothing' ? 'NOTHING EDITION' : 'Productivité & Savoir'}
+                                {settings.uiStyle === 'nothing' ? 'SOMBRE ABSOLU' : 'Productivité & Savoir'}
                               </span>
                             </div>
                           </div>
@@ -1595,7 +1544,7 @@ export default function SettingsPage() {
                       Nuance du thème sombre
                     </h4>
                     <span className="text-[10px] font-mono text-zinc-500">
-                      {(settings.darkBgStyle || 'zinc') === 'oled' ? 'Noir Pur (#000000)' : 'Zinc (#09090b)'}
+                      {(settings.darkBgStyle || 'zinc') === 'oled' ? 'Sombre absolu (#000000)' : 'Zinc (#09090b)'}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -1605,7 +1554,10 @@ export default function SettingsPage() {
                         <button
                           key={opt.id}
                           type="button"
-                          onClick={() => updateSetting('darkBgStyle', opt.id)}
+                          onClick={() => {
+                            updateSetting('darkBgStyle', opt.id);
+                            showNotification(opt.id === 'oled' ? 'Mode Sombre absolu activé' : 'Nuance Zinc activée');
+                          }}
                           className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                             isSelected
                               ? 'border-purple-500 bg-purple-500/10 text-purple-400 font-bold'
@@ -1613,6 +1565,7 @@ export default function SettingsPage() {
                               ? 'border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200'
                               : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:text-zinc-900'
                           }`}
+                          style={isSelected && opt.id === 'oled' ? { borderColor: '#D71920', backgroundColor: 'rgba(215, 25, 32, 0.1)', color: '#D71920' } : undefined}
                         >
                           <div className="flex items-center gap-2">
                             <span

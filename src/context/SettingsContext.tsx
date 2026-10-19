@@ -24,6 +24,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   uiStyle: 'syntropy',
   theme: 'dark',
   accentColor: 'purple',
+  previousAccentColor: 'purple',
   darkBgStyle: 'zinc',
   neonIntensity: 'vibrant',
   typography: 'sans',
@@ -88,6 +89,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
+        if (parsed.darkBgStyle === 'oled' || parsed.uiStyle === 'nothing') {
+          parsed.darkBgStyle = 'oled';
+          parsed.uiStyle = 'nothing';
+          parsed.accentColor = 'red';
+        }
         setSettings((prev) => ({ ...prev, ...parsed }));
       } else {
         // Migration depuis second_brain_theme si existant
@@ -120,6 +126,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           const cloudData = snap.data() as Partial<AppSettings>;
           setSettings((prev) => {
             const merged = { ...prev, ...cloudData };
+            if (merged.darkBgStyle === 'oled' || merged.uiStyle === 'nothing') {
+              merged.darkBgStyle = 'oled';
+              merged.uiStyle = 'nothing';
+              merged.accentColor = 'red';
+            }
             localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
             return merged;
           });
@@ -166,8 +177,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       body.setAttribute('data-theme', 'light');
     }
 
-    // B. Couleur d'accentuation
-    const rawAccent = settings.accentColor || 'purple';
+    // B. Couleur d'accentuation (Verrouillée sur rouge si Sombre absolu / Nothing OS)
+    const isNothingActive = settings.uiStyle === 'nothing' || settings.darkBgStyle === 'oled';
+    const rawAccent = isNothingActive ? 'red' : (settings.accentColor || 'purple');
     const accent = rawAccent === 'rose' ? 'red' : rawAccent;
     root.setAttribute('data-accent', accent);
     body.setAttribute('data-accent', accent);
@@ -331,6 +343,65 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const updateSetting = useCallback(
     <K extends keyof AppSettings>(key: K, value: AppSettings[K], debounceCloud?: boolean) => {
+      // 1. Nuance de noir sombre : activation ou désactivation de Sombre absolu (Nothing OS)
+      if (key === 'darkBgStyle') {
+        if (value === 'oled') {
+          const prevAccent =
+            settings.accentColor !== 'red' && settings.accentColor !== 'rose'
+              ? settings.accentColor
+              : (settings.previousAccentColor || 'purple');
+
+          persistSettings(
+            {
+              ...settings,
+              darkBgStyle: 'oled',
+              uiStyle: 'nothing',
+              accentColor: 'red',
+              previousAccentColor: prevAccent,
+            },
+            debounceCloud
+          );
+          return;
+        } else if (value === 'zinc') {
+          const restoredAccent = settings.previousAccentColor || 'purple';
+          persistSettings(
+            {
+              ...settings,
+              darkBgStyle: 'zinc',
+              uiStyle: 'syntropy',
+              accentColor: restoredAccent,
+            },
+            debounceCloud
+          );
+          return;
+        }
+      }
+
+      // 2. Blocage strict de la couleur d'accentuation en rouge quand Sombre absolu est actif
+      if (key === 'accentColor') {
+        if (settings.darkBgStyle === 'oled' || settings.uiStyle === 'nothing') {
+          return;
+        }
+      }
+
+      // 3. Bascule vers thème clair : quitte Sombre absolu et restaure la couleur précédente
+      if (key === 'theme' && value === 'light') {
+        if (settings.darkBgStyle === 'oled' || settings.uiStyle === 'nothing') {
+          const restoredAccent = settings.previousAccentColor || 'purple';
+          persistSettings(
+            {
+              ...settings,
+              theme: 'light',
+              darkBgStyle: 'zinc',
+              uiStyle: 'syntropy',
+              accentColor: restoredAccent,
+            },
+            debounceCloud
+          );
+          return;
+        }
+      }
+
       persistSettings(
         {
           ...settings,
@@ -344,11 +415,27 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const updateMultipleSettings = useCallback(
     (partial: Partial<AppSettings>, debounceCloud?: boolean) => {
+      let next = { ...settings, ...partial };
+
+      if (partial.darkBgStyle === 'oled') {
+        const prevAccent =
+          settings.accentColor !== 'red' && settings.accentColor !== 'rose'
+            ? settings.accentColor
+            : (settings.previousAccentColor || 'purple');
+        next.darkBgStyle = 'oled';
+        next.uiStyle = 'nothing';
+        next.accentColor = 'red';
+        next.previousAccentColor = prevAccent;
+      } else if (partial.darkBgStyle === 'zinc') {
+        next.darkBgStyle = 'zinc';
+        next.uiStyle = 'syntropy';
+        next.accentColor = settings.previousAccentColor || 'purple';
+      } else if (next.darkBgStyle === 'oled' || next.uiStyle === 'nothing') {
+        next.accentColor = 'red';
+      }
+
       persistSettings(
-        {
-          ...settings,
-          ...partial,
-        },
+        next,
         debounceCloud !== undefined ? debounceCloud : partial.surfaceTransparency !== undefined
       );
     },

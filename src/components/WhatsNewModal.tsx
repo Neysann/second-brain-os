@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Sparkles,
+  Moon,
   X,
   Sliders,
   FileText,
@@ -83,6 +84,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
   };
 
   const features = [
+    {
+      icon: Moon,
+      color: 'text-red-500 bg-red-500/10 border-red-500/30',
+      title: 'Syntropy OS V2.6.19 : Mode Sombre Absolu & Verrouillage Signature Nothing Red',
+      desc: 'Activation discrète de l\'expérience Nothing OS via le mode « Sombre absolu » (renommé depuis Noir Pur OLED). Retrait de Nothing OS de la sélection publique des thèmes pour en faire un mode immersif secret. Verrouillage exclusif de la couleur d\'accentuation sur le Rouge vermillon Nothing (#D71920) avec masquage automatique du sélecteur de couleurs, et restauration automatique de votre ancienne couleur dès que vous quittez le mode Sombre absolu.',
+    },
     {
       icon: Sparkles,
       color: 'text-red-500 bg-red-500/10 border-red-500/30',

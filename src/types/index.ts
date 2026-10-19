@@ -27,6 +27,7 @@ export interface AppSettings {
   uiStyle?: UiStyle; // 'syntropy' (Liquid Glass) ou 'nothing' (Nothing OS DA)
   theme: ThemeSetting;
   accentColor: AccentColor;
+  previousAccentColor?: AccentColor;
   darkBgStyle: DarkBgStyle;
   neonIntensity: NeonIntensity;
   typography: TypographyStyle;

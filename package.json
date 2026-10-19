@@ -1,6 +1,6 @@
 {
   "name": "syntropy-os",
-  "version": "2.6.18",
+  "version": "2.6.19",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
@@ -11,6 +11,7 @@
     "build:win": "node scripts/convert-icons.js && next build && electron-builder --win nsis",
     "start": "next start",
     "deploy": "next build && npx firebase-tools deploy --only hosting",
+    "release": "node scripts/publish.js",
     "release:tag": "node scripts/release-tag.js",
     "lint": "eslint"
   },

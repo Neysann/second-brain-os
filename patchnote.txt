@@ -1,6 +1,22 @@
 ================================================================================
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
-===============================================================================
+================================================================================
+
+#### [V2.6.19] - 2026-10-19 (Mode Sombre Absolu Caché, Verrouillage Rouge Nothing & Restauration Intelligente)
+--------------------------------------------------------------------------------
+1. Mode Secret « Sombre absolu » & Expérience Immersive Nothing OS :
+- Refonte de l'option de fond noir : l'ancien bouton « Noir Pur OLED » est désormais sobrement rebaptisé « Sombre absolu » sans mention explicite de marque, avec une description épurée (« Noir pur profond (#000000). Contraste absolu, pureté minimale et immersion totale. »).
+- L'activation du mode Sombre absolu déclenche automatiquement sous le capot la direction artistique Nothing OS (noir pur #000000, grille Glyph, typographie NDot 57 et accent rouge Nothing #D71920).
+- Retrait du bloc public « Direction Artistique » de la page des paramètres : le thème Nothing OS n'est plus sélectionnable comme un thème classique mais devient une expérience secrète / easter egg intégrée à la nuance Sombre absolu.
+
+2. Verrouillage de la Couleur d'Accentuation sur le Rouge Nothing :
+- Lorsque le mode Sombre absolu est actif, la couleur d'accentuation est strictement verrouillée sur le Rouge vermillon Nothing (#D71920).
+- Le sélecteur de couleurs d'accentuation dans les paramètres est entièrement masqué tant que le mode Sombre absolu est actif, garantissant une cohérence visuelle parfaite.
+- Toute tentative de modification d'accent vers une autre nuance est bloquée au niveau de l'état global (SettingsContext).
+
+3. Restauration Automatique de la Couleur Précédente :
+- Mémorisation dynamique de la couleur d'accentuation favorite de l'utilisateur (ex. Violet, Aether, Cyan, etc.) avant l'activation du mode Sombre absolu.
+- En quittant le mode Sombre absolu (retour à la nuance Zinc / Anthracite ou bascule vers le thème Clair), l'application restaure automatiquement l'ancienne couleur d'accentuation et réactive le style Syntropy Liquid Glass.
 
 #### [V2.6.18] - 2026-10-19 (Écosystème Matériel Nothing OS V3.0 : Interface Glyph, Widgets Squircles & Éradication des Fuites)
 --------------------------------------------------------------------------------
