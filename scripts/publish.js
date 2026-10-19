@@ -50,6 +50,7 @@ if (gitDir !== rootDir) {
     'firebase.json',
     'firestore.rules',
     '.firebaserc',
+    'README.md',
   ];
   const ignoreList = [
     'node_modules',
