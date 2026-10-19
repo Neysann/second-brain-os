@@ -829,6 +829,35 @@ function registerIpcHandlers() {
     }
     return { success: false, reason: 'Fichier non trouvé dans dist/' };
   });
+
+  // Requête HTTP directe native (contournement transparent des restrictions CORS pour flux iCal / WebCal)
+  ipcMain.handle('fetch-url', async (_event, payload) => {
+    try {
+      const targetUrl = typeof payload === 'string' ? payload : payload?.url;
+      const headers = payload?.headers || { Accept: 'text/calendar, text/plain, */*' };
+      if (!targetUrl) return { success: false, error: 'URL manquante' };
+
+      const response = await fetch(targetUrl, {
+        headers,
+        redirect: 'follow',
+      });
+
+      if (!response.ok) {
+        return {
+          success: false,
+          status: response.status,
+          statusText: response.statusText,
+          error: `HTTP ${response.status}: ${response.statusText}`,
+        };
+      }
+
+      const data = await response.text();
+      return { success: true, data, status: response.status };
+    } catch (err) {
+      console.error('[Syntropy OS Desktop] Erreur fetch-url:', err);
+      return { success: false, error: err?.message || String(err) };
+    }
+  });
 }
 
 // Initialisation globale de l'application

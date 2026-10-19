@@ -85,6 +85,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
   const features = [
     {
+      icon: CalendarIcon,
+      color: 'text-blue-400 bg-blue-500/10 border-blue-500/30',
+      title: 'Syntropy OS V2.6.21 : Synchronisation Google Agenda Directe & Native',
+      desc: 'Téléchargement direct et instantané de vos flux iCal / Webcal Google Agenda dans l\'application de bureau Electron via une passerelle native Node.js. Contournement définitif des restrictions CORS des navigateurs sans dépendance à des proxys externes, et affichage de diagnostics détaillés en cas d\'URL erronée.',
+    },
+    {
       icon: Palette,
       color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/30',
       title: 'Syntropy OS V2.6.20 : Thème Aether en Dégradé Bleu Violacé Céleste',

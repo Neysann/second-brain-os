@@ -68,4 +68,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Ouvrir l'emplacement du binaire compilé
   openDistFolder: () => ipcRenderer.invoke('open-dist-folder'),
+
+  // Requête HTTP directe native sans restriction CORS (pour flux iCal, webcal, etc.)
+  fetchUrl: (options) =>
+    ipcRenderer.invoke('fetch-url', typeof options === 'string' ? { url: options } : options),
 });

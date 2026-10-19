@@ -214,9 +214,39 @@ export async function fetchICalFromUrl(rawUrl: string): Promise<string> {
     }
   }
 
+  // 0. Priorité native Electron : téléchargement direct via le processus principal Node.js (sans CORS, sans proxy)
+  if (typeof window !== 'undefined' && (window as any).electronAPI?.fetchUrl) {
+    try {
+      const res = await (window as any).electronAPI.fetchUrl({
+        url,
+        headers: { Accept: 'text/calendar, text/plain, */*' },
+      });
+      if (res?.success && typeof res.data === 'string') {
+        if (res.data.includes('BEGIN:VCALENDAR')) {
+          return res.data;
+        }
+        if (res.data.includes('<html') || res.data.includes('<!DOCTYPE')) {
+          throw new Error(
+            "L'adresse renseignée a renvoyé une page HTML. Dans Google Agenda, assurez-vous de copier l'« Adresse secrète au format iCal » (qui se termine par /basic.ics) dans Paramètres > Intégrer le calendrier."
+          );
+        }
+      } else if (res?.status === 404) {
+        throw new Error(
+          "Calendrier introuvable (Erreur 404). Si votre calendrier est privé, assurez-vous d'utiliser l'« Adresse secrète au format iCal » de Google Agenda (et non l'adresse publique)."
+        );
+      } else if (res?.error) {
+        console.warn('[Syntropy Desktop] Échec du fetch natif:', res.error);
+      }
+    } catch (nativeErr: any) {
+      if (nativeErr.message && !nativeErr.message.includes('fetch-url')) {
+        throw nativeErr;
+      }
+    }
+  }
+
   let receivedHtml = false;
 
-  // 1. Tentative directe
+  // 1. Tentative directe (navigateur)
   try {
     const res = await fetch(url, { method: 'GET', headers: { Accept: 'text/calendar, text/plain, */*' } });
     if (res.ok) {
@@ -232,8 +262,9 @@ export async function fetchICalFromUrl(rawUrl: string): Promise<string> {
     // Si la requête directe est bloquée par CORS (standard pour Google Agenda et Apple), bascule sur les proxies
   }
 
-  // 2. Proxies de secours fiables pour contourner les restrictions CORS en mode export statique
+  // 2. Proxies de secours fiables pour contourner les restrictions CORS en mode web statique
   const rawProxies = [
+    `https://corsproxy.org/?url=${encodeURIComponent(url)}`,
     `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
     `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
     `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,

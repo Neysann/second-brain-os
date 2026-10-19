@@ -571,11 +571,15 @@ export const CalendarSyncModal: React.FC<CalendarSyncModalProps> = ({ isOpen, on
                                 </span>
                               )}
                             </div>
-                            {feed.url.includes('?cid=') && (
+                            {feed.url.includes('?cid=') ? (
                               <p className="mt-1.5 text-[11px] text-amber-500/90 leading-tight">
-                                ⚠️ C'est un lien de partage web. Veuillez le supprimer et ajouter l'« Adresse secrète au format iCal » (se terminant par <code>/basic.ics</code>).
+                                ⚠️ C&apos;est un lien de partage web. Veuillez le supprimer et ajouter l&apos;« Adresse secrète au format iCal » (se terminant par <code>/basic.ics</code>).
                               </p>
-                            )}
+                            ) : feed.error ? (
+                              <p className="mt-1.5 text-[11px] text-amber-500/90 leading-tight">
+                                {feed.error}
+                              </p>
+                            ) : null}
                           </div>
                         </div>
 

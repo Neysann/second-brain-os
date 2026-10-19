@@ -2,6 +2,17 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.21] - 2026-10-19 (Synchronisation Google Agenda Directe Native Electron & Contournement CORS)
+--------------------------------------------------------------------------------
+1. Téléchargement Direct Natif dans l'Application Bureau (Electron) :
+- Ajout du handler IPC natif `fetch-url` dans le processus principal Node.js d'Electron, contournant définitivement les restrictions de politique d'origine (CORS) imposées par Google Calendar sur les navigateurs web.
+- Téléchargement direct, instantané et sécurisé des flux iCal / Webcal personnels sans transiter par des serveurs proxies tiers.
+- Diagnostic clair et messages d'erreur détaillés en cas d'URL erronée (distinction entre erreur 404, page HTML de partage web ou flux de calendrier valide).
+
+2. Modernisation des Proxies de Secours pour la Version Web :
+- Remplacement des anciens proxies publics hors service ou devenus payants par des passerelles de contournement CORS modernes et opérationnelles (dont corsproxy.org).
+- Affichage explicite des messages d'erreur et conseils de configuration directement sous chaque carte d'agenda dans la modale de synchronisation.
+
 #### [V2.6.20] - 2026-10-19 (Thème Aether : Dégradé Exclusif Bleu Électrique, Indigo et Violet Néon)
 --------------------------------------------------------------------------------
 1. Refonte Complète du Thème Aether en Dégradé Bleu Violacé :
