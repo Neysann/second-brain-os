@@ -107,6 +107,20 @@
     --color-zinc-900: #09090b;
     --color-zinc-850: #121215;
     --color-zinc-800: #18181b;
+
+    /* Désactivation néon & lueur pour le mode Sombre Absolu */
+    --accent-glow: transparent !important;
+    --accent-subtle: rgba(255, 255, 255, 0.04) !important;
+
+    /* Tokens Boutons Sombre Absolu : Teinté selon l'accent, mat et épuré */
+    --oled-btn-bg: color-mix(in srgb, var(--accent-primary, #8b5cf6) 14%, #121217);
+    --oled-btn-bg-hover: color-mix(in srgb, var(--accent-primary, #8b5cf6) 22%, #181820);
+    --oled-btn-border: color-mix(in srgb, var(--accent-primary, #8b5cf6) 30%, rgba(255, 255, 255, 0.12));
+    --oled-btn-border-hover: color-mix(in srgb, var(--accent-primary, #8b5cf6) 50%, rgba(255, 255, 255, 0.22));
+    --oled-btn-text: #f4f4f5;
+
+    --oled-btn-subtle-bg: color-mix(in srgb, var(--accent-primary, #8b5cf6) 8%, #09090c);
+    --oled-btn-subtle-border: color-mix(in srgb, var(--accent-primary, #8b5cf6) 18%, #1c1c22);
   }
 
   /* Palettes d'accentuation CSS Variables & Tailwind Tokens */
@@ -2600,5 +2614,147 @@ html.cyberpunk-mode .cyber-digital-clock {
   border-bottom: 1.5px solid #FCEE0A;
   border-right: 1.5px solid #FCEE0A;
 }
+
+/* ==========================================================================
+   MODE SOMBRE ABSOLU (OLED) - ÉPURATION DES BOUTONS & SUPPRESSION EFFET NÉON
+   ========================================================================== */
+
+/* 1. Suppression intégrale des lueurs, halos et ombres néon de tous les boutons */
+html.dark[data-dark-bg="oled"] button,
+html.dark[data-dark-bg="oled"] a[role="button"],
+html.dark[data-dark-bg="oled"] .btn,
+html.dark.oled button,
+html.dark.oled a[role="button"],
+html.dark.oled .btn {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* Annulation stricte de toutes les ombres néon de couleurs sur n'importe quel élément */
+html.dark[data-dark-bg="oled"] [class*="shadow-purple-"],
+html.dark[data-dark-bg="oled"] [class*="shadow-indigo-"],
+html.dark[data-dark-bg="oled"] [class*="shadow-cyan-"],
+html.dark[data-dark-bg="oled"] [class*="shadow-emerald-"],
+html.dark[data-dark-bg="oled"] [class*="shadow-amber-"],
+html.dark[data-dark-bg="oled"] [class*="shadow-rose-"],
+html.dark[data-dark-bg="oled"] [class*="shadow-red-"],
+html.dark[data-dark-bg="oled"] [class*="shadow-yellow-"],
+html.dark[data-dark-bg="oled"] [class*="shadow-blue-"],
+html.dark[data-dark-bg="oled"] button[class*="shadow-"],
+html.dark[data-dark-bg="oled"] a[class*="shadow-"],
+html.dark.oled [class*="shadow-purple-"],
+html.dark.oled [class*="shadow-indigo-"],
+html.dark.oled [class*="shadow-cyan-"],
+html.dark.oled [class*="shadow-emerald-"],
+html.dark.oled [class*="shadow-amber-"],
+html.dark.oled [class*="shadow-rose-"],
+html.dark.oled [class*="shadow-red-"],
+html.dark.oled [class*="shadow-yellow-"],
+html.dark.oled [class*="shadow-blue-"],
+html.dark.oled button[class*="shadow-"],
+html.dark.oled a[class*="shadow-"] {
+  box-shadow: none !important;
+}
+
+/* 2. Boutons d'action principaux : Fond sombre mat teinté selon l'accent, bordure fine épurée */
+html.dark[data-dark-bg="oled"] button.bg-purple-600,
+html.dark[data-dark-bg="oled"] a.bg-purple-600,
+html.dark[data-dark-bg="oled"] button.bg-indigo-600,
+html.dark[data-dark-bg="oled"] a.bg-indigo-600,
+html.dark[data-dark-bg="oled"] button[class*="bg-purple-600"],
+html.dark[data-dark-bg="oled"] a[class*="bg-purple-600"],
+html.dark[data-dark-bg="oled"] button[class*="bg-indigo-600"],
+html.dark[data-dark-bg="oled"] a[class*="bg-indigo-600"],
+html.dark[data-dark-bg="oled"] button[class*="from-purple-600"],
+html.dark[data-dark-bg="oled"] a[class*="from-purple-600"],
+html.dark[data-dark-bg="oled"] button[class*="to-indigo-600"],
+html.dark[data-dark-bg="oled"] a[class*="to-indigo-600"],
+html.dark[data-dark-bg="oled"] button.bg-purple-500,
+html.dark[data-dark-bg="oled"] button.bg-indigo-500,
+html.dark.oled button.bg-purple-600,
+html.dark.oled a.bg-purple-600,
+html.dark.oled button.bg-indigo-600,
+html.dark.oled a.bg-indigo-600,
+html.dark.oled button[class*="bg-purple-600"],
+html.dark.oled a[class*="bg-purple-600"],
+html.dark.oled button[class*="bg-indigo-600"],
+html.dark.oled a[class*="bg-indigo-600"],
+html.dark.oled button[class*="from-purple-600"],
+html.dark.oled a[class*="from-purple-600"],
+html.dark.oled button[class*="to-indigo-600"],
+html.dark.oled a[class*="to-indigo-600"],
+html.dark.oled button.bg-purple-500,
+html.dark.oled button.bg-indigo-500 {
+  background-color: var(--oled-btn-bg) !important;
+  background-image: none !important;
+  border: 1px solid var(--oled-btn-border) !important;
+  color: var(--oled-btn-text, #f4f4f5) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+html.dark[data-dark-bg="oled"] button.bg-purple-600:hover,
+html.dark[data-dark-bg="oled"] a.bg-purple-600:hover,
+html.dark[data-dark-bg="oled"] button.bg-indigo-600:hover,
+html.dark[data-dark-bg="oled"] a.bg-indigo-600:hover,
+html.dark[data-dark-bg="oled"] button[class*="bg-purple-600"]:hover,
+html.dark[data-dark-bg="oled"] a[class*="bg-purple-600"]:hover,
+html.dark[data-dark-bg="oled"] button[class*="bg-indigo-600"]:hover,
+html.dark[data-dark-bg="oled"] a[class*="bg-indigo-600"]:hover,
+html.dark[data-dark-bg="oled"] button[class*="from-purple-600"]:hover,
+html.dark[data-dark-bg="oled"] a[class*="from-purple-600"]:hover,
+html.dark.oled button.bg-purple-600:hover,
+html.dark.oled a.bg-purple-600:hover,
+html.dark.oled button.bg-indigo-600:hover,
+html.dark.oled a.bg-indigo-600:hover,
+html.dark.oled button[class*="bg-purple-600"]:hover,
+html.dark.oled a[class*="bg-purple-600"]:hover,
+html.dark.oled button[class*="bg-indigo-600"]:hover,
+html.dark.oled a[class*="bg-indigo-600"]:hover,
+html.dark.oled button[class*="from-purple-600"]:hover,
+html.dark.oled a[class*="from-purple-600"]:hover {
+  background-color: var(--oled-btn-bg-hover) !important;
+  background-image: none !important;
+  border-color: var(--oled-btn-border-hover) !important;
+  box-shadow: none !important;
+}
+
+/* 3. Boutons et pastilles secondaires sombres et mats */
+html.dark[data-dark-bg="oled"] [class*="bg-purple-950/"],
+html.dark[data-dark-bg="oled"] [class*="bg-indigo-950/"],
+html.dark[data-dark-bg="oled"] [class*="bg-purple-900/"],
+html.dark[data-dark-bg="oled"] [class*="bg-indigo-900/"],
+html.dark.oled [class*="bg-purple-950/"],
+html.dark.oled [class*="bg-indigo-950/"],
+html.dark.oled [class*="bg-purple-900/"],
+html.dark.oled [class*="bg-indigo-900/"] {
+  background-color: var(--oled-btn-subtle-bg) !important;
+  border-color: var(--oled-btn-subtle-border) !important;
+  box-shadow: none !important;
+}
+
+/* 4. Neutralisation des anneaux et halos animés */
+html.dark[data-dark-bg="oled"] .ring-purple-400\/40,
+html.dark[data-dark-bg="oled"] .ring-purple-500\/40,
+html.dark[data-dark-bg="oled"] .ring-purple-500\/30,
+html.dark[data-dark-bg="oled"] .ring-purple-500\/20,
+html.dark[data-dark-bg="oled"] .ring-purple-400,
+html.dark.oled .ring-purple-400\/40,
+html.dark.oled .ring-purple-500\/40,
+html.dark.oled .ring-purple-500\/30,
+html.dark.oled .ring-purple-500\/20,
+html.dark.oled .ring-purple-400 {
+  --tw-ring-color: var(--oled-btn-border) !important;
+  box-shadow: none !important;
+}
+
+html.dark[data-dark-bg="oled"] .animate-ping,
+html.dark.oled .animate-ping {
+  animation: none !important;
+  display: none !important;
+}
+
 
 

@@ -2,6 +2,20 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.27] - 2026-10-20 (Boutons Épurés en Sombre Absolu & Nouveau Bouton Assistant dans la Barre Latérale)
+--------------------------------------------------------------------------------
+1. Épuration Complète des Boutons en Mode Sombre Absolu (OLED) :
+- Désactivation totale de tous les effets néon, halos lumineux et ombres portées sur les boutons lorsque la nuance « Sombre absolu » est activée.
+- Rendu sombre, mat et épuré : les boutons d'action adoptent un fond sombre profond subtilement teinté selon la couleur d'accentuation active, souligné par une bordure fine et discrète.
+- Suppression des lueurs parasites et des animations ping en Sombre absolu pour une expérience visuelle ultra-propre, reposante pour les yeux et maximisant l'efficacité énergétique sur écran OLED.
+
+2. Intégration du Futur Bouton Assistant dans la Barre Latérale :
+- Le bouton des nouveautés de version présent au bas de la barre latérale est remplacé par l'emplacement du futur « Assistant Syntropy ».
+- Affichage adaptatif et élégant :
+  • En mode replié : icône minimaliste en forme de tête de robot.
+  • En mode déployé : icône robot, intitulé « Assistant » et badge discret « Bientôt ».
+- Au clic, affichage d'une notification discrète et élégante confirmant le développement en cours de l'assistant IA.
+
 #### [V2.6.26] - 2026-10-20 (Dissociation Complète du Mode Sombre Absolu et des Thèmes)
 --------------------------------------------------------------------------------
 1. Indépendance Totale de la Nuance « Sombre absolu » (OLED #000000) :

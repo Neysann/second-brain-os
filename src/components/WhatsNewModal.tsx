@@ -27,6 +27,7 @@ import {
   Globe,
   Shield,
   KeyRound,
+  Bot,
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
@@ -84,6 +85,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
   };
 
   const features = [
+    {
+      icon: Bot,
+      color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
+      title: 'Syntropy OS V2.6.27 : Boutons Épurés en Sombre Absolu & Bouton Assistant',
+      desc: 'En mode Sombre absolu (OLED), les effets néon et halos lumineux sur les boutons sont complètement désactivés pour laisser place à des boutons sombres, mats et épurés, subtilement teintés selon votre accentuation. Dans la barre latérale, le bouton des nouveautés cède sa place au futur Assistant Syntropy (avec icône tête de robot en mode replié et notification de statut).',
+    },
     {
       icon: Moon,
       color: 'text-zinc-100 bg-zinc-800/40 border-zinc-700/50',

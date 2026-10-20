@@ -26,6 +26,7 @@ import {
   Flame,
   Wallet,
   Sparkles,
+  Bot,
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useData } from '@/context/DataContext';
@@ -47,6 +48,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
   const { user, logout } = useAuth();
   const { settings } = useSettings();
   const { currentStreak, budgetStats } = useDailyLife();
+  const [showAssistantToast, setShowAssistantToast] = useState(false);
+
+  useEffect(() => {
+    if (showAssistantToast) {
+      const timer = setTimeout(() => setShowAssistantToast(false), 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [showAssistantToast]);
 
   const router = useRouter();
 
@@ -568,58 +577,42 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
           </div>
         )}
 
-        {/* Nouveautés de version */}
+        {/* Futur Bouton Assistant IA */}
         {collapsed ? (
           <button
-            onClick={() => {
-              if (typeof window !== 'undefined') {
-                window.dispatchEvent(new CustomEvent('open-whats-new'));
-              }
-            }}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors border cursor-pointer ${
+            onClick={() => setShowAssistantToast(true)}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border cursor-pointer group ${
               settings.uiStyle === 'nothing'
-                ? 'bg-zinc-900 border-zinc-800 text-white hover:border-zinc-700'
+                ? 'bg-zinc-900 border-zinc-800 text-white hover:border-zinc-700 hover:bg-zinc-800'
                 : theme === 'dark'
-                ? 'bg-purple-950/30 hover:bg-purple-950/60 border-purple-800/40 text-purple-300'
+                ? 'bg-purple-950/30 hover:bg-purple-950/60 border-purple-800/40 text-purple-300 hover:text-purple-200'
                 : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700'
             }`}
-            title="Consulter les dernières nouveautés de version"
+            title="Assistant Syntropy (Bientôt disponible)"
           >
-            <span
-              className={`w-2 h-2 rounded-full ${
-                settings.uiStyle === 'nothing' ? 'bg-[#D71920]' : 'bg-purple-500 animate-ping'
-              }`}
-            />
+            <Bot className="w-5 h-5 transition-transform group-hover:scale-110" />
           </button>
         ) : (
           <button
-            onClick={() => {
-              if (typeof window !== 'undefined') {
-                window.dispatchEvent(new CustomEvent('open-whats-new'));
-              }
-            }}
-            className={`w-full py-1.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors border cursor-pointer ${
+            onClick={() => setShowAssistantToast(true)}
+            className={`w-full py-1.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-all border cursor-pointer group ${
               settings.uiStyle === 'nothing'
-                ? 'bg-zinc-900 border-zinc-800 text-white hover:border-zinc-700'
+                ? 'bg-zinc-900 border-zinc-800 text-white hover:border-zinc-700 hover:bg-zinc-800'
                 : theme === 'dark'
-                ? 'bg-purple-950/30 hover:bg-purple-950/60 border-purple-800/40 text-purple-300'
+                ? 'bg-purple-950/30 hover:bg-purple-950/60 border-purple-800/40 text-purple-300 hover:text-purple-200'
                 : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700'
             }`}
-            title="Consulter les dernières nouveautés de version"
+            title="Assistant Syntropy (Bientôt disponible)"
           >
-            <div className="flex items-center gap-2 truncate">
-              <span
-                className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                  settings.uiStyle === 'nothing'
-                    ? 'bg-[#D71920] shadow-[0_0_8px_#D71920]'
-                    : 'bg-purple-500 animate-ping'
-                }`}
-              />
+            <div className="flex items-center gap-2.5 truncate">
+              <Bot className="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-110" />
               <span className={`truncate ${settings.uiStyle === 'nothing' ? 'font-mono' : ''}`}>
-                Nouveautés v{CURRENT_VERSION}
+                Assistant
               </span>
             </div>
-            <span className="text-[10px] opacity-75 font-mono">Voir →</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-md font-mono bg-purple-500/15 border border-purple-500/30 text-purple-300">
+              Bientôt
+            </span>
           </button>
         )}
 
@@ -695,6 +688,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
           </div>
         )}
       </div>
+
+      {/* Toast Notification Assistant */}
+      {showAssistantToast && (
+        <div
+          className={`fixed bottom-6 left-6 z-[100] flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-bottom-3 duration-300 pointer-events-auto ${
+            settings.uiStyle === 'nothing'
+              ? 'bg-black border-zinc-800 text-white font-mono'
+              : 'bg-zinc-950/95 border-zinc-800 text-zinc-100'
+          }`}
+        >
+          <div
+            className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+              settings.uiStyle === 'nothing'
+                ? 'bg-zinc-900 border border-zinc-700 text-white'
+                : 'bg-purple-500/15 border border-purple-500/30 text-purple-400'
+            }`}
+          >
+            <Bot className="w-4 h-4" />
+          </div>
+          <div className="flex flex-col text-left pr-2">
+            <span className="text-xs font-semibold text-white">Assistant Syntropy</span>
+            <span className="text-[11px] text-zinc-400">
+              En cours de développement (Bientôt disponible)
+            </span>
+          </div>
+        </div>
+      )}
     </aside>
   );
 };
