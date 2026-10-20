@@ -89,7 +89,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.darkBgStyle === 'oled' || parsed.uiStyle === 'nothing') {
+        if (parsed.uiStyle !== 'cyberpunk' && (parsed.darkBgStyle === 'oled' || parsed.uiStyle === 'nothing')) {
           parsed.darkBgStyle = 'oled';
           parsed.uiStyle = 'nothing';
           parsed.accentColor = 'red';
@@ -126,7 +126,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           const cloudData = snap.data() as Partial<AppSettings>;
           setSettings((prev) => {
             const merged = { ...prev, ...cloudData };
-            if (merged.darkBgStyle === 'oled' || merged.uiStyle === 'nothing') {
+            if (merged.uiStyle !== 'cyberpunk' && (merged.darkBgStyle === 'oled' || merged.uiStyle === 'nothing')) {
               merged.darkBgStyle = 'oled';
               merged.uiStyle = 'nothing';
               merged.accentColor = 'red';
@@ -260,10 +260,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     root.style.setProperty('--accent-rgb', accentRgb);
     root.style.setProperty('--glass-accent-border', `rgba(${accentRgb}, ${0.12 + (effectiveTransparency / 100) * 0.15})`);
 
-    // H. Direction Artistique / Style d'Interface (Syntropy Liquid Glass vs Nothing OS)
+    // H. Direction Artistique / Style d'Interface (Syntropy Liquid Glass, Nothing OS, Cyberpunk HUD)
     const uiStyle = settings.uiStyle || 'syntropy';
     root.setAttribute('data-ui-style', uiStyle);
     body.setAttribute('data-ui-style', uiStyle);
+
     if (uiStyle === 'nothing') {
       root.classList.add('nothing-os-mode');
       body.classList.add('nothing-os-mode');
@@ -272,6 +273,20 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } else {
       root.classList.remove('nothing-os-mode');
       body.classList.remove('nothing-os-mode');
+    }
+
+    if (uiStyle === 'cyberpunk') {
+      root.classList.add('cyberpunk-mode');
+      body.classList.add('cyberpunk-mode');
+      root.style.setProperty('--cyber-yellow', '#FCEE0A');
+      root.style.setProperty('--cyber-yellow-rgb', '252, 238, 10');
+      root.style.setProperty('--cyber-cyan', '#00F0FF');
+      root.style.setProperty('--cyber-cyan-rgb', '0, 240, 255');
+      root.style.setProperty('--cyber-bg', '#070a14');
+      root.style.setProperty('--accent-rgb', '252, 238, 10');
+    } else {
+      root.classList.remove('cyberpunk-mode');
+      body.classList.remove('cyberpunk-mode');
     }
   }, [
     effectiveTheme,
@@ -345,10 +360,23 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     <K extends keyof AppSettings>(key: K, value: AppSettings[K], debounceCloud?: boolean) => {
       // 1. Nuance de noir sombre ou Style UI : activation ou désactivation de Nothing OS vs Syntropy
       if (key === 'darkBgStyle' || key === 'uiStyle') {
+        const isActivatingCyberpunk = (key === 'uiStyle' && value === 'cyberpunk');
         const isActivatingNothing = (key === 'darkBgStyle' && value === 'oled') || (key === 'uiStyle' && value === 'nothing');
         const isActivatingSyntropy = (key === 'darkBgStyle' && value === 'zinc') || (key === 'uiStyle' && value === 'syntropy');
 
-        if (isActivatingNothing) {
+        if (isActivatingCyberpunk) {
+          persistSettings(
+            {
+              ...settings,
+              uiStyle: 'cyberpunk',
+              darkBgStyle: 'oled',
+              theme: 'dark',
+              accentColor: 'amber',
+            },
+            debounceCloud
+          );
+          return;
+        } else if (isActivatingNothing) {
           const prevAccent =
             settings.accentColor !== 'red' && settings.accentColor !== 'rose'
               ? settings.accentColor
@@ -420,7 +448,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     (partial: Partial<AppSettings>, debounceCloud?: boolean) => {
       let next = { ...settings, ...partial };
 
-      if (partial.darkBgStyle === 'oled' || partial.uiStyle === 'nothing') {
+      if (partial.uiStyle === 'cyberpunk') {
+        next.uiStyle = 'cyberpunk';
+        next.theme = 'dark';
+        next.darkBgStyle = 'oled';
+        next.accentColor = 'amber';
+      } else if (partial.darkBgStyle === 'oled' || partial.uiStyle === 'nothing') {
         const prevAccent =
           settings.accentColor !== 'red' && settings.accentColor !== 'rose'
             ? settings.accentColor

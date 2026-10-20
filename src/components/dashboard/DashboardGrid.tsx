@@ -40,6 +40,26 @@ interface DashboardGridProps {
   onOpenWidgetSettings?: (config: DashboardWidgetConfig) => void;
 }
 
+const CYBERPUNK_SERIALS: Record<string, string> = {
+  calendar: 'CAL-001',
+  clock: 'CLK-001',
+  weather: 'WX-001',
+  quick_notes: 'NOTE-001',
+  tasks: 'TASK-001',
+  projects_overview: 'PRJ-001',
+  project_progress: 'PRG-001',
+  daily_quote: 'QTE-001',
+  focus_timer: 'FCS-001',
+  audio_player: 'AUD-001',
+  rss_feed: 'RSS-001',
+  news: 'NWS-001',
+  interactive: 'CLC-001',
+  meme: 'MEM-001',
+  streak_duo: 'STR-001',
+  habits_sprint: 'HBT-001',
+  budget_mini: 'BGT-001',
+};
+
 export const DashboardGrid: React.FC<DashboardGridProps> = ({
   widgets,
   isEditing,
@@ -51,6 +71,7 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
 }) => {
   const { settings } = useSettings();
   const isNothing = settings?.uiStyle === 'nothing';
+  const isCyberpunk = settings?.uiStyle === 'cyberpunk';
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverInfo, setDragOverInfo] = useState<{
     index: number;
@@ -249,24 +270,37 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
               className={`relative rounded-2xl border transition-all duration-200 flex flex-col overflow-hidden ${getSizeClasses(
                 config
               )} ${
-                isEditing
+                isCyberpunk
+                  ? 'cyber-corner-brackets bg-[#090d18]/90 border-[#FCEE0A]/30 hover:border-[#FCEE0A]/60 shadow-lg'
+                  : isEditing
                   ? isNothing
                     ? 'border-white/50 glass-card shadow-[0_0_15px_rgba(255,255,255,0.08)] ring-1 ring-white/30'
                     : 'border-purple-500/50 hover:border-purple-400 glass-card shadow-lg ring-1 ring-purple-500/30'
                   : 'glass-card hover:border-zinc-300 dark:hover:border-zinc-700/80 shadow-xs'
               } ${isDraggingThis ? 'opacity-30 scale-95 border-dashed border-white/50' : ''}`}
             >
-              {/* Ligne visuelle indiquant l'endroit exact de dépose (Nothing Red en Nothing OS) */}
+              {/* Tag de série technique Cyberpunk (CAL-001, CLK-001...) */}
+              {isCyberpunk && !isEditing && (
+                <div className="absolute top-2.5 right-3.5 z-10 pointer-events-none select-none font-mono text-[9px] font-bold tracking-widest text-[#FCEE0A]/70 uppercase">
+                  {CYBERPUNK_SERIALS[config.widgetId] || `${config.widgetId.substring(0, 3).toUpperCase()}-001`}
+                </div>
+              )}
+
+              {/* Ligne visuelle indiquant l'endroit exact de dépose (Nothing Red en Nothing OS, Cyberpunk Yellow en Cyberpunk) */}
               {isInsertBefore && !isDraggingThis && (
                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-full z-30 animate-pulse ${
-                  isNothing
+                  isCyberpunk
+                    ? 'bg-[#FCEE0A] shadow-[0_0_12px_#FCEE0A] ring-1 ring-[#FCEE0A]'
+                    : isNothing
                     ? 'bg-[#D71920] shadow-[0_0_12px_#D71920] ring-1 ring-[#D71920]'
                     : 'bg-gradient-to-b from-purple-400 to-indigo-500 shadow-lg shadow-purple-500/80 ring-2 ring-purple-300'
                 }`} />
               )}
               {isInsertAfter && !isDraggingThis && (
                 <div className={`absolute right-0 top-0 bottom-0 w-1.5 rounded-full z-30 animate-pulse ${
-                  isNothing
+                  isCyberpunk
+                    ? 'bg-[#FCEE0A] shadow-[0_0_12px_#FCEE0A] ring-1 ring-[#FCEE0A]'
+                    : isNothing
                     ? 'bg-[#D71920] shadow-[0_0_12px_#D71920] ring-1 ring-[#D71920]'
                     : 'bg-gradient-to-b from-purple-400 to-indigo-500 shadow-lg shadow-purple-500/80 ring-2 ring-purple-300'
                 }`} />
@@ -371,7 +405,9 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
 
       <style jsx>{`
         .dashboard-grid-pattern {
-          background-image: ${isNothing
+          background-image: ${isCyberpunk
+            ? 'radial-gradient(rgba(252, 238, 10, 0.22) 1px, transparent 1px)'
+            : isNothing
             ? 'radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px)'
             : 'radial-gradient(rgba(168, 85, 247, 0.18) 1px, transparent 1px)'};
           background-size: 24px 24px;

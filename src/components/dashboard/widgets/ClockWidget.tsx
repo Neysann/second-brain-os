@@ -28,6 +28,7 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
   const { theme } = useTheme();
   const { settings: appSettings } = useSettings();
   const isNothing = appSettings?.uiStyle === 'nothing';
+  const isCyberpunk = appSettings?.uiStyle === 'cyberpunk';
   const [time, setTime] = useState<Date | null>(null);
   const [secondaryCityIndex, setSecondaryCityIndex] = useState(0);
 
@@ -162,7 +163,43 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
     }
     return 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
   };
-  const weekNum = getWeekNumber(time);
+  // RENDU CYBERPUNK OFFICIEL (Inspiré de la maquette HUD Cyberdeck)
+  if (isCyberpunk) {
+    const now = time;
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / 86400000) + 1;
+    const totalDays = now.getFullYear() % 4 === 0 ? 366 : 365;
+
+    return (
+      <div className="flex flex-col h-full items-center justify-between p-3.5 select-none font-mono">
+        {/* Header */}
+        <div className="w-full flex items-center justify-between text-[11px] font-bold text-[#00F0FF] border-b border-[#FCEE0A]/20 pb-1.5">
+          <div className="flex items-center gap-1.5">
+            <ClockIcon className="w-3.5 h-3.5 text-[#00F0FF]" />
+            <span className="tracking-widest uppercase">HORLOGE</span>
+          </div>
+          <span className="text-[10px] text-zinc-500 font-mono tracking-widest">CLK-001</span>
+        </div>
+
+        {/* Big Cyan Digital Display */}
+        <div className="my-auto text-center py-1">
+          <div className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-wider cyber-digital-clock">
+            {primaryTimeData.digitalShort.replace(/ [AP]M/, '')}:{primaryTimeData.seconds}
+          </div>
+          <div className="text-[11px] text-zinc-300 capitalize truncate mt-1 tracking-wide">
+            {formattedDate}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="w-full flex items-center justify-between text-[10px] text-zinc-400 pt-1.5 border-t border-[#FCEE0A]/20 tracking-wider">
+          <span>SEMAINE {weekNum}</span>
+          <span className="text-zinc-600">|</span>
+          <span>JOUR {dayOfYear}/{totalDays}</span>
+        </div>
+      </div>
+    );
+  }
 
   // Si taille Medium ou Large : Mode Dual Clock
   if (size === 'medium' || size === 'large' || displayMode === 'dual') {

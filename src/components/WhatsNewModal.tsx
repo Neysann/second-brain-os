@@ -85,6 +85,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
   const features = [
     {
+      icon: Zap,
+      color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30',
+      title: 'Syntropy OS V2.6.24 : Nouveau Thème Secret Cyberpunk HUD & Cascade Matrix',
+      desc: 'Découvrez la nouvelle direction artistique Cyberpunk HUD accessible depuis le menu secret : esthétique Cyberdeck haute fidélité avec découpes angulaires, tags techniques de série (CAL-001, CLK-001...), accents jaune fluo (#FCEE0A) et cyan (#00F0FF), horloge numérique cyan luminescente, panneau de télémétrie système et cascade Matrix de caractères ASCII en arrière-plan discret.',
+    },
+    {
       icon: Sparkles,
       color: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
       title: 'Syntropy OS V2.6.23 : Un Secret se Cache dans les Paramètres...',

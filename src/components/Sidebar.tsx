@@ -150,7 +150,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
               <span className={`font-bold text-base tracking-tight flex items-center gap-1.5 ${
                 theme === 'dark' ? 'text-zinc-100' : 'text-zinc-900'
               }`}>
-                {settings.uiStyle === 'nothing' ? (
+                {settings.uiStyle === 'cyberpunk' ? (
+                  <span className="font-mono text-base tracking-wider flex items-center gap-1.5 text-white font-black">
+                    Syntropy
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FCEE0A]/20 text-[#FCEE0A] font-mono border border-[#FCEE0A]/40 font-bold">
+                      HUD
+                    </span>
+                  </span>
+                ) : settings.uiStyle === 'nothing' ? (
                   <span className="font-ndot text-base tracking-wider flex items-center gap-1.5 text-zinc-900 dark:text-white">
                     SYNTROPY
                     <span className="nothing-red-dot ml-0.5" />
@@ -165,7 +172,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
                 )}
               </span>
               <span className="text-xs text-zinc-500 truncate font-mono">
-                {settings.uiStyle === 'nothing' ? 'NOTHING EDITION • OS' : 'Productivité & Savoir'}
+                {settings.uiStyle === 'cyberpunk'
+                  ? 'CYBERDECK // HUD'
+                  : settings.uiStyle === 'nothing'
+                  ? 'NOTHING EDITION • OS'
+                  : 'Productivité & Savoir'}
               </span>
             </div>
           )}
@@ -222,11 +233,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
                 } rounded-xl text-sm font-medium transition-all cursor-pointer group relative
                   ${
                     isActive
-                      ? settings.uiStyle === 'nothing'
+                      ? settings.uiStyle === 'cyberpunk'
+                        ? 'bg-[#FCEE0A]/10 text-[#FCEE0A] font-bold border border-[#FCEE0A] shadow-[0_0_12px_rgba(252,238,10,0.25)] cyber-corner-brackets font-mono'
+                        : settings.uiStyle === 'nothing'
                         ? 'bg-white text-black font-bold border border-white shadow-none font-ntype'
                         : isPurple
                         ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/30 font-semibold ring-1 ring-purple-400/40'
                         : 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 font-semibold'
+                      : settings.uiStyle === 'cyberpunk'
+                      ? 'text-zinc-400 hover:text-white hover:bg-[#FCEE0A]/5 border border-transparent font-mono'
                       : settings.uiStyle === 'nothing'
                       ? 'text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent'
                       : isPurple
@@ -242,9 +257,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
                 <Icon
                   className={`w-5 h-5 flex-shrink-0 pointer-events-none transition-colors ${
                     isActive
-                      ? settings.uiStyle === 'nothing'
+                      ? settings.uiStyle === 'cyberpunk'
+                        ? 'text-[#FCEE0A]'
+                        : settings.uiStyle === 'nothing'
                         ? 'text-black'
                         : 'text-white'
+                      : settings.uiStyle === 'cyberpunk'
+                      ? 'text-zinc-400 group-hover:text-[#FCEE0A]'
                       : settings.uiStyle === 'nothing'
                       ? 'text-zinc-400 group-hover:text-white'
                       : isPurple
@@ -520,6 +539,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
           </button>
         )}
 
+
+        {/* Module Télémétrie HUD Cyberdeck (Inspiré de la maquette officielle) */}
+        {settings.uiStyle === 'cyberpunk' && !collapsed && (
+          <div className="cyber-telemetry-box rounded-xl p-3 text-left space-y-2 select-none my-2 font-mono">
+            <div className="flex items-center gap-1.5 text-[10px] text-[#00F0FF] font-bold tracking-widest border-b border-[#FCEE0A]/20 pb-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] animate-pulse" />
+              <span>SYSTÈME SYNCHRONISÉ</span>
+            </div>
+            <div className="space-y-1 text-[10px] text-zinc-400">
+              <div className="flex justify-between">
+                <span className="text-zinc-500">RÉSEAU</span>
+                <span className="text-[#00F0FF] font-bold">EN LIGNE</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500">STOCKAGE</span>
+                <span className="text-zinc-200 font-bold">68%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500">PERFORMANCE</span>
+                <span className="text-[#FCEE0A] font-bold">OPTIMAL</span>
+              </div>
+            </div>
+            <div className="pt-1.5 border-t border-[#FCEE0A]/20 flex justify-between text-[8px] text-zinc-500 tracking-wider">
+              <span>SNT-OS-1.2.0</span>
+              <span>ID 7F3A-9C2D</span>
+            </div>
+          </div>
+        )}
 
         {/* Nouveautés de version */}
         {collapsed ? (

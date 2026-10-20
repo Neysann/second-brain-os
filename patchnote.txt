@@ -2,6 +2,18 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.24] - 2026-10-20 (Nouveau Thème Secret Cyberpunk HUD & Cascade Matrix Discrète)
+--------------------------------------------------------------------------------
+1. Nouvelle Direction Artistique « Cyberpunk HUD » :
+- Intégration d'un thème secret complet inspiré de l'esthétique Cyberdeck : angles biseautés avec micro-repères, tags techniques de série sur chaque widget (CAL-001, CLK-001, WX-001, TASK-001, PRJ-001, PRG-001, QTE-001, FCS-001, AUD-001...).
+- Accents jaune fluo haute visibilité (#FCEE0A) pour les actions prioritaires et les bordures actives, combinés à des repères cyan lumineux (#00F0FF).
+- Horloge numérique Cyberpunk Cyan avec affichage des secondes luminescentes, semaine et progression dans l'année (JOUR X/366).
+- Module de télémétrie système dédié au bas de la barre latérale (état de synchronisation réseau, stockage et statut des performances).
+
+2. Effet d'Arrière-Plan Cascade Matrix en Caractères ASCII :
+- Rendu Canvas HTML5 haute performance (30 FPS, ultra-basse consommation CPU) affichant une pluie discrète de caractères ASCII, katakana et hexadécimaux tombant en cascade.
+- Teinte en niveaux de gris semi-transparente discrète assurant une ambiance vivante tout en préservant une lisibilité maximale pour vos notes, tâches et widgets.
+
 #### [V2.6.23] - 2026-10-19 (Ajout d'un Menu Secret & Optimisations)
 --------------------------------------------------------------------------------
 1. Ajout d'un Menu Secret :

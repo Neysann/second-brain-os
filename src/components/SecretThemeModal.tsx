@@ -78,8 +78,9 @@ export const SecretThemeModal: React.FC<SecretThemeModalProps> = ({
 
   if (!isOpen) return null;
 
-  const isNothingCurrent = settings.uiStyle === 'nothing' || settings.darkBgStyle === 'oled';
-  const isClassiqueCurrent = !isNothingCurrent;
+  const isCyberpunkCurrent = settings.uiStyle === 'cyberpunk';
+  const isNothingCurrent = (settings.uiStyle === 'nothing' || settings.darkBgStyle === 'oled') && !isCyberpunkCurrent;
+  const isClassiqueCurrent = !isNothingCurrent && !isCyberpunkCurrent;
 
   /**
    * REGISTRE DES THÈMES SECRETS
@@ -151,6 +152,41 @@ export const SecretThemeModal: React.FC<SecretThemeModalProps> = ({
             <div className="h-1.5 flex-1 bg-zinc-800 rounded-full overflow-hidden">
               <div className="h-full w-2/3 bg-[#D71920]" />
             </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'cyberpunk',
+      name: 'Cyberpunk HUD',
+      subtitle: 'Cyberdeck, Découpes Angulaires & Cascade Matrix',
+      description:
+        'Esthétique Cyberdeck complète : bordures biseautées, tags techniques (CAL-001, CLK-001...), accents jaune fluo (#FCEE0A) et cyan (#00F0FF), horloge numérique et cascade Matrix discrète en arrière-plan.',
+      badge: 'Secret',
+      badgeColor: 'bg-yellow-500/20 text-[#FCEE0A] border-yellow-500/40',
+      borderColor: 'hover:border-yellow-500/50',
+      icon: Zap,
+      isCurrent: () => isCyberpunkCurrent,
+      onSelect: (update) => {
+        update({
+          uiStyle: 'cyberpunk',
+          darkBgStyle: 'oled',
+          theme: 'dark',
+          accentColor: 'amber',
+        });
+        onNotification?.('Direction Artistique Cyberpunk HUD activée !', 'success');
+      },
+      previewElement: (
+        <div className="w-full h-20 rounded-xl bg-[#070a14] p-3 flex flex-col justify-between border border-[#FCEE0A]/50 shadow-inner relative overflow-hidden font-mono">
+          <div className="flex items-center justify-between text-[10px]">
+            <span className="text-[#00F0FF] font-bold">● SYSTÈME SYNCHRONISÉ</span>
+            <span className="text-[#FCEE0A]">CLK-001</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-[#00F0FF] text-base font-bold tracking-wider font-mono">09:24:17</span>
+            <span className="px-1.5 py-0.5 rounded text-[9px] bg-[#FCEE0A] text-black font-extrabold uppercase">
+              HUD ACTIF
+            </span>
           </div>
         </div>
       ),

@@ -23,6 +23,7 @@ import Sidebar from './Sidebar';
 import CommandPaletteModal from './CommandPaletteModal';
 import AuthModal from './AuthModal';
 import WhatsNewModal from './WhatsNewModal';
+import MatrixRainCanvas from './MatrixRainCanvas';
 import { useTheme } from '@/context/ThemeContext';
 import { useData } from '@/context/DataContext';
 import { useAuth } from '@/context/AuthContext';
@@ -319,8 +320,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         theme === 'dark' ? 'bg-zinc-950 text-zinc-100' : 'bg-zinc-50 text-zinc-900'
       }`}
     >
-      {/* 0. Fond d'ambiance Aurora / Mesh Gradient Liquid Glass OU Grille & Interface Glyph Nothing OS */}
-      {settings.uiStyle === 'nothing' ? (
+      {/* 0. Fond d'ambiance Aurora / Mesh Gradient Liquid Glass, Grille Nothing OS, ou Cascade Matrix Cyberpunk */}
+      {settings.uiStyle === 'cyberpunk' ? (
+        <MatrixRainCanvas />
+      ) : settings.uiStyle === 'nothing' ? (
         <div
           className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none bg-black nothing-grid-bg transition-opacity duration-700"
           aria-hidden="true"
