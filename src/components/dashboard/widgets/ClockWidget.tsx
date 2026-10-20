@@ -163,6 +163,8 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({
     }
     return 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
   };
+  const weekNum = getWeekNumber(time);
+
   // RENDU CYBERPUNK OFFICIEL (Inspiré de la maquette HUD Cyberdeck)
   if (isCyberpunk) {
     const now = time;
