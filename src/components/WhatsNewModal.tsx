@@ -85,6 +85,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
   const features = [
     {
+      icon: Moon,
+      color: 'text-zinc-100 bg-zinc-800/40 border-zinc-700/50',
+      title: 'Syntropy OS V2.6.26 : Nuance Sombre Absolu Indépendante des Thèmes',
+      desc: 'Le mode Sombre absolu (#000000) est désormais complètement dissocié des thèmes artistiques. Vous pouvez choisir librement entre Zinc (#09090b) et Sombre absolu (#000000) pour n\'importe quel style (Syntropy Liquid Glass, Cyberpunk HUD, Nothing OS) tout en personnalisant librement votre couleur d\'accentuation préférée.',
+    },
+    {
       icon: Palette,
       color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30',
       title: 'Syntropy OS V2.6.25 : Verrouillage Accentuation Bi-ton Jaune & Cyan Cyberpunk HUD',

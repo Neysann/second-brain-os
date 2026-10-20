@@ -79,7 +79,7 @@ export const SecretThemeModal: React.FC<SecretThemeModalProps> = ({
   if (!isOpen) return null;
 
   const isCyberpunkCurrent = settings.uiStyle === 'cyberpunk';
-  const isNothingCurrent = (settings.uiStyle === 'nothing' || settings.darkBgStyle === 'oled') && !isCyberpunkCurrent;
+  const isNothingCurrent = settings.uiStyle === 'nothing';
   const isClassiqueCurrent = !isNothingCurrent && !isCyberpunkCurrent;
 
   /**
@@ -101,7 +101,6 @@ export const SecretThemeModal: React.FC<SecretThemeModalProps> = ({
       onSelect: (update) => {
         update({
           uiStyle: 'syntropy',
-          darkBgStyle: 'zinc',
           accentColor: settings.previousAccentColor || 'purple',
         });
         onNotification?.('Thème Classique (Liquid Glass) réactivé !', 'success');
@@ -125,7 +124,7 @@ export const SecretThemeModal: React.FC<SecretThemeModalProps> = ({
       name: 'Nothing OS Edition',
       subtitle: 'Écosystème Matériel, NDot & Glyph',
       description:
-        'Immersion intégrale dans les codes industriels de Nothing : noir absolu OLED (#000000), typographie matricielle NDot 57, accent Rouge vermillon Nothing (#D71920) et interface Glyph dynamique.',
+        'Immersion intégrale dans les codes industriels de Nothing : typographie matricielle NDot 57, accent Rouge vermillon Nothing (#D71920) et interface Glyph dynamique.',
       badge: 'Secret',
       badgeColor: 'bg-red-500/20 text-red-400 border-red-500/40',
       borderColor: 'hover:border-red-500/50',
@@ -134,7 +133,6 @@ export const SecretThemeModal: React.FC<SecretThemeModalProps> = ({
       onSelect: (update) => {
         update({
           uiStyle: 'nothing',
-          darkBgStyle: 'oled',
           accentColor: 'red',
         });
         onNotification?.('Direction Artistique Nothing OS activée !', 'success');
@@ -170,7 +168,6 @@ export const SecretThemeModal: React.FC<SecretThemeModalProps> = ({
       onSelect: (update) => {
         update({
           uiStyle: 'cyberpunk',
-          darkBgStyle: 'oled',
           theme: 'dark',
           accentColor: 'cyberpunk',
         });

@@ -2,6 +2,17 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.26] - 2026-10-20 (Dissociation Complète du Mode Sombre Absolu et des Thèmes)
+--------------------------------------------------------------------------------
+1. Indépendance Totale de la Nuance « Sombre absolu » (OLED #000000) :
+- Le mode « Sombre absolu » redevient une simple nuance de fond noir pur indépendant, sélectionnable librement dans Paramètres > Apparence (aux côtés de la nuance Zinc #09090b).
+- L'activation du Sombre absolu ne bascule plus automatiquement sur une direction artistique particulière et n'altère plus votre couleur d'accentuation.
+- Vous pouvez désormais profiter d'un fond noir absolu OLED (#000000) tout en conservant le thème de votre choix (Syntropy Liquid Glass, Cyberpunk HUD, etc.) et votre couleur d'accentuation préférée (Violet, Aether, Cyan, Vert...).
+
+2. Découplage de la Sélection des Thèmes et du Fond :
+- Les thèmes artistiques accessibles depuis le menu secret n'imposent plus de nuance de fond fixe : le choix entre Zinc et Sombre absolu est préservé lors des changements de style d'interface.
+- Le sélecteur de couleurs d'accentuation reste actif et entièrement personnalisable lorsque vous utilisez le fond Sombre absolu avec le style Syntropy.
+
 #### [V2.6.25] - 2026-10-20 (Verrouillage Accentuation Bi-ton Jaune & Cyan Cyberpunk HUD sur Toute l'Interface)
 --------------------------------------------------------------------------------
 1. Verrouillage Harmonisé de la Couleur d'Accentuation en Jaune & Cyan :

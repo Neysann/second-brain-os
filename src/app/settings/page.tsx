@@ -558,7 +558,7 @@ export default function SettingsPage() {
         const alpha = isReduced ? 1 : Math.max(0.45, 1 - (effectiveTrans / 100));
         const cardAlpha = isReduced ? 1 : Math.max(0.55, 1 - (effectiveTrans * 0.75 / 100));
         const isCyberpunkActive = settings.uiStyle === 'cyberpunk';
-        const isNothingActive = !isCyberpunkActive && (settings.uiStyle === 'nothing' || (settings.darkBgStyle || 'zinc') === 'oled');
+        const isNothingActive = !isCyberpunkActive && settings.uiStyle === 'nothing';
         const activeAccent = isCyberpunkActive
           ? { id: 'cyberpunk' as AccentColor, name: 'Cyberpunk 2077 HUD (Jaune & Bleu)', shortName: 'Cyberpunk', colorHex: '#FCEE0A', hex: 'linear-gradient(135deg, #FCEE0A, #00F0FF)', isGradient: true }
           : isNothingActive
@@ -767,7 +767,7 @@ export default function SettingsPage() {
                                   ? 'border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200'
                                   : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:text-zinc-900'
                               }`}
-                              style={isSelected && opt.id === 'oled' ? { borderColor: '#D71920', backgroundColor: 'rgba(215, 25, 32, 0.1)', color: '#D71920' } : undefined}
+                              style={isSelected ? { borderColor: activeAccentHex, backgroundColor: `${activeAccentHex}15`, color: activeAccentHex } : undefined}
                             >
                               <div className="flex items-center gap-2">
                                 <span
@@ -1650,7 +1650,7 @@ export default function SettingsPage() {
                               ? 'border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200'
                               : 'border-zinc-200 bg-zinc-50 text-zinc-600 hover:text-zinc-900'
                           }`}
-                          style={isSelected && opt.id === 'oled' ? { borderColor: '#D71920', backgroundColor: 'rgba(215, 25, 32, 0.1)', color: '#D71920' } : undefined}
+                          style={isSelected ? { borderColor: 'var(--accent-primary, #8b5cf6)', backgroundColor: 'var(--accent-subtle, rgba(139, 92, 246, 0.12))', color: 'var(--accent-text, #a78bfa)' } : undefined}
                         >
                           <div className="flex items-center gap-2">
                             <span

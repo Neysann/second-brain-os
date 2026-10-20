@@ -317,7 +317,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   return (
     <div
       className={`flex h-screen w-screen overflow-hidden relative ${
-        theme === 'dark' ? 'bg-zinc-950 text-zinc-100' : 'bg-zinc-50 text-zinc-900'
+        theme === 'dark' ? (settings.darkBgStyle === 'oled' ? 'bg-black text-zinc-100' : 'bg-zinc-950 text-zinc-100') : 'bg-zinc-50 text-zinc-900'
       }`}
     >
       {/* 0. Fond d'ambiance Aurora / Mesh Gradient Liquid Glass, Grille Nothing OS, ou Cascade Matrix Cyberpunk */}
