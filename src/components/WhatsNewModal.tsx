@@ -85,6 +85,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
   const features = [
     {
+      icon: Palette,
+      color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30',
+      title: 'Syntropy OS V2.6.25 : Verrouillage Accentuation Bi-ton Jaune & Cyan Cyberpunk HUD',
+      desc: 'Dans le thème Cyberpunk 2077 HUD, la couleur d\'accentuation est désormais entièrement verrouillée sur le bi-ton officiel Jaune néon (#FCEE0A) et Bleu électrique (#00F0FF) sur 100% de l\'interface (boutons haute lisibilité, formulaires, badges, bordures, scrollbars et sélections de texte). Le sélecteur des paramètres affiche une carte verrouillée dédiée, et votre ancienne couleur d\'accentuation est automatiquement restaurée en revenant au thème classique.',
+    },
+    {
       icon: Zap,
       color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30',
       title: 'Syntropy OS V2.6.24 : Nouveau Thème Secret Cyberpunk HUD & Cascade Matrix',

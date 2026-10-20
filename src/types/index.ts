@@ -11,7 +11,7 @@ export type ProjectStatus = 'active' | 'on_hold' | 'completed' | 'archived';
 export type ThemeMode = 'dark' | 'light';
 
 export type ThemeSetting = 'light' | 'dark' | 'auto';
-export type AccentColor = 'purple' | 'aether' | 'cyan' | 'emerald' | 'amber' | 'red' | 'rose' | 'mix' | 'monochrome';
+export type AccentColor = 'purple' | 'aether' | 'cyan' | 'emerald' | 'amber' | 'red' | 'rose' | 'mix' | 'monochrome' | 'cyberpunk';
 export type DarkBgStyle = 'zinc' | 'oled';
 export type NeonIntensity = 'vibrant' | 'subtle' | 'none';
 export type TypographyStyle = 'sans' | 'serif' | 'mono';

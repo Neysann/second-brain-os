@@ -2,6 +2,21 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.25] - 2026-10-20 (Verrouillage Accentuation Bi-ton Jaune & Cyan Cyberpunk HUD sur Toute l'Interface)
+--------------------------------------------------------------------------------
+1. Verrouillage Harmonisé de la Couleur d'Accentuation en Jaune & Cyan :
+- Lorsque le thème secret Cyberpunk 2077 HUD est actif, l'ensemble des couleurs d'accentuation de Syntropy OS est strictement verrouillé sur le bi-ton signature Cyberpunk : Jaune Fluo (#FCEE0A) et Bleu Cyan Électrique (#00F0FF).
+- Application intégrale et adaptée sur 100% de l'interface :
+  • Boutons d'action principaux rehaussés d'un fond Jaune fluo (#FCEE0A) avec texte noir haute lisibilité et effets néon au survol.
+  • Boutons dégradés bicolores Jaune-vers-Cyan et bordures lumineuses cyan.
+  • Titres, repères prioritaires et puces de sélection en Jaune néon (#FCEE0A).
+  • Liens interactifs, compteurs numériques, badges secondaires, anneaux de focus et horloge en Bleu cyan (#00F0FF).
+  • Champs de formulaires, barres de défilement (scrollbars) et sélection de texte (::selection) entièrement alignés sur la palette Cyberpunk.
+
+2. Gestion Intelligente des Paramètres & Restauration Automatique :
+- Dans la page Paramètres > Apparence, le sélecteur de couleurs classique est masqué et remplacé par un panneau informatif présentant le bi-ton officiel verrouillé (#FCEE0A & #00F0FF).
+- Mémorisation dynamique de la précédente couleur d'accentuation : dès que l'utilisateur quitte le mode Cyberpunk ou bascule vers le thème Clair, son ancienne nuance (Violet, Aether, Cyan...) est instantanément et automatiquement restaurée.
+
 #### [V2.6.24] - 2026-10-20 (Nouveau Thème Secret Cyberpunk HUD & Cascade Matrix Discrète)
 --------------------------------------------------------------------------------
 1. Nouvelle Direction Artistique « Cyberpunk HUD » :

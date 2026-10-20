@@ -172,7 +172,7 @@ export const SecretThemeModal: React.FC<SecretThemeModalProps> = ({
           uiStyle: 'cyberpunk',
           darkBgStyle: 'oled',
           theme: 'dark',
-          accentColor: 'amber',
+          accentColor: 'cyberpunk',
         });
         onNotification?.('Direction Artistique Cyberpunk HUD activée !', 'success');
       },

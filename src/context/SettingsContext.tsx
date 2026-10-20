@@ -177,9 +177,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       body.setAttribute('data-theme', 'light');
     }
 
-    // B. Couleur d'accentuation (Verrouillée sur rouge si Sombre absolu / Nothing OS)
-    const isNothingActive = settings.uiStyle === 'nothing' || settings.darkBgStyle === 'oled';
-    const rawAccent = isNothingActive ? 'red' : (settings.accentColor || 'purple');
+    // B. Couleur d'accentuation (Verrouillée sur Cyberpunk Jaune/Bleu si Cyberpunk, ou Rouge si Nothing OS)
+    const isCyberpunkActive = settings.uiStyle === 'cyberpunk';
+    const isNothingActive = !isCyberpunkActive && (settings.uiStyle === 'nothing' || settings.darkBgStyle === 'oled');
+    const rawAccent = isCyberpunkActive ? 'cyberpunk' : (isNothingActive ? 'red' : (settings.accentColor || 'purple'));
     const accent = rawAccent === 'rose' ? 'red' : rawAccent;
     root.setAttribute('data-accent', accent);
     body.setAttribute('data-accent', accent);
@@ -255,9 +256,13 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       rose: '224, 49, 72',
       mix: '139, 92, 246',
       monochrome: '228, 228, 231',
+      cyberpunk: '252, 238, 10',
     };
     const accentRgb = accentRgbMap[accent] || '139, 92, 246';
     root.style.setProperty('--accent-rgb', accentRgb);
+    if (isCyberpunkActive) {
+      root.style.setProperty('--accent-secondary-rgb', '0, 240, 255');
+    }
     root.style.setProperty('--glass-accent-border', `rgba(${accentRgb}, ${0.12 + (effectiveTransparency / 100) * 0.15})`);
 
     // H. Direction Artistique / Style d'Interface (Syntropy Liquid Glass, Nothing OS, Cyberpunk HUD)
@@ -358,27 +363,33 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const updateSetting = useCallback(
     <K extends keyof AppSettings>(key: K, value: AppSettings[K], debounceCloud?: boolean) => {
-      // 1. Nuance de noir sombre ou Style UI : activation ou désactivation de Nothing OS vs Syntropy
+      // 1. Nuance de noir sombre ou Style UI : activation ou désactivation de Nothing OS vs Syntropy vs Cyberpunk
       if (key === 'darkBgStyle' || key === 'uiStyle') {
         const isActivatingCyberpunk = (key === 'uiStyle' && value === 'cyberpunk');
-        const isActivatingNothing = (key === 'darkBgStyle' && value === 'oled') || (key === 'uiStyle' && value === 'nothing');
+        const isActivatingNothing = !isActivatingCyberpunk && ((key === 'darkBgStyle' && value === 'oled') || (key === 'uiStyle' && value === 'nothing'));
         const isActivatingSyntropy = (key === 'darkBgStyle' && value === 'zinc') || (key === 'uiStyle' && value === 'syntropy');
 
         if (isActivatingCyberpunk) {
+          const prevAccent =
+            settings.accentColor !== 'red' && settings.accentColor !== 'rose' && settings.accentColor !== 'cyberpunk'
+              ? settings.accentColor
+              : (settings.previousAccentColor || 'purple');
+
           persistSettings(
             {
               ...settings,
               uiStyle: 'cyberpunk',
               darkBgStyle: 'oled',
               theme: 'dark',
-              accentColor: 'amber',
+              accentColor: 'cyberpunk',
+              previousAccentColor: prevAccent,
             },
             debounceCloud
           );
           return;
         } else if (isActivatingNothing) {
           const prevAccent =
-            settings.accentColor !== 'red' && settings.accentColor !== 'rose'
+            settings.accentColor !== 'red' && settings.accentColor !== 'rose' && settings.accentColor !== 'cyberpunk'
               ? settings.accentColor
               : (settings.previousAccentColor || 'purple');
 
@@ -408,16 +419,16 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       }
 
-      // 2. Blocage strict de la couleur d'accentuation en rouge quand Sombre absolu est actif
+      // 2. Blocage strict de la couleur d'accentuation quand Cyberpunk ou Sombre absolu / Nothing OS est actif
       if (key === 'accentColor') {
-        if (settings.darkBgStyle === 'oled' || settings.uiStyle === 'nothing') {
+        if (settings.uiStyle === 'cyberpunk' || settings.darkBgStyle === 'oled' || settings.uiStyle === 'nothing') {
           return;
         }
       }
 
-      // 3. Bascule vers thème clair : quitte Sombre absolu et restaure la couleur précédente
+      // 3. Bascule vers thème clair : quitte Sombre absolu / Cyberpunk et restaure la couleur précédente
       if (key === 'theme' && value === 'light') {
-        if (settings.darkBgStyle === 'oled' || settings.uiStyle === 'nothing') {
+        if (settings.uiStyle === 'cyberpunk' || settings.darkBgStyle === 'oled' || settings.uiStyle === 'nothing') {
           const restoredAccent = settings.previousAccentColor || 'purple';
           persistSettings(
             {
@@ -449,13 +460,18 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       let next = { ...settings, ...partial };
 
       if (partial.uiStyle === 'cyberpunk') {
+        const prevAccent =
+          settings.accentColor !== 'red' && settings.accentColor !== 'rose' && settings.accentColor !== 'cyberpunk'
+            ? settings.accentColor
+            : (settings.previousAccentColor || 'purple');
         next.uiStyle = 'cyberpunk';
         next.theme = 'dark';
         next.darkBgStyle = 'oled';
-        next.accentColor = 'amber';
+        next.accentColor = 'cyberpunk';
+        next.previousAccentColor = prevAccent;
       } else if (partial.darkBgStyle === 'oled' || partial.uiStyle === 'nothing') {
         const prevAccent =
-          settings.accentColor !== 'red' && settings.accentColor !== 'rose'
+          settings.accentColor !== 'red' && settings.accentColor !== 'rose' && settings.accentColor !== 'cyberpunk'
             ? settings.accentColor
             : (settings.previousAccentColor || 'purple');
         next.darkBgStyle = 'oled';

@@ -557,11 +557,14 @@ export default function SettingsPage() {
         const blurPx = isReduced ? 0 : Math.round((effectiveTrans / 45) * 20);
         const alpha = isReduced ? 1 : Math.max(0.45, 1 - (effectiveTrans / 100));
         const cardAlpha = isReduced ? 1 : Math.max(0.55, 1 - (effectiveTrans * 0.75 / 100));
-        const isNothingActive = settings.uiStyle === 'nothing' || (settings.darkBgStyle || 'zinc') === 'oled';
-        const activeAccent = isNothingActive
+        const isCyberpunkActive = settings.uiStyle === 'cyberpunk';
+        const isNothingActive = !isCyberpunkActive && (settings.uiStyle === 'nothing' || (settings.darkBgStyle || 'zinc') === 'oled');
+        const activeAccent = isCyberpunkActive
+          ? { id: 'cyberpunk' as AccentColor, name: 'Cyberpunk 2077 HUD (Jaune & Bleu)', shortName: 'Cyberpunk', colorHex: '#FCEE0A', hex: 'linear-gradient(135deg, #FCEE0A, #00F0FF)', isGradient: true }
+          : isNothingActive
           ? (ACCENT_OPTIONS.find((c) => c.id === 'red') || ACCENT_OPTIONS[0])
           : (ACCENT_OPTIONS.find((c) => c.id === settings.accentColor || (c.id === 'red' && settings.accentColor === 'rose')) || ACCENT_OPTIONS[0]);
-        const activeAccentHex = isNothingActive ? '#D71920' : activeAccent.colorHex;
+        const activeAccentHex = isCyberpunkActive ? '#FCEE0A' : isNothingActive ? '#D71920' : activeAccent.colorHex;
         const previewIsDark = effectiveTheme === 'dark';
 
         const MAIN_ACCENTS = ACCENT_OPTIONS;
@@ -782,8 +785,38 @@ export default function SettingsPage() {
                   )}
                 </div>
 
-                {/* 2. Couleur d'accentuation (Masquée en mode Sombre absolu) */}
-                {((settings.darkBgStyle || 'zinc') !== 'oled' && settings.uiStyle !== 'nothing') && (
+                {/* 2. Couleur d'accentuation (Verrouillée en mode Cyberpunk ou Nothing OS) */}
+                {isCyberpunkActive ? (
+                  <div className={`p-5 rounded-3xl border space-y-3 transition-colors ${
+                    isDark ? 'bg-zinc-900/50 border-[#FCEE0A]/40' : 'bg-white border-zinc-200 shadow-sm'
+                  }`}>
+                    <div>
+                      <h2 className="text-sm font-bold flex items-center gap-2 text-[#FCEE0A]">
+                        <Palette className="w-4 h-4 text-[#FCEE0A]" />
+                        Couleur d'accentuation — Cyberpunk 2077 HUD
+                      </h2>
+                      <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                        La palette d'accentuation est verrouillée sur le bi-ton officiel Cyberpunk HUD (Jaune néon & Bleu électrique).
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-black/60 border border-[#FCEE0A]/30">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-lg bg-[#FCEE0A] shadow-[0_0_10px_rgba(252,238,10,0.5)] border border-black flex items-center justify-center">
+                          <span className="text-[9px] font-black text-black">Y</span>
+                        </div>
+                        <span className="text-xs font-mono font-bold text-[#FCEE0A]">#FCEE0A (Primaire)</span>
+                      </div>
+                      <span className="text-zinc-600 font-bold">&</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-lg bg-[#00F0FF] shadow-[0_0_10px_rgba(0,240,255,0.5)] border border-black flex items-center justify-center">
+                          <span className="text-[9px] font-black text-black">C</span>
+                        </div>
+                        <span className="text-xs font-mono font-bold text-[#00F0FF]">#00F0FF (Secondaire)</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : !isNothingActive && (
                   <div className={`p-5 rounded-3xl border space-y-4 transition-colors ${
                     isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
                   }`}>

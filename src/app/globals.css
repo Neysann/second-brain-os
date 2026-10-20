@@ -340,6 +340,44 @@
     --accent-mix-gradient: linear-gradient(135deg, #8b5cf6 0%, #6366f1 45%, #06b6d4 100%);
   }
 
+  /* Palette CYBERPUNK 2077 HUD (Bi-ton Officiel : Jaune néon #FCEE0A & Bleu électrique #00F0FF) */
+  [data-accent="cyberpunk"],
+  html.cyberpunk-mode,
+  body.cyberpunk-mode,
+  [data-ui-style="cyberpunk"] {
+    --color-purple-50: #fffbeb;
+    --color-purple-100: #fef3c7;
+    --color-purple-200: #fde68a;
+    --color-purple-300: #fcd34d;
+    --color-purple-400: #FCEE0A;
+    --color-purple-500: #FCEE0A;
+    --color-purple-600: #FCEE0A;
+    --color-purple-700: #e5d700;
+    --color-purple-800: #ca8a04;
+    --color-purple-900: #a16207;
+    --color-purple-950: #422006;
+
+    --color-indigo-50: #ecfeff;
+    --color-indigo-100: #cffafe;
+    --color-indigo-200: #a5f3fc;
+    --color-indigo-300: #67e8f9;
+    --color-indigo-400: #00F0FF;
+    --color-indigo-500: #00F0FF;
+    --color-indigo-600: #00F0FF;
+    --color-indigo-700: #0891b2;
+    --color-indigo-800: #0e7490;
+    --color-indigo-900: #155e75;
+    --color-indigo-950: #083344;
+
+    --accent-primary: #FCEE0A;
+    --accent-secondary: #00F0FF;
+    --accent-hover: #ffffff;
+    --accent-glow: rgba(252, 238, 10, 0.5);
+    --accent-subtle: rgba(252, 238, 10, 0.12);
+    --accent-text: #FCEE0A;
+    --accent-cyber-gradient: linear-gradient(135deg, #FCEE0A 0%, #00F0FF 100%);
+  }
+
   html.dark[data-accent="monochrome"],
   body.dark[data-accent="monochrome"],
   [data-accent="monochrome"] {
@@ -2279,23 +2317,27 @@ body.cyberpunk-mode {
 }
 
 /* Cartes Cyberdeck avec biseaux et micro-repères */
-[data-ui-style="cyberpunk"] .glass-card {
-  background-color: rgba(9, 13, 24, 0.88) !important;
+[data-ui-style="cyberpunk"] .glass-card,
+html.cyberpunk-mode .glass-card {
+  background-color: rgba(9, 13, 24, 0.90) !important;
   border: 1px solid rgba(252, 238, 10, 0.25) !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(0, 240, 255, 0.02) !important;
   position: relative;
 }
 
-[data-ui-style="cyberpunk"] .glass-card:hover {
+[data-ui-style="cyberpunk"] .glass-card:hover,
+html.cyberpunk-mode .glass-card:hover {
   border-color: rgba(252, 238, 10, 0.55) !important;
-  box-shadow: 0 0 20px rgba(252, 238, 10, 0.15), inset 0 0 15px rgba(252, 238, 10, 0.03) !important;
+  box-shadow: 0 0 20px rgba(252, 238, 10, 0.18), inset 0 0 15px rgba(252, 238, 10, 0.04) !important;
 }
 
 /* Cadre avec coins jaunes Cyberpunk */
-[data-ui-style="cyberpunk"] .cyber-corner-brackets {
+[data-ui-style="cyberpunk"] .cyber-corner-brackets,
+html.cyberpunk-mode .cyber-corner-brackets {
   position: relative;
 }
-[data-ui-style="cyberpunk"] .cyber-corner-brackets::before {
+[data-ui-style="cyberpunk"] .cyber-corner-brackets::before,
+html.cyberpunk-mode .cyber-corner-brackets::before {
   content: '';
   position: absolute;
   top: -1px;
@@ -2307,7 +2349,8 @@ body.cyberpunk-mode {
   pointer-events: none;
   z-index: 10;
 }
-[data-ui-style="cyberpunk"] .cyber-corner-brackets::after {
+[data-ui-style="cyberpunk"] .cyber-corner-brackets::after,
+html.cyberpunk-mode .cyber-corner-brackets::after {
   content: '';
   position: absolute;
   bottom: -1px;
@@ -2321,28 +2364,200 @@ body.cyberpunk-mode {
 }
 
 /* Barre latérale Cyberpunk */
-[data-ui-style="cyberpunk"] aside {
-  background-color: rgba(6, 8, 16, 0.92) !important;
+[data-ui-style="cyberpunk"] aside,
+html.cyberpunk-mode aside {
+  background-color: rgba(6, 8, 16, 0.94) !important;
   border-right: 1px solid rgba(252, 238, 10, 0.2) !important;
 }
 
-/* Boutons & Accents Cyberpunk */
+/* ========================================================================== */
+/* COULEURS D'ACCENTUATION INTERFACE CYBERPUNK 2077 HUD (JAUNE #FCEE0A & CYAN #00F0FF) */
+/* ========================================================================== */
+
+/* 1. Boutons d'Action Principaux (Jaune Cyberpunk fluo, texte noir haute lisibilité) */
+[data-ui-style="cyberpunk"] button[class*="bg-purple-600"],
+[data-ui-style="cyberpunk"] button[class*="bg-indigo-600"],
+[data-ui-style="cyberpunk"] button[class*="bg-purple-500"],
+[data-ui-style="cyberpunk"] button[class*="bg-indigo-500"],
+[data-ui-style="cyberpunk"] a[class*="bg-purple-600"],
+[data-ui-style="cyberpunk"] a[class*="bg-indigo-600"],
+[data-ui-style="cyberpunk"] a[class*="bg-purple-500"],
+[data-ui-style="cyberpunk"] a[class*="bg-indigo-500"],
+html.cyberpunk-mode button[class*="bg-purple-600"],
+html.cyberpunk-mode button[class*="bg-indigo-600"],
+html.cyberpunk-mode a[class*="bg-purple-600"],
+html.cyberpunk-mode a[class*="bg-indigo-600"],
+[data-accent="cyberpunk"] button[class*="bg-purple-600"],
+[data-accent="cyberpunk"] button[class*="bg-indigo-600"],
+[data-accent="cyberpunk"] a[class*="bg-purple-600"],
+[data-accent="cyberpunk"] a[class*="bg-indigo-600"],
 .btn-cyber-yellow {
   background-color: #FCEE0A !important;
   color: #000000 !important;
   font-weight: 800 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-  box-shadow: 0 0 15px rgba(252, 238, 10, 0.4) !important;
+  border: 1px solid #FCEE0A !important;
+  box-shadow: 0 0 16px rgba(252, 238, 10, 0.45) !important;
   transition: all 0.2s ease !important;
 }
+
+[data-ui-style="cyberpunk"] button[class*="bg-purple-600"]:hover,
+[data-ui-style="cyberpunk"] button[class*="bg-indigo-600"]:hover,
+[data-ui-style="cyberpunk"] button[class*="bg-purple-500"]:hover,
+[data-ui-style="cyberpunk"] button[class*="bg-indigo-500"]:hover,
+[data-ui-style="cyberpunk"] a[class*="bg-purple-600"]:hover,
+[data-ui-style="cyberpunk"] a[class*="bg-indigo-600"]:hover,
+html.cyberpunk-mode button[class*="bg-purple-600"]:hover,
+html.cyberpunk-mode button[class*="bg-indigo-600"]:hover,
+[data-accent="cyberpunk"] button[class*="bg-purple-600"]:hover,
+[data-accent="cyberpunk"] button[class*="bg-indigo-600"]:hover,
 .btn-cyber-yellow:hover {
   background-color: #ffffff !important;
-  box-shadow: 0 0 25px rgba(252, 238, 10, 0.7) !important;
+  color: #000000 !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 0 25px rgba(252, 238, 10, 0.75) !important;
   transform: translateY(-1px);
 }
 
-/* Badge de série technique (CAL-001, CLK-001...) */
+/* Boutons Dégradés Principaux (Jaune vers Cyan) */
+[data-ui-style="cyberpunk"] [class*="from-purple-"][class*="to-indigo-"],
+[data-ui-style="cyberpunk"] [class*="from-indigo-"][class*="to-purple-"],
+html.cyberpunk-mode [class*="from-purple-"][class*="to-indigo-"],
+[data-accent="cyberpunk"] [class*="from-purple-"][class*="to-indigo-"] {
+  background-image: linear-gradient(135deg, #FCEE0A 0%, #00F0FF 100%) !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+  border: 1px solid #00F0FF !important;
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.4) !important;
+}
+
+/* 2. Textes & Icônes Jaune Cyberpunk (#FCEE0A) */
+[data-ui-style="cyberpunk"] [class*="text-purple-"],
+html.cyberpunk-mode [class*="text-purple-"],
+[data-accent="cyberpunk"] [class*="text-purple-"] {
+  color: #FCEE0A !important;
+}
+
+[data-ui-style="cyberpunk"] [class*="hover:text-purple-"]:hover,
+html.cyberpunk-mode [class*="hover:text-purple-"]:hover,
+[data-accent="cyberpunk"] [class*="hover:text-purple-"]:hover,
+[data-ui-style="cyberpunk"] .group:hover [class*="group-hover:text-purple-"],
+html.cyberpunk-mode .group:hover [class*="group-hover:text-purple-"] {
+  color: #ffffff !important;
+}
+
+/* 3. Textes, Compteurs, Horloges & Liens Cyan (#00F0FF) */
+[data-ui-style="cyberpunk"] [class*="text-indigo-"],
+html.cyberpunk-mode [class*="text-indigo-"],
+[data-accent="cyberpunk"] [class*="text-indigo-"] {
+  color: #00F0FF !important;
+}
+
+[data-ui-style="cyberpunk"] [class*="hover:text-indigo-"]:hover,
+html.cyberpunk-mode [class*="hover:text-indigo-"]:hover,
+[data-accent="cyberpunk"] [class*="hover:text-indigo-"]:hover,
+[data-ui-style="cyberpunk"] .group:hover [class*="group-hover:text-indigo-"],
+html.cyberpunk-mode .group:hover [class*="group-hover:text-indigo-"] {
+  color: #ffffff !important;
+}
+
+/* 4. Bordures Jaunes & Cyans */
+[data-ui-style="cyberpunk"] [class*="border-purple-"],
+html.cyberpunk-mode [class*="border-purple-"],
+[data-accent="cyberpunk"] [class*="border-purple-"] {
+  border-color: rgba(252, 238, 10, 0.45) !important;
+}
+
+[data-ui-style="cyberpunk"] [class*="border-indigo-"],
+html.cyberpunk-mode [class*="border-indigo-"],
+[data-accent="cyberpunk"] [class*="border-indigo-"] {
+  border-color: rgba(0, 240, 255, 0.45) !important;
+}
+
+/* 5. Anneaux de Focus & Contours (Cyan Électrique) */
+[data-ui-style="cyberpunk"] [class*="ring-purple-"],
+[data-ui-style="cyberpunk"] [class*="ring-indigo-"],
+html.cyberpunk-mode [class*="ring-purple-"],
+html.cyberpunk-mode [class*="ring-indigo-"],
+[data-accent="cyberpunk"] [class*="ring-purple-"],
+[data-accent="cyberpunk"] [class*="ring-indigo-"] {
+  --tw-ring-color: #00F0FF !important;
+}
+
+/* 6. Badges & Pastilles Semi-Transparentes */
+[data-ui-style="cyberpunk"] [class*="bg-purple-500/"],
+[data-ui-style="cyberpunk"] [class*="bg-purple-600/"],
+[data-ui-style="cyberpunk"] [class*="bg-purple-950/"],
+html.cyberpunk-mode [class*="bg-purple-500/"],
+[data-accent="cyberpunk"] [class*="bg-purple-500/"] {
+  background-color: rgba(252, 238, 10, 0.15) !important;
+  border-color: rgba(252, 238, 10, 0.40) !important;
+  color: #FCEE0A !important;
+}
+
+[data-ui-style="cyberpunk"] [class*="bg-indigo-500/"],
+[data-ui-style="cyberpunk"] [class*="bg-indigo-600/"],
+[data-ui-style="cyberpunk"] [class*="bg-indigo-950/"],
+html.cyberpunk-mode [class*="bg-indigo-500/"],
+[data-accent="cyberpunk"] [class*="bg-indigo-500/"] {
+  background-color: rgba(0, 240, 255, 0.15) !important;
+  border-color: rgba(0, 240, 255, 0.40) !important;
+  color: #00F0FF !important;
+}
+
+/* 7. Formulaires, Champs de Saisie & Checkboxes */
+[data-ui-style="cyberpunk"] input:not([type="checkbox"]):not([type="radio"]),
+[data-ui-style="cyberpunk"] textarea,
+[data-ui-style="cyberpunk"] select,
+html.cyberpunk-mode input:not([type="checkbox"]):not([type="radio"]),
+html.cyberpunk-mode textarea,
+html.cyberpunk-mode select {
+  background-color: #060914 !important;
+  border: 1px solid rgba(252, 238, 10, 0.35) !important;
+  color: #ffffff !important;
+}
+
+[data-ui-style="cyberpunk"] input:not([type="checkbox"]):not([type="radio"]):focus,
+[data-ui-style="cyberpunk"] textarea:focus,
+[data-ui-style="cyberpunk"] select:focus,
+html.cyberpunk-mode input:not([type="checkbox"]):not([type="radio"]):focus,
+html.cyberpunk-mode textarea:focus,
+html.cyberpunk-mode select:focus {
+  border-color: #00F0FF !important;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.45) !important;
+  outline: none !important;
+}
+
+[data-ui-style="cyberpunk"] input[type="checkbox"],
+html.cyberpunk-mode input[type="checkbox"],
+[data-accent="cyberpunk"] input[type="checkbox"] {
+  accent-color: #FCEE0A !important;
+}
+
+[data-ui-style="cyberpunk"] input[type="radio"],
+html.cyberpunk-mode input[type="radio"],
+[data-accent="cyberpunk"] input[type="radio"] {
+  accent-color: #00F0FF !important;
+}
+
+/* 8. Sélection de Texte */
+[data-ui-style="cyberpunk"] ::selection,
+html.cyberpunk-mode ::selection,
+[data-accent="cyberpunk"] ::selection {
+  background-color: #FCEE0A !important;
+  color: #000000 !important;
+}
+
+/* 9. Barres de Défilement (Scrollbar) Cyberpunk */
+[data-ui-style="cyberpunk"] ::-webkit-scrollbar-thumb,
+html.cyberpunk-mode ::-webkit-scrollbar-thumb {
+  background-color: rgba(252, 238, 10, 0.35) !important;
+}
+[data-ui-style="cyberpunk"] *:hover::-webkit-scrollbar-thumb,
+html.cyberpunk-mode *:hover::-webkit-scrollbar-thumb {
+  background-color: #00F0FF !important;
+}
+
+/* 10. Tags Techniques, Horloge & Télémétrie */
 .cyber-serial-tag {
   font-family: monospace;
   font-size: 10px;
@@ -2352,15 +2567,14 @@ body.cyberpunk-mode {
   text-transform: uppercase;
 }
 
-/* Horloge numérique Cyan Cyberpunk */
-[data-ui-style="cyberpunk"] .cyber-digital-clock {
+[data-ui-style="cyberpunk"] .cyber-digital-clock,
+html.cyberpunk-mode .cyber-digital-clock {
   color: #00F0FF !important;
   text-shadow: 0 0 12px rgba(0, 240, 255, 0.6), 0 0 24px rgba(0, 240, 255, 0.25) !important;
   font-family: "JetBrains Mono", "Fira Code", monospace !important;
   letter-spacing: 0.05em !important;
 }
 
-/* Telemetry box Cyberpunk */
 .cyber-telemetry-box {
   background-color: rgba(5, 7, 15, 0.9) !important;
   border: 1px solid rgba(252, 238, 10, 0.3) !important;
