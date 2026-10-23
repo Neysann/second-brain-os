@@ -88,6 +88,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
   const features = [
     {
       icon: BookOpen,
+      color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
+      title: 'Syntropy OS V2.6.29 : Romans Web & Suivi en Chapitres',
+      desc: 'Nouveau type « Roman web » dans l\'écran Lectures avec progression en chapitres, et recherche automatique des couvertures, auteurs et nombre de chapitres via MyAnimeList (Jikan) pour les romans et les manga.',
+    },
+    {
+      icon: BookOpen,
       color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/30',
       title: 'Syntropy OS V2.6.28 : Nouvel Écran Lectures (Livres & Manga)',
       desc: 'Suis tes lectures dans une bibliothèque visuelle avec couvertures : statuts, progression en pages ou en %, ajout automatique via Google Books / OpenLibrary, objectif annuel, graphique par mois et streak de lecture quotidien. Disponible dans la barre latérale, section Daily Life.',

@@ -1,8 +1,8 @@
 // Types pour le suivi des lectures (livres & manga/BD)
 
 export type BookStatus = 'to_read' | 'reading' | 'done' | 'dropped';
-export type BookKind = 'book' | 'manga';
-export type ProgressUnit = 'pages' | 'percent';
+export type BookKind = 'book' | 'manga' | 'novel';
+export type ProgressUnit = 'pages' | 'percent' | 'chapters';
 
 export interface Book {
   id: string;
@@ -12,9 +12,9 @@ export interface Book {
   coverUrl?: string;
   status: BookStatus;
   unit: ProgressUnit;
-  /** Nombre total de pages (0 = inconnu). Utilisé si unit === 'pages'. */
+  /** Total de pages ou de chapitres selon l'unité (0 = inconnu). */
   totalPages: number;
-  /** Page actuelle (unit 'pages') ou pourcentage 0..100 (unit 'percent'). */
+  /** Page/chapitre actuel(le) ou pourcentage 0..100 (unit 'percent'). */
   progress: number;
   startedAt?: string;
   finishedAt?: string;
@@ -31,5 +31,6 @@ export interface BookSearchResult {
   author: string;
   coverUrl?: string;
   totalPages: number;
-  source: 'google' | 'openlibrary';
+  kind?: BookKind;
+  source: 'google' | 'openlibrary' | 'jikan';
 }

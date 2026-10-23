@@ -2,6 +2,19 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.29] - 2026-10-23 (Lectures : Romans Web, Suivi en Chapitres & Recherche MyAnimeList)
+--------------------------------------------------------------------------------
+1. Nouveau type « Roman web » :
+- Type dédié aux romans web / light novels, avec suivi de progression en chapitres (nouvelle unité, en plus des pages et du pourcentage).
+
+2. Recherche enrichie via Jikan (MyAnimeList) :
+- Romans web et manga : titre, auteur, couverture et nombre de chapitres (ou de volumes) pré-remplis automatiquement, avec repli sur Google Books / OpenLibrary.
+- Lien rapide vers world-novel.fr dans la fenêtre d'ajout pour les romans introuvables (saisie manuelle du titre et de la couverture).
+- Note : world-novel.fr ne propose pas d'API publique et bloque les accès automatisés ; l'import direct n'est donc pas possible.
+
+3. Filtres :
+- Nouveau filtre « Romans web » dans la bibliothèque.
+
 #### [V2.6.28] - 2026-10-23 (Nouvel Écran « Lectures » : Suivi de Livres & Manga)
 --------------------------------------------------------------------------------
 1. Nouvel Écran « Lectures » (section Daily Life) :

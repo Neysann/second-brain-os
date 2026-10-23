@@ -41,8 +41,11 @@ const percentOf = (b: Book): number => {
 
 const progressLabel = (b: Book): string => {
   if (b.unit === 'percent') return `${Math.round(b.progress)} %`;
-  return b.totalPages > 0 ? `p. ${b.progress} / ${b.totalPages}` : `p. ${b.progress}`;
+  const prefix = b.unit === 'chapters' ? 'ch.' : 'p.';
+  return b.totalPages > 0 ? `${prefix} ${b.progress} / ${b.totalPages}` : `${prefix} ${b.progress}`;
 };
+
+const KIND_LABEL: Record<BookKind, string> = { book: 'Livre', manga: 'Manga / BD', novel: 'Roman web' };
 
 function Cover({ book, className = '' }: { book: Pick<Book, 'title' | 'coverUrl' | 'kind'>; className?: string }) {
   const [failed, setFailed] = useState(false);
@@ -62,7 +65,7 @@ function Cover({ book, className = '' }: { book: Pick<Book, 'title' | 'coverUrl'
     <div
       className={`flex items-center justify-center bg-gradient-to-br from-indigo-600/30 via-purple-600/20 to-zinc-800 text-zinc-300 ${className}`}
     >
-      <span className="text-3xl select-none">{book.kind === 'manga' ? '📚' : '📖'}</span>
+      <span className="text-3xl select-none">{book.kind === 'manga' ? '📚' : book.kind === 'novel' ? '📜' : '📖'}</span>
     </div>
   );
 }
@@ -170,7 +173,7 @@ export default function ReadingPage() {
           value={logInputs[b.id] || ''}
           onChange={(e) => setLogInputs((p) => ({ ...p, [b.id]: e.target.value }))}
           onKeyDown={(e) => e.key === 'Enter' && handleLog(b)}
-          placeholder={b.unit === 'percent' ? '+ %' : '+ pages'}
+          placeholder={b.unit === 'percent' ? '+ %' : b.unit === 'chapters' ? '+ chapitres' : '+ pages'}
           aria-label={`Pages lues aujourd'hui pour ${b.title}`}
           className={`w-full min-w-0 px-2 py-1 rounded-lg border text-xs outline-none focus:border-indigo-500 ${inputCls}`}
         />
@@ -380,6 +383,7 @@ export default function ReadingPage() {
           <option value="all">Livres &amp; manga</option>
           <option value="book">Livres</option>
           <option value="manga">Manga / BD</option>
+          <option value="novel">Romans web</option>
         </select>
         <div className={`flex rounded-xl border overflow-hidden ${card}`}>
           {(['grid', 'list'] as const).map((v) => (
@@ -480,7 +484,7 @@ export default function ReadingPage() {
               <div className="min-w-0 flex-1">
                 <div className="font-bold text-sm truncate">{b.title}</div>
                 <div className={`text-xs truncate ${muted}`}>
-                  {b.author || 'Auteur inconnu'} · {b.kind === 'manga' ? 'Manga / BD' : 'Livre'}
+                  {b.author || 'Auteur inconnu'} · {KIND_LABEL[b.kind]}
                 </div>
               </div>
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${STATUS_META[b.status].chip}`}>
@@ -545,13 +549,19 @@ function AddBookModal({ onClose }: { onClose: () => void }) {
     }
     setSearching(true);
     const t = setTimeout(async () => {
-      const r = await searchBooks(query);
+      const r = await searchBooks(query, kind);
       setResults(r);
       setSearched(true);
       setSearching(false);
     }, 450);
     return () => clearTimeout(t);
-  }, [query]);
+  }, [query, kind]);
+
+  const changeKind = (k: BookKind) => {
+    setKind(k);
+    if (k === 'novel') setUnit('chapters');
+    else if (unit === 'chapters') setUnit('pages');
+  };
 
   const pick = (r: BookSearchResult) => {
     setTitle(r.title);
@@ -559,7 +569,7 @@ function AddBookModal({ onClose }: { onClose: () => void }) {
     setCoverUrl(r.coverUrl);
     if (r.totalPages > 0) {
       setTotalPages(String(r.totalPages));
-      setUnit('pages');
+      setUnit(r.source === 'jikan' ? 'chapters' : 'pages');
     }
     setResults([]);
     setQuery('');
@@ -568,7 +578,7 @@ function AddBookModal({ onClose }: { onClose: () => void }) {
 
   const submit = () => {
     if (!title.trim()) return;
-    const total = unit === 'pages' ? Math.max(0, Number(totalPages) || 0) : 0;
+    const total = unit === 'percent' ? 0 : Math.max(0, Number(totalPages) || 0);
     const now = new Date().toISOString();
     addBook({
       title: title.trim(),
@@ -638,6 +648,20 @@ function AddBookModal({ onClose }: { onClose: () => void }) {
               ))}
             </div>
           )}
+          {kind === 'novel' && (
+            <p className={`mt-2 text-[11px] ${muted}`}>
+              Catalogue MyAnimeList (light novels &amp; romans). Ton roman est introuvable ? Ouvre{' '}
+              <a
+                href="https://world-novel.fr/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-indigo-400 underline"
+              >
+                world-novel.fr
+              </a>
+              , puis colle ici le titre et l&apos;URL de la couverture.
+            </p>
+          )}
           {searched && !searching && results.length === 0 && (
             <p className={`mt-2 text-xs ${muted}`}>Aucun résultat — saisis les infos manuellement ci-dessous.</p>
           )}
@@ -681,11 +705,12 @@ function AddBookModal({ onClose }: { onClose: () => void }) {
             <label className={`text-xs font-semibold ${muted}`}>Type</label>
             <select
               value={kind}
-              onChange={(e) => setKind(e.target.value as BookKind)}
+              onChange={(e) => changeKind(e.target.value as BookKind)}
               className={`w-full mt-1 px-3 py-2 rounded-xl border text-sm outline-none cursor-pointer ${inputCls}`}
             >
               <option value="book">Livre</option>
               <option value="manga">Manga / BD</option>
+              <option value="novel">Roman web</option>
             </select>
           </div>
           <div>
@@ -709,12 +734,15 @@ function AddBookModal({ onClose }: { onClose: () => void }) {
               className={`w-full mt-1 px-3 py-2 rounded-xl border text-sm outline-none cursor-pointer ${inputCls}`}
             >
               <option value="pages">En pages</option>
+              <option value="chapters">En chapitres</option>
               <option value="percent">En pourcentage</option>
             </select>
           </div>
-          {unit === 'pages' && (
+          {unit !== 'percent' && (
             <div>
-              <label className={`text-xs font-semibold ${muted}`}>Nombre de pages</label>
+              <label className={`text-xs font-semibold ${muted}`}>
+                {unit === 'chapters' ? 'Nombre de chapitres' : 'Nombre de pages'}
+              </label>
               <input
                 type="number"
                 min={0}
