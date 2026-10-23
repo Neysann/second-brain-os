@@ -19,11 +19,20 @@ export interface Book {
   startedAt?: string;
   finishedAt?: string;
   createdAt: string;
+  updatedAt?: string;
+  userId?: string;
 }
 
 export interface ReadingDayLog {
   pages: number;
   entries: number;
+}
+
+export interface ReadingProfile {
+  userId?: string;
+  yearlyGoal: number;
+  dayLog: Record<string, ReadingDayLog>;
+  updatedAt?: string;
 }
 
 export interface BookSearchResult {

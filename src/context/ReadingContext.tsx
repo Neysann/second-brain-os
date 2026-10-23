@@ -1,11 +1,17 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { Book, BookStatus, ReadingDayLog } from '@/types/reading';
-
-const BOOKS_KEY = 'syntropy_reading_books_v1';
-const LOG_KEY = 'syntropy_reading_log_v1';
-const GOAL_KEY = 'syntropy_reading_goal_v1';
+import React, { createContext, useContext, useEffect, useMemo, useState, useRef } from 'react';
+import { Book, BookStatus, ReadingDayLog, ReadingProfile } from '@/types/reading';
+import { useAuth } from './AuthContext';
+import {
+  subscribeToBooks,
+  saveBook,
+  deleteBookById,
+  subscribeToReadingProfile,
+  saveReadingProfile,
+  getLocalBooks,
+  getLocalReadingProfile,
+} from '@/lib/dataService';
 
 export const toDateKey = (d: Date): string => {
   const y = d.getFullYear();
@@ -33,48 +39,79 @@ interface ReadingContextType {
 const ReadingContext = createContext<ReadingContextType | undefined>(undefined);
 
 export const ReadingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [books, setBooks] = useState<Book[]>([]);
-  const [dayLog, setDayLog] = useState<Record<string, ReadingDayLog>>({});
-  const [yearlyGoal, setYearlyGoalState] = useState<number>(12);
+  const { user } = useAuth();
+  const currentUserId = user?.uid;
 
+  const [books, setBooks] = useState<Book[]>(() => getLocalBooks(currentUserId));
+  const [dayLog, setDayLog] = useState<Record<string, ReadingDayLog>>(() => getLocalReadingProfile(currentUserId).dayLog || {});
+  const [yearlyGoal, setYearlyGoalState] = useState<number>(() => getLocalReadingProfile(currentUserId).yearlyGoal || 12);
+
+  const deletedBookIdsRef = useRef<Set<string>>(new Set());
+
+  // Abonnement temps réel synchronisé avec Firestore & LocalStorage
   useEffect(() => {
-    try {
-      const b = localStorage.getItem(BOOKS_KEY);
-      if (b) setBooks(JSON.parse(b));
-      const l = localStorage.getItem(LOG_KEY);
-      if (l) setDayLog(JSON.parse(l));
-      const g = localStorage.getItem(GOAL_KEY);
-      if (g) setYearlyGoalState(Number(g) || 12);
-    } catch (e) {
-      console.warn('Erreur chargement lectures', e);
-    }
-  }, []);
+    const unsubBooks = subscribeToBooks(currentUserId, (loadedBooks) => {
+      setBooks((prev) => {
+        const safeLoaded = loadedBooks || [];
+        const loadedIds = new Set(safeLoaded.map((b) => b.id));
+        const pendingLocals = prev.filter(
+          (b) =>
+            !loadedIds.has(b.id) &&
+            !deletedBookIdsRef.current.has(b.id) &&
+            Date.now() - new Date(b.createdAt).getTime() < 15000
+        );
+        return [...pendingLocals, ...safeLoaded];
+      });
+    });
 
-  const persistBooks = (next: Book[]) => {
-    setBooks(next);
-    localStorage.setItem(BOOKS_KEY, JSON.stringify(next));
-  };
-  const persistLog = (next: Record<string, ReadingDayLog>) => {
-    setDayLog(next);
-    localStorage.setItem(LOG_KEY, JSON.stringify(next));
-  };
+    const unsubProfile = subscribeToReadingProfile(currentUserId, (loadedProfile) => {
+      if (loadedProfile) {
+        setDayLog(loadedProfile.dayLog || {});
+        if (loadedProfile.yearlyGoal) {
+          setYearlyGoalState(loadedProfile.yearlyGoal);
+        }
+      }
+    });
 
-  const addBook = (data: Omit<Book, 'id' | 'createdAt'>) => {
-    const book: Book = {
+    return () => {
+      unsubBooks();
+      unsubProfile();
+    };
+  }, [currentUserId]);
+
+  const addBook = async (data: Omit<Book, 'id' | 'createdAt'>) => {
+    const now = new Date().toISOString();
+    const newBook: Book = {
       ...data,
       id: `book-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-      createdAt: new Date().toISOString(),
+      userId: currentUserId,
+      createdAt: now,
+      updatedAt: now,
     };
-    persistBooks([book, ...books]);
+    // Mise à jour optimiste immédiate (0ms de latence)
+    setBooks((prev) => [newBook, ...prev.filter((b) => b.id !== newBook.id)]);
+    await saveBook(newBook, currentUserId);
   };
 
-  const updateBook = (book: Book) => persistBooks(books.map((b) => (b.id === book.id ? book : b)));
+  const updateBook = async (book: Book) => {
+    const updated: Book = {
+      ...book,
+      userId: book.userId || currentUserId,
+      updatedAt: new Date().toISOString(),
+    };
+    setBooks((prev) => prev.map((b) => (b.id === book.id ? updated : b)));
+    await saveBook(updated, currentUserId);
+  };
 
-  const deleteBook = (id: string) => persistBooks(books.filter((b) => b.id !== id));
+  const deleteBook = async (id: string) => {
+    deletedBookIdsRef.current.add(id);
+    setBooks((prev) => prev.filter((b) => b.id !== id));
+    await deleteBookById(id, currentUserId);
+  };
 
   const applyStatus = (book: Book, status: BookStatus): Book => {
     const now = new Date().toISOString();
-    const next: Book = { ...book, status };
+    const next: Book = { ...book, status, updatedAt: now };
     if (status === 'reading' && !next.startedAt) next.startedAt = now;
     if (status === 'done') {
       next.finishedAt = now;
@@ -86,10 +123,15 @@ export const ReadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return next;
   };
 
-  const setStatus = (id: string, status: BookStatus) =>
-    persistBooks(books.map((b) => (b.id === id ? applyStatus(b, status) : b)));
+  const setStatus = async (id: string, status: BookStatus) => {
+    const target = books.find((b) => b.id === id);
+    if (!target) return;
+    const updated = applyStatus(target, status);
+    setBooks((prev) => prev.map((b) => (b.id === id ? updated : b)));
+    await saveBook(updated, currentUserId);
+  };
 
-  const logProgress = (id: string, amount: number) => {
+  const logProgress = async (id: string, amount: number) => {
     if (!amount || amount <= 0) return;
     const target = books.find((b) => b.id === id);
     if (!target) return;
@@ -101,23 +143,42 @@ export const ReadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     let updated: Book = { ...target, progress: newProgress };
     if (updated.status === 'to_read') updated = applyStatus(updated, 'reading');
     if (Number.isFinite(max) && newProgress >= max) updated = applyStatus(updated, 'done');
-    persistBooks(books.map((b) => (b.id === id ? updated : b)));
+
+    setBooks((prev) => prev.map((b) => (b.id === id ? updated : b)));
+    await saveBook(updated, currentUserId);
 
     const key = toDateKey(new Date());
     const prev = dayLog[key] || { pages: 0, entries: 0 };
-    persistLog({
+    const nextLog: Record<string, ReadingDayLog> = {
       ...dayLog,
       [key]: {
         pages: prev.pages + (target.unit === 'pages' ? effective : 0),
         entries: prev.entries + 1,
       },
-    });
+    };
+    setDayLog(nextLog);
+
+    await saveReadingProfile(
+      {
+        userId: currentUserId,
+        yearlyGoal,
+        dayLog: nextLog,
+      },
+      currentUserId
+    );
   };
 
-  const setYearlyGoal = (goal: number) => {
+  const setYearlyGoal = async (goal: number) => {
     const safe = Math.max(1, Math.round(goal) || 1);
     setYearlyGoalState(safe);
-    localStorage.setItem(GOAL_KEY, String(safe));
+    await saveReadingProfile(
+      {
+        userId: currentUserId,
+        yearlyGoal: safe,
+        dayLog,
+      },
+      currentUserId
+    );
   };
 
   const { currentStreak, bestStreak, readToday } = useMemo(() => {

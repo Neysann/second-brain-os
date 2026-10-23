@@ -13,6 +13,7 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { Task, Project, Note, NoteFolder, CalendarEvent, ICalSyncFeed, NoteAttachment } from '@/types';
+import { Book, ReadingProfile } from '@/types/reading';
 import { INITIAL_PROJECTS, INITIAL_TASKS, INITIAL_NOTES } from './mockData';
 import {
   saveAttachmentLocally,
@@ -27,6 +28,8 @@ const LOCAL_STORAGE_KEYS = {
   FOLDERS: 'second_brain_folders_v1',
   EVENTS: 'second_brain_events_v1',
   ICAL_FEEDS: 'second_brain_ical_feeds_v1',
+  BOOKS: 'syntropy_reading_books_v1',
+  READING_PROFILE: 'syntropy_reading_profile_v1',
 };
 
 // --- GESTIONNAIRES LOCAL STORAGE (MODE DÉGRADÉ / PAR UTILISATEUR) ---
@@ -1260,6 +1263,298 @@ export const deleteAllEvents = async (userId?: string): Promise<void> => {
       }
     } catch (err) {
       console.warn('[Firestore] Erreur deleteAllEvents :', err);
+    }
+  }
+};
+
+// --- GESTIONNAIRES LECTURES (LIVRES, MANGA, ROMANS, STREAK & OBJECTIFS) ---
+
+export const getLocalBooks = (userId?: string): Book[] => {
+  if (typeof window === 'undefined') return [];
+  const key = userId ? `${LOCAL_STORAGE_KEYS.BOOKS}_${userId}` : LOCAL_STORAGE_KEYS.BOOKS;
+  const saved = localStorage.getItem(key);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return [];
+    }
+  }
+  // Migration automatique depuis l'ancienne clé globale sans userId
+  const legacy = localStorage.getItem('syntropy_reading_books_v1');
+  if (legacy) {
+    try {
+      const parsed = JSON.parse(legacy);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        if (key !== 'syntropy_reading_books_v1') {
+          localStorage.setItem(key, legacy);
+        }
+        return parsed;
+      }
+    } catch {}
+  }
+  return [];
+};
+
+export const getLocalReadingProfile = (userId?: string): ReadingProfile => {
+  const defaultProfile: ReadingProfile = { yearlyGoal: 12, dayLog: {} };
+  if (typeof window === 'undefined') return defaultProfile;
+  const key = userId ? `${LOCAL_STORAGE_KEYS.READING_PROFILE}_${userId}` : LOCAL_STORAGE_KEYS.READING_PROFILE;
+  const saved = localStorage.getItem(key);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      return {
+        yearlyGoal: Number(parsed.yearlyGoal) || 12,
+        dayLog: parsed.dayLog || {},
+      };
+    } catch {
+      return defaultProfile;
+    }
+  }
+  // Migration automatique depuis les anciennes clés globales
+  const legacyLog = localStorage.getItem('syntropy_reading_log_v1');
+  const legacyGoal = localStorage.getItem('syntropy_reading_goal_v1');
+  if (legacyLog || legacyGoal) {
+    try {
+      const profile: ReadingProfile = {
+        yearlyGoal: Number(legacyGoal) || 12,
+        dayLog: legacyLog ? JSON.parse(legacyLog) : {},
+      };
+      localStorage.setItem(key, JSON.stringify(profile));
+      return profile;
+    } catch {}
+  }
+  return defaultProfile;
+};
+
+export const subscribeToBooks = (
+  userId: string | undefined,
+  callback: (books: Book[]) => void,
+  onError?: (error: unknown) => void
+): (() => void) => {
+  // 1. Rendu immédiat depuis le cache local (0ms de latence)
+  callback(getLocalBooks(userId));
+
+  // 2. Écoute réactive des événements locaux
+  const localHandler = () => {
+    callback(getLocalBooks(userId));
+  };
+  if (typeof window !== 'undefined') {
+    window.addEventListener('second_brain_data_changed', localHandler);
+  }
+
+  // 3. Écoute Firestore en temps réel en arrière-plan
+  let unsubFirestore = () => {};
+  if (isFirebaseConfigured && db) {
+    try {
+      const booksRef = collection(db, 'books');
+      const q = userId
+        ? query(booksRef, where('userId', '==', userId))
+        : query(booksRef, orderBy('createdAt', 'desc'));
+
+      unsubFirestore = onSnapshot(
+        q,
+        (snapshot) => {
+          if (!snapshot.empty) {
+            const books: Book[] = snapshot.docs
+              .map((d) => ({
+                id: d.id,
+                ...(d.data() as Omit<Book, 'id'>),
+              }))
+              .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+
+            const key = userId ? `${LOCAL_STORAGE_KEYS.BOOKS}_${userId}` : LOCAL_STORAGE_KEYS.BOOKS;
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(key, JSON.stringify(books));
+            }
+            callback(books);
+          } else {
+            // Snapshot vide : si on a des livres locaux non encore migrés vers le Cloud, on les transfère automatiquement !
+            const localBooks = getLocalBooks(userId);
+            if (localBooks.length > 0 && userId) {
+              localBooks.forEach((b) => {
+                saveBook(b, userId).catch(() => {});
+              });
+            }
+            callback(localBooks);
+          }
+        },
+        (error) => {
+          console.warn('[Firestore] Erreur écoute books, bascule locale :', error);
+          if (onError) onError(error);
+          callback(getLocalBooks(userId));
+        }
+      );
+    } catch (e) {
+      console.warn('[Firestore] Exception abonnement books, fallback local :', e);
+    }
+  }
+
+  return () => {
+    unsubFirestore();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('second_brain_data_changed', localHandler);
+    }
+  };
+};
+
+export const saveBook = async (book: Book, userId?: string): Promise<void> => {
+  const currentUserId = book.userId || userId || null;
+  const bookToSave: Book = {
+    ...book,
+    userId: currentUserId || undefined,
+    updatedAt: new Date().toISOString(),
+  };
+
+  // 1. Toujours enregistrer immédiatement dans le cache local
+  const key = currentUserId ? `${LOCAL_STORAGE_KEYS.BOOKS}_${currentUserId}` : LOCAL_STORAGE_KEYS.BOOKS;
+  const books = getLocalBooks(currentUserId || undefined);
+  const index = books.findIndex((b) => b.id === book.id);
+  if (index >= 0) {
+    books[index] = bookToSave;
+  } else {
+    books.unshift(bookToSave);
+  }
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(key, JSON.stringify(books));
+    notifyLocalChange();
+  }
+
+  // 2. Synchronisation Cloud Firestore
+  if (isFirebaseConfigured && db) {
+    try {
+      await setDoc(doc(db, 'books', book.id), {
+        title: book.title,
+        author: book.author || '',
+        kind: book.kind,
+        coverUrl: book.coverUrl || null,
+        status: book.status,
+        unit: book.unit,
+        totalPages: book.totalPages || 0,
+        progress: book.progress || 0,
+        startedAt: book.startedAt || null,
+        finishedAt: book.finishedAt || null,
+        createdAt: book.createdAt,
+        updatedAt: bookToSave.updatedAt,
+        userId: currentUserId,
+      });
+    } catch (err) {
+      console.warn('[Firestore] Erreur saveBook, conservé en cache local :', err);
+    }
+  }
+};
+
+export const deleteBookById = async (bookId: string, userId?: string): Promise<void> => {
+  const currentUserId = userId || null;
+
+  // 1. LocalStorage immédiat
+  const key = currentUserId ? `${LOCAL_STORAGE_KEYS.BOOKS}_${currentUserId}` : LOCAL_STORAGE_KEYS.BOOKS;
+  const books = getLocalBooks(userId).filter((b) => b.id !== bookId);
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(key, JSON.stringify(books));
+    notifyLocalChange();
+  }
+
+  // 2. Suppression Cloud Firestore
+  if (isFirebaseConfigured && db) {
+    try {
+      await deleteDoc(doc(db, 'books', bookId));
+    } catch (err) {
+      console.warn('[Firestore] Erreur deleteBookById :', err);
+    }
+  }
+};
+
+export const subscribeToReadingProfile = (
+  userId: string | undefined,
+  callback: (profile: ReadingProfile) => void,
+  onError?: (error: unknown) => void
+): (() => void) => {
+  // 1. Rendu immédiat local
+  callback(getLocalReadingProfile(userId));
+
+  // 2. Écoute réactive locale
+  const localHandler = () => {
+    callback(getLocalReadingProfile(userId));
+  };
+  if (typeof window !== 'undefined') {
+    window.addEventListener('second_brain_data_changed', localHandler);
+  }
+
+  // 3. Écoute Firestore
+  let unsubFirestore = () => {};
+  if (isFirebaseConfigured && db && userId) {
+    try {
+      const profileRef = doc(db, 'reading_profiles', userId);
+      unsubFirestore = onSnapshot(
+        profileRef,
+        (snap) => {
+          if (snap.exists()) {
+            const data = snap.data() as ReadingProfile;
+            const profile: ReadingProfile = {
+              userId,
+              yearlyGoal: Number(data.yearlyGoal) || 12,
+              dayLog: data.dayLog || {},
+              updatedAt: data.updatedAt,
+            };
+            const key = `${LOCAL_STORAGE_KEYS.READING_PROFILE}_${userId}`;
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(key, JSON.stringify(profile));
+            }
+            callback(profile);
+          } else {
+            // S'il n'existe pas encore dans Firestore, on migre le profil local s'il a des logs
+            const local = getLocalReadingProfile(userId);
+            if (Object.keys(local.dayLog || {}).length > 0 || local.yearlyGoal !== 12) {
+              saveReadingProfile(local, userId).catch(() => {});
+            }
+            callback(local);
+          }
+        },
+        (error) => {
+          console.warn('[Firestore] Erreur écoute reading_profile :', error);
+          if (onError) onError(error);
+          callback(getLocalReadingProfile(userId));
+        }
+      );
+    } catch (e) {
+      console.warn('[Firestore] Exception reading_profile :', e);
+    }
+  }
+
+  return () => {
+    unsubFirestore();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('second_brain_data_changed', localHandler);
+    }
+  };
+};
+
+export const saveReadingProfile = async (profile: ReadingProfile, userId?: string): Promise<void> => {
+  const currentUserId = profile.userId || userId || null;
+  const profileToSave: ReadingProfile = {
+    ...profile,
+    userId: currentUserId || undefined,
+    updatedAt: new Date().toISOString(),
+  };
+
+  const key = currentUserId ? `${LOCAL_STORAGE_KEYS.READING_PROFILE}_${currentUserId}` : LOCAL_STORAGE_KEYS.READING_PROFILE;
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(key, JSON.stringify(profileToSave));
+    notifyLocalChange();
+  }
+
+  if (isFirebaseConfigured && db && currentUserId) {
+    try {
+      await setDoc(doc(db, 'reading_profiles', currentUserId), {
+        yearlyGoal: profileToSave.yearlyGoal || 12,
+        dayLog: profileToSave.dayLog || {},
+        updatedAt: profileToSave.updatedAt,
+        userId: currentUserId,
+      }, { merge: true });
+    } catch (err) {
+      console.warn('[Firestore] Erreur saveReadingProfile :', err);
     }
   }
 };

@@ -87,6 +87,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
   const features = [
     {
+      icon: Cloud,
+      color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
+      title: 'Syntropy OS V2.6.30 : Synchronisation Cloud des Lectures & Multi-Appareils',
+      desc: 'Toutes vos lectures (livres, manga, romans web), votre progression, votre streak de lecture et votre objectif annuel sont désormais synchronisés en temps réel via Cloud Firestore entre l\'application bureau et le site web en ligne.',
+    },
+    {
       icon: BookOpen,
       color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
       title: 'Syntropy OS V2.6.29 : Romans Web & Suivi en Chapitres',

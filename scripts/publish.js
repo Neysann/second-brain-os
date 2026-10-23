@@ -130,8 +130,8 @@ try {
   console.log('🔨 Compilation de l\'application Next.js (production build)...');
   run('npm run build', rootDir);
 
-  console.log('☁️ Téléversement sur Firebase Hosting...');
-  run('npx --yes firebase-tools deploy --only hosting', rootDir);
+  console.log('☁️ Téléversement sur Firebase Hosting & Firestore Rules...');
+  run('npx --yes firebase-tools deploy --only hosting,firestore:rules', rootDir);
   console.log('✅ Déploiement Firebase terminé avec succès !');
 } catch (fbErr) {
   console.error('❌ Erreur lors du déploiement Firebase:', fbErr.message);

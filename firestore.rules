@@ -40,6 +40,21 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Règle globale pour les événements du calendrier
+    match /events/{eventId} {
+      allow read, write: if true;
+    }
+
+    // Règle globale pour les lectures (livres, manga, romans)
+    match /books/{bookId} {
+      allow read, write: if true;
+    }
+
+    // Règle globale pour les profils, streak et objectifs de lecture
+    match /reading_profiles/{userId} {
+      allow read, write: if true;
+    }
+
     // Règle pour les profils et paramètres utilisateurs
     match /users/{userId}/{allPaths=**} {
       allow read, write: if true;
