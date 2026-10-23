@@ -2,6 +2,23 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.28] - 2026-10-23 (Nouvel Écran « Lectures » : Suivi de Livres & Manga)
+--------------------------------------------------------------------------------
+1. Nouvel Écran « Lectures » (section Daily Life) :
+- Bibliothèque de livres et de manga/BD en vue grille (couvertures) ou liste, avec recherche et filtres par statut (À lire, En cours, Terminé, Abandonné) et par type.
+- Progression en pages ou en pourcentage, avec enregistrement rapide des pages lues du jour.
+
+2. Ajout Automatique via API :
+- Recherche Google Books avec repli OpenLibrary : titre, auteur, couverture et nombre de pages pré-remplis en un clic (saisie manuelle toujours possible).
+
+3. Statistiques & Régularité :
+- Objectif de lecture annuel modifiable avec barre de progression.
+- Graphique des livres terminés par mois.
+- Streak de lecture quotidien (série en cours, record, 7 derniers jours) calculé à partir des pages lues enregistrées.
+
+4. Navigation :
+- Nouvelle entrée « Lectures » dans la barre latérale, avec badge du nombre de lectures en cours.
+
 #### [V2.6.27] - 2026-10-20 (Boutons Épurés en Sombre Absolu & Nouveau Bouton Assistant dans la Barre Latérale)
 --------------------------------------------------------------------------------
 1. Épuration Complète des Boutons en Mode Sombre Absolu (OLED) :

@@ -6,6 +6,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { DataProvider } from '@/context/DataContext';
 import { SettingsProvider } from '@/context/SettingsContext';
 import { DailyLifeProvider } from '@/context/DailyLifeContext';
+import { ReadingProvider } from '@/context/ReadingContext';
 import AppShell from '@/components/AppShell';
 
 export const metadata: Metadata = {
@@ -65,7 +66,9 @@ export default function RootLayout({
             <ThemeProvider>
               <DataProvider>
                 <DailyLifeProvider>
-                  <AppShell>{children}</AppShell>
+                  <ReadingProvider>
+                    <AppShell>{children}</AppShell>
+                  </ReadingProvider>
                 </DailyLifeProvider>
               </DataProvider>
             </ThemeProvider>

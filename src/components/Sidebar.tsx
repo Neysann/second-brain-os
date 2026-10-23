@@ -27,12 +27,14 @@ import {
   Wallet,
   Sparkles,
   Bot,
+  Library,
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useData } from '@/context/DataContext';
 import { useAuth } from '@/context/AuthContext';
 import { useSettings } from '@/context/SettingsContext';
 import { useDailyLife } from '@/context/DailyLifeContext';
+import { useReading } from '@/context/ReadingContext';
 import { CURRENT_VERSION } from '@/components/WhatsNewModal';
 
 interface SidebarProps {
@@ -48,6 +50,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
   const { user, logout } = useAuth();
   const { settings } = useSettings();
   const { currentStreak, budgetStats } = useDailyLife();
+  const { books: readingBooks } = useReading();
+  const readingInProgress = readingBooks.filter((b) => b.status === 'reading').length;
   const [showAssistantToast, setShowAssistantToast] = useState(false);
 
   useEffect(() => {
@@ -114,6 +118,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSearch, onOpenAuth }) =>
       href: '/budget',
       icon: Wallet,
       badge: budgetStats ? `${budgetStats.percentUsed}%` : null,
+      accent: 'indigo',
+    },
+    {
+      name: 'Lectures',
+      href: '/reading',
+      icon: Library,
+      badge: readingInProgress > 0 ? readingInProgress : null,
       accent: 'indigo',
     },
   ];
