@@ -65,7 +65,6 @@ export default function QuickCapturePage() {
   const accentTheme = useMemo(() => {
     switch (activeAccent) {
       case 'aether':
-      case 'blue':
         return {
           iconColor: isDark ? 'text-blue-400' : 'text-blue-600',
           iconBg: isDark ? 'bg-blue-500/20 border-blue-500/40 text-blue-400' : 'bg-blue-500/10 border-blue-500/30 text-blue-600',
