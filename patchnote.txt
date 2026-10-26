@@ -2,6 +2,22 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.31] - 2026-10-26 (Harmonisation Intégrale des Thèmes sur la Capture Rapide)
+--------------------------------------------------------------------------------
+1. Prise en Charge Totale des Thèmes (Mode Clair, Sombre & OLED) :
+- La fenêtre de capture rapide (Alt+Espace) s'adapte désormais fidèlement au mode de l'application : fond blanc épuré/verre liquide en mode clair, fond zinc feutré en mode sombre et noir pur absolu en mode OLED (#000000).
+- Tous les textes, bordures, inputs, sélecteurs d'onglets et descriptions adoptent des niveaux de contraste parfaits quel que soit le thème actif.
+
+2. Couleurs d'Accentuation Dynamiques :
+- Les boutons d'action, halos de focus, onglets actifs (Tâche / Note / Idée) et dégradés de titre épousent automatiquement la couleur d'accentuation choisie dans les Paramètres (Violet, Bleu/Aether, Émeraude, Cyan, Ambre, Rose/Rubis).
+
+3. Intégration des Styles Spéciaux Nothing OS & Cyberpunk HUD :
+- Nothing OS Edition : typographie NType et NDot, accent rouge vif Nothing (#D71920), point rouge iconique et boutons texturés industriels.
+- Cyberpunk 2077 HUD : typographie monospace, découpes angulaires, accents bi-ton jaune néon (#FCEE0A) et bleu cyan (#00F0FF).
+
+4. Transparence et Détourage Parfait sous Electron :
+- Neutralisation de tout arrière-plan opaque parasite sur la fenêtre de bureau pour garantir une carte flottante parfaitement détourée et fluide.
+
 #### [V2.6.30] - 2026-10-23 (Synchronisation Cloud Firestore Complète des Lectures & Multi-Appareils)
 --------------------------------------------------------------------------------
 1. Synchronisation Cloud Temps Réel (Multi-Appareils) :

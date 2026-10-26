@@ -87,6 +87,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
   const features = [
     {
+      icon: Palette,
+      color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
+      title: 'Syntropy OS V2.6.31 : Harmonisation des Thèmes sur la Capture Rapide',
+      desc: 'La fenêtre de capture rapide (Alt+Espace) s\'adapte désormais instantanément à tous vos paramètres : Mode Clair, Sombre et Sombre absolu OLED (#000000), couleurs d\'accentuation dynamiques ainsi que les directions artistiques Nothing OS et Cyberpunk HUD.',
+    },
+    {
       icon: Cloud,
       color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
       title: 'Syntropy OS V2.6.30 : Synchronisation Cloud des Lectures & Multi-Appareils',
