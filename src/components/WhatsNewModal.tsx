@@ -30,6 +30,7 @@ import {
   Bot,
   BookOpen,
   Keyboard,
+  Laptop,
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
@@ -87,6 +88,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
   };
 
   const features = [
+    {
+      icon: Laptop,
+      color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30',
+      title: 'Syntropy OS V2.6.33 : Fenêtre Dédiée aux Paramètres Desktop',
+      desc: 'Tous les paramètres exclusifs à l\'application bureau (Démarrage Windows automatique, raccourci global de capture rapide, mises à jour automatiques, notifications Toast et sauvegardes locales Markdown) sont désormais centralisés dans un onglet dédié exclusif à la version Desktop.',
+    },
     {
       icon: Keyboard,
       color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30',

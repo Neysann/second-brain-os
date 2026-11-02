@@ -59,6 +59,7 @@ import { useData } from '@/context/DataContext';
 import { useAuth } from '@/context/AuthContext';
 import { ADMIN_PRIVILEGES, isSiteAdmin } from '@/lib/admin';
 import AdminControlPanel from '@/components/AdminControlPanel';
+import DesktopSettingsSection from '@/components/settings/DesktopSettingsSection';
 import { CURRENT_VERSION } from '@/components/WhatsNewModal';
 import { SecretThemeModal, playSecretUnlockSound } from '@/components/SecretThemeModal';
 import {
@@ -78,7 +79,7 @@ import {
 } from '@/types';
 import JSZip from 'jszip';
 
-type SettingsTab = 'appearance' | 'editor' | 'para' | 'data' | 'profile' | 'admin';
+type SettingsTab = 'appearance' | 'editor' | 'para' | 'data' | 'profile' | 'desktop' | 'admin';
 
 const NEON_INTENSITY_OPTIONS: {
   id: NeonIntensity;
@@ -194,17 +195,25 @@ const PAPER_COLOR_SETTINGS: {
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('appearance');
+  const [isDesktop, setIsDesktop] = useState(false);
   const { settings, effectiveTheme, updateSetting, resetSettings } = useSettings();
   const { notes, tasks, projects, folders, isFirebaseConnected, addNote } = useData();
   const { user } = useAuth();
   const isAdmin = Boolean(user?.isAdmin || user?.role === 'admin' || (user?.email && isSiteAdmin(user.email)));
 
-  // Synchroniser avec les query params de l'URL (?tab=profile, etc.) au chargement et navigation
+  // Détecter l'environnement Desktop (Electron) et synchroniser avec les query params de l'URL (?tab=profile, etc.)
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
+    const isDesktopApp = Boolean((window as any).electronAPI?.isDesktop);
+    setIsDesktop(isDesktopApp);
+
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab') as SettingsTab | null;
-    if (tabParam && ['appearance', 'editor', 'para', 'data', 'profile', 'admin'].includes(tabParam)) {
+    const allowedTabs: SettingsTab[] = isDesktopApp
+      ? ['appearance', 'editor', 'para', 'data', 'profile', 'desktop', 'admin']
+      : ['appearance', 'editor', 'para', 'data', 'profile', 'admin'];
+
+    if (tabParam && allowedTabs.includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, []);
@@ -515,6 +524,9 @@ export default function SettingsPage() {
           { id: 'para' as SettingsTab, label: 'Méthode PARA', icon: FolderGit2 },
           { id: 'data' as SettingsTab, label: 'Données & Sauvegardes', icon: Database },
           { id: 'profile' as SettingsTab, label: 'Profil & Salutations', icon: User },
+          ...(isDesktop
+            ? [{ id: 'desktop' as SettingsTab, label: 'Application Desktop 💻', icon: Laptop }]
+            : []),
           ...(isAdmin
             ? [{ id: 'admin' as SettingsTab, label: 'Paramètres Administrateur 👑', icon: Crown }]
             : []),
@@ -522,6 +534,7 @@ export default function SettingsPage() {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           const isAdminTab = tab.id === 'admin';
+          const isDesktopTab = tab.id === 'desktop';
           return (
             <button
               key={tab.id}
@@ -530,11 +543,17 @@ export default function SettingsPage() {
                 isActive
                   ? isAdminTab
                     ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black font-extrabold shadow-md shadow-amber-500/30'
+                    : isDesktopTab
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-md shadow-cyan-500/30'
                     : 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
                   : isAdminTab
                   ? isDark
                     ? 'text-amber-400 hover:text-amber-300 hover:bg-amber-950/30 border border-amber-500/30'
                     : 'text-amber-700 hover:text-amber-900 hover:bg-amber-50 border border-amber-300'
+                  : isDesktopTab
+                  ? isDark
+                    ? 'text-cyan-400 hover:text-cyan-300 hover:bg-cyan-950/30 border border-cyan-500/30'
+                    : 'text-cyan-700 hover:text-cyan-900 hover:bg-cyan-50 border border-cyan-300'
                   : isDark
                   ? 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60'
                   : 'text-zinc-600 hover:text-zinc-900 hover:bg-white/80'
@@ -2508,6 +2527,20 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* APPLICATION DESKTOP (Accessible uniquement sous Electron)*/}
+      {/* ======================================================== */}
+      {activeTab === 'desktop' && isDesktop && (
+        <DesktopSettingsSection
+          isDark={isDark}
+          onNotification={showNotification}
+          notes={notes}
+          tasks={tasks}
+          projects={projects}
+          folders={folders}
+        />
       )}
 
       {/* ======================================================== */}

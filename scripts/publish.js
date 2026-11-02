@@ -51,6 +51,8 @@ if (gitDir !== rootDir) {
     'firestore.rules',
     '.firebaserc',
     'README.md',
+    'Lancer_Syntropy_Desktop.bat',
+    'Synchroniser_Et_Deployer.bat',
   ];
   const ignoreList = [
     'node_modules',

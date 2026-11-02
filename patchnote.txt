@@ -2,6 +2,23 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.33] - 2026-11-02 (Fenêtre Dédiée aux Paramètres de l'Application Desktop)
+--------------------------------------------------------------------------------
+1. Onglet Dédié Exclusif « Application Desktop » :
+- Création d'un onglet entièrement réservé à l'application bureau dans les Paramètres (`/settings?tab=desktop`), visible uniquement sur l'exécutable Windows (Electron) et masqué sur la version site web.
+- Centralisation complète de tous les réglages natifs Windows conçus depuis le début du projet en une interface claire et ergonomique.
+
+2. Consolidation de Tous les Réglages Applicatifs :
+- Système & Boot Windows : Gestion du démarrage automatique silencieux au démarrage de l'ordinateur (Auto-Start).
+- Prise de Notes Rapides : Remappage du raccourci clavier global (Alt+Espace, raccourcis ergonomiques ou combinaison personnalisée) et test de la fenêtre flottante Always-On-Top.
+- Mises à Jour Automatiques : Recherche de mises à jour, suivi de progression du téléchargement et redémarrage pour installation en un clic.
+- Notifications Natives : Test et paramétrage des Windows Toast interactifs (actions de report ou de validation de tâches / Pomodoro).
+- Système de Fichiers Local : Sélection du répertoire cible de sauvegarde, export Markdown direct de toutes les notes (.md) et sauvegarde JSON sur le disque dur.
+- Contrôles Système : Bouton pour ouvrir l'emplacement d'installation dans l'Explorateur Windows et bouton pour quitter proprement l'application.
+
+3. Allègement et Purification de l'Espace Administrateur :
+- Les contrôles Desktop ont été extraits de l'onglet Admin pour laisser la console Administrateur 100% focalisée sur la gestion des rôles, la synchronisation Firestore Cloud, les Feature Flags et les journaux d'audit.
+
 #### [V2.6.32] - 2026-11-02 (Remappage du Raccourci Clavier Global de Capture Rapide)
 --------------------------------------------------------------------------------
 1. Remappage Dynamique du Raccourci de Prise de Notes Rapides :
