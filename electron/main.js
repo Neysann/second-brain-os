@@ -13,6 +13,93 @@ let tray = null;
 let isQuitting = false;
 let localServer = null;
 let currentAppUrl = null;
+let currentQuickCaptureShortcut = 'Alt+Space';
+
+/**
+ * Gestion de la persistance du raccourci global de capture rapide
+ */
+function getShortcutConfigPath() {
+  try {
+    return path.join(app.getPath('userData'), 'desktop-shortcut.json');
+  } catch (_) {
+    return null;
+  }
+}
+
+function loadQuickCaptureShortcut() {
+  try {
+    const configPath = getShortcutConfigPath();
+    if (configPath && fs.existsSync(configPath)) {
+      const data = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      if (data && typeof data.shortcut === 'string' && data.shortcut.trim()) {
+        return data.shortcut.trim();
+      }
+    }
+  } catch (e) {
+    console.error('[Syntropy Desktop] Erreur lecture raccourci:', e);
+  }
+  return 'Alt+Space';
+}
+
+function saveQuickCaptureShortcut(shortcut) {
+  try {
+    const configPath = getShortcutConfigPath();
+    if (configPath) {
+      fs.mkdirSync(path.dirname(configPath), { recursive: true });
+      fs.writeFileSync(configPath, JSON.stringify({ shortcut }), 'utf8');
+    }
+  } catch (e) {
+    console.error('[Syntropy Desktop] Erreur sauvegarde raccourci:', e);
+  }
+}
+
+function registerQuickCaptureShortcut(newShortcut) {
+  const target = (newShortcut && typeof newShortcut === 'string' && newShortcut.trim()) ? newShortcut.trim() : 'Alt+Space';
+
+  // Désenregistrer le précédent raccourci s'il existe
+  if (currentQuickCaptureShortcut) {
+    try {
+      globalShortcut.unregister(currentQuickCaptureShortcut);
+    } catch (_) {}
+  }
+
+  try {
+    const registered = globalShortcut.register(target, () => {
+      toggleQuickCaptureWindow();
+    });
+
+    if (registered) {
+      currentQuickCaptureShortcut = target;
+      saveQuickCaptureShortcut(target);
+      updateTrayMenu();
+      console.log(`[Syntropy OS Desktop] Raccourci global de capture rapide enregistré avec succès : ${target}`);
+      return { success: true, shortcut: target };
+    } else {
+      // Échec : réenregistrer l'ancien raccourci ou le défaut Alt+Space
+      const fallback = currentQuickCaptureShortcut || 'Alt+Space';
+      try {
+        globalShortcut.register(fallback, () => {
+          toggleQuickCaptureWindow();
+        });
+      } catch (_) {}
+      return {
+        success: false,
+        error: `Impossible d'enregistrer le raccourci "${target}". Il est peut-être déjà réservé par Windows ou une autre application.`,
+      };
+    }
+  } catch (err) {
+    const fallback = currentQuickCaptureShortcut || 'Alt+Space';
+    try {
+      globalShortcut.register(fallback, () => {
+        toggleQuickCaptureWindow();
+      });
+    } catch (_) {}
+    return {
+      success: false,
+      error: `Format de raccourci invalide ("${target}") : ${err.message}`,
+    };
+  }
+}
 
 // Capture globale des exceptions pour éviter tout crash silencieux
 process.on('uncaughtException', (err) => {
@@ -589,25 +676,10 @@ function toggleQuickCaptureWindow() {
 
 
 /**
- * Configuration du System Tray (Icône de notification violette)
+ * Met à jour le menu contextuel du System Tray avec le raccourci dynamique
  */
-function setupSystemTray(appUrl) {
-  const iconImg = getAppIcon();
-  let trayImage;
-
-  if (iconImg && typeof iconImg.resize === 'function') {
-    trayImage = iconImg.resize({ width: 18, height: 18 });
-  } else {
-    const iconPath = getAppIconPath();
-    if (iconPath && fs.existsSync(iconPath)) {
-      trayImage = nativeImage.createFromPath(iconPath).resize({ width: 18, height: 18 });
-    } else {
-      trayImage = nativeImage.createEmpty();
-    }
-  }
-
-  tray = new Tray(trayImage);
-  tray.setToolTip(`Syntropy OS v${app.getVersion()} (Desktop Engine)`);
+function updateTrayMenu() {
+  if (!tray) return;
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -620,7 +692,7 @@ function setupSystemTray(appUrl) {
       },
     },
     {
-      label: '📝 Nouvelle Note rapide (Alt+Espace)',
+      label: `📝 Nouvelle Note rapide (${currentQuickCaptureShortcut})`,
       click: () => {
         toggleQuickCaptureWindow();
       },
@@ -677,6 +749,30 @@ function setupSystemTray(appUrl) {
   ]);
 
   tray.setContextMenu(contextMenu);
+}
+
+/**
+ * Configuration du System Tray (Icône de notification violette)
+ */
+function setupSystemTray(appUrl) {
+  const iconImg = getAppIcon();
+  let trayImage;
+
+  if (iconImg && typeof iconImg.resize === 'function') {
+    trayImage = iconImg.resize({ width: 18, height: 18 });
+  } else {
+    const iconPath = getAppIconPath();
+    if (iconPath && fs.existsSync(iconPath)) {
+      trayImage = nativeImage.createFromPath(iconPath).resize({ width: 18, height: 18 });
+    } else {
+      trayImage = nativeImage.createEmpty();
+    }
+  }
+
+  tray = new Tray(trayImage);
+  tray.setToolTip(`Syntropy OS v${app.getVersion()} (Desktop Engine)`);
+
+  updateTrayMenu();
 
   tray.on('click', () => {
     if (mainWindow) {
@@ -710,6 +806,10 @@ function registerIpcHandlers() {
   // Capture Rapide
   ipcMain.handle('open-quick-capture', () => toggleQuickCaptureWindow());
   ipcMain.handle('hide-quick-capture', () => quickCaptureWindow?.hide());
+  ipcMain.handle('get-quick-capture-shortcut', () => currentQuickCaptureShortcut);
+  ipcMain.handle('set-quick-capture-shortcut', (_event, shortcut) => {
+    return registerQuickCaptureShortcut(shortcut);
+  });
 
   // Auto-Start (Lancement au démarrage Windows)
   ipcMain.handle('get-auto-start', () => {
@@ -872,13 +972,11 @@ app.whenReady().then(() => {
   registerIpcHandlers();
   registerAutoUpdaterIpc(isDev);
 
-  // Enregistrement du raccourci clavier global Alt+Espace
-  const shortcutRegistered = globalShortcut.register('Alt+Space', () => {
-    toggleQuickCaptureWindow();
-  });
-
-  if (!shortcutRegistered) {
-    console.warn('[Syntropy OS Desktop] Impossible d\'enregistrer le raccourci global Alt+Space.');
+  // Enregistrement du raccourci clavier global de Capture Rapide (persistant)
+  currentQuickCaptureShortcut = loadQuickCaptureShortcut();
+  const shortcutResult = registerQuickCaptureShortcut(currentQuickCaptureShortcut);
+  if (!shortcutResult.success) {
+    console.warn(`[Syntropy OS Desktop] Avertissement raccourci global: ${shortcutResult.error}`);
   }
 
   const startApp = (appUrl) => {

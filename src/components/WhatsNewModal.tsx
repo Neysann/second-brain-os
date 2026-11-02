@@ -29,6 +29,7 @@ import {
   KeyRound,
   Bot,
   BookOpen,
+  Keyboard,
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
@@ -86,6 +87,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
   };
 
   const features = [
+    {
+      icon: Keyboard,
+      color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30',
+      title: 'Syntropy OS V2.6.32 : Remappage du Raccourci de Capture Rapide',
+      desc: 'Personnalisez désormais votre raccourci clavier global pour ouvrir la fenêtre de capture rapide depuis n\'importe où sur votre PC (via l\'onglet Paramètres Administrateur / Système Desktop) avec une sélection de combinaisons ergonomiques ou une combinaison personnalisée.',
+    },
     {
       icon: Palette,
       color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',

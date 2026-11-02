@@ -2,6 +2,21 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.32] - 2026-11-02 (Remappage du Raccourci Clavier Global de Capture Rapide)
+--------------------------------------------------------------------------------
+1. Remappage Dynamique du Raccourci de Prise de Notes Rapides :
+- Ajout d'une option dédiée dans les Paramètres (Onglet Administrateur / Système Desktop) permettant de modifier le raccourci clavier global de la fenêtre flottante de capture rapide.
+- Liste déroulante intégrée proposant les combinaisons les plus ergonomiques (Alt+Espace par défaut, Ctrl+Alt+Espace, Ctrl+Shift+Espace, Alt+N, Ctrl+Alt+N, Alt+Q, etc.).
+- Mode personnalisé permettant de saisir n'importe quel raccourci valide au format Electron Accelerator avec validation et feedback instantanés.
+
+2. Persistance et Intégration Native Windows (Desktop Electron) :
+- Le nouveau raccourci est sauvegardé de manière persistante dans la configuration locale de l'application bureau et réenregistré à chaud au niveau du système d'exploitation sans redémarrage requis.
+- Mise à jour dynamique du System Tray de Windows : le libellé du menu contextuel affiche instantanément la nouvelle combinaison configurée.
+- Bouton de réinitialisation rapide en un clic pour restaurer le raccourci standard (Alt+Espace).
+
+3. Robustesse & Gestion des Conflits Système :
+- En cas de combinaison réservée par Windows ou déjà assignée à un autre logiciel tiers, l'application restaure automatiquement le raccourci précédent et notifie l'utilisateur de manière explicite.
+
 #### [V2.6.31] - 2026-10-26 (Harmonisation Intégrale des Thèmes sur la Capture Rapide)
 --------------------------------------------------------------------------------
 1. Prise en Charge Totale des Thèmes (Mode Clair, Sombre & OLED) :

@@ -35,6 +35,7 @@ import {
   CheckCircle2,
   Sparkles,
   FileText,
+  RotateCcw,
 } from 'lucide-react';
 import {
   ROOT_ADMIN_EMAIL,
@@ -58,6 +59,19 @@ import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
 import AdminUpdateSection from '@/components/settings/AdminUpdateSection';
 import { APP_VERSION } from '@/lib/version';
+
+export const RECOMMENDED_SHORTCUTS = [
+  { id: 'Alt+Space', label: 'Alt + Espace (Défaut standard Windows)' },
+  { id: 'CommandOrControl+Alt+Space', label: 'Ctrl + Alt + Espace' },
+  { id: 'CommandOrControl+Shift+Space', label: 'Ctrl + Shift + Espace' },
+  { id: 'Alt+N', label: 'Alt + N (Note rapide)' },
+  { id: 'CommandOrControl+Alt+N', label: 'Ctrl + Alt + N' },
+  { id: 'CommandOrControl+Shift+N', label: 'Ctrl + Shift + N' },
+  { id: 'Alt+Q', label: 'Alt + Q (Quick capture)' },
+  { id: 'CommandOrControl+Alt+Q', label: 'Ctrl + Alt + Q' },
+  { id: 'CommandOrControl+Shift+Q', label: 'Ctrl + Shift + Q' },
+  { id: 'custom', label: '✨ Combinaison personnalisée...' },
+];
 
 interface AdminControlPanelProps {
   isDark: boolean;
@@ -90,6 +104,10 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);
   const [localBackupFolder, setLocalBackupFolder] = useState('');
   const [isExportingLocal, setIsExportingLocal] = useState(false);
+  const [quickCaptureShortcut, setQuickCaptureShortcut] = useState('Alt+Space');
+  const [selectedShortcutOption, setSelectedShortcutOption] = useState('Alt+Space');
+  const [customShortcutInput, setCustomShortcutInput] = useState('');
+  const [isUpdatingShortcut, setIsUpdatingShortcut] = useState(false);
 
   // État Mises à Jour Automatiques (electron-updater)
   const [updateStatus, setUpdateStatus] = useState<{
@@ -111,6 +129,20 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
           }).catch(() => {});
         }
         electron.getAutoStart().then((res: boolean) => setAutoStartEnabled(Boolean(res))).catch(() => {});
+        if (electron.getQuickCaptureShortcut) {
+          electron.getQuickCaptureShortcut().then((sc: string) => {
+            if (sc) {
+              setQuickCaptureShortcut(sc);
+              const found = RECOMMENDED_SHORTCUTS.some((o) => o.id === sc);
+              if (found) {
+                setSelectedShortcutOption(sc);
+              } else {
+                setSelectedShortcutOption('custom');
+                setCustomShortcutInput(sc);
+              }
+            }
+          }).catch(() => {});
+        }
         if (electron.onUpdateStatus) {
           const cleanup = electron.onUpdateStatus((data: any) => {
             setUpdateStatus(data);
@@ -373,6 +405,47 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
       electron.openQuickCapture();
     } else {
       window.open('/quick-capture', 'SyntropyQuickCapture', 'width=620,height=390,resizable=no');
+    }
+  };
+
+  const handleApplyShortcut = async (targetShortcut: string) => {
+    const trimmed = targetShortcut.trim();
+    if (!trimmed) {
+      onNotification('Veuillez spécifier une combinaison de touches valide.', 'error');
+      return;
+    }
+    const electron = (window as any).electronAPI;
+    if (!electron?.setQuickCaptureShortcut) {
+      onNotification('Le remappage du raccourci global nécessite l\'application Desktop native.', 'info');
+      return;
+    }
+    setIsUpdatingShortcut(true);
+    try {
+      const res = await electron.setQuickCaptureShortcut(trimmed);
+      if (res?.success) {
+        const confirmed = res.shortcut || trimmed;
+        setQuickCaptureShortcut(confirmed);
+        const found = RECOMMENDED_SHORTCUTS.some((o) => o.id === confirmed);
+        if (found) {
+          setSelectedShortcutOption(confirmed);
+        } else {
+          setSelectedShortcutOption('custom');
+          setCustomShortcutInput(confirmed);
+        }
+        localStorage.setItem('syntropy_desktop_quick_capture_shortcut', confirmed);
+        onNotification(`Raccourci de capture rapide mis à jour : ${confirmed}`, 'success');
+        logAdminAction(
+          user?.email || 'admin@syntropy.os',
+          'SYSTEM_CONFIG',
+          `Remappage du raccourci global de capture rapide : ${confirmed}`
+        );
+      } else {
+        onNotification(res?.error || 'Échec de la modification du raccourci.', 'error');
+      }
+    } catch (err: any) {
+      onNotification(`Erreur : ${err?.message || err}`, 'error');
+    } finally {
+      setIsUpdatingShortcut(false);
     }
   };
 
@@ -906,35 +979,117 @@ export default function AdminControlPanel({ isDark, onNotification }: AdminContr
             </div>
           </div>
 
-          {/* 2. Raccourci Clavier Global & Mini-Fenêtre de Capture (Alt+Espace) */}
+          {/* 2. Raccourci Clavier Global & Mini-Fenêtre de Capture (Remappage) */}
           <div className={`p-4 rounded-2xl border transition-colors ${
             isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200'
           }`}>
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Keyboard className="w-4 h-4 text-cyan-400" />
                   <span className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
                     Capture Rapide Globale
                   </span>
-                  <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 text-[10px] font-mono border border-zinc-700">
-                    Alt + Espace
+                  <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 text-[11px] font-mono border border-cyan-500/30 flex items-center gap-1">
+                    <span>{quickCaptureShortcut}</span>
                   </span>
                 </div>
                 <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                  Fenêtre flottante sans bordure au-dessus de tout pour capturer notes, tâches et idées dans l'Inbox.
+                  Fenêtre flottante sans bordure au-dessus de tout le système d&apos;exploitation pour capturer notes, tâches et idées dans l&apos;Inbox.
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={handleTriggerQuickCapture}
-                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center gap-1.5 transition-colors cursor-pointer flex-shrink-0"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Tester</span>
-              </button>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={handleTriggerQuickCapture}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+                  title="Ouvrir immédiatement la fenêtre de capture rapide"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Tester</span>
+                </button>
+              </div>
             </div>
+
+            {/* Sélecteur de Remappage du Raccourci Clavier */}
+            <div className={`mt-3 pt-3 border-t ${isDark ? 'border-zinc-800/60' : 'border-zinc-100'} space-y-2.5`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <label className={`text-xs font-medium flex items-center gap-1.5 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                  <span>Raccourci clavier assigné :</span>
+                  {!isDesktopApp && (
+                    <span className="text-[10px] text-amber-500 font-normal">
+                      (Actif sur l&apos;exécutable Desktop)
+                    </span>
+                  )}
+                </label>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <select
+                    value={selectedShortcutOption}
+                    disabled={isUpdatingShortcut}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSelectedShortcutOption(val);
+                      if (val !== 'custom') {
+                        handleApplyShortcut(val);
+                      }
+                    }}
+                    className={`text-xs px-2.5 py-1.5 rounded-xl border font-mono outline-none transition-all cursor-pointer ${
+                      isDark
+                        ? 'bg-zinc-950 border-zinc-700 text-zinc-200 focus:border-cyan-500'
+                        : 'bg-zinc-50 border-zinc-300 text-zinc-800 focus:border-cyan-600'
+                    }`}
+                  >
+                    {RECOMMENDED_SHORTCUTS.map((opt) => (
+                      <option key={opt.id} value={opt.id} className={isDark ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-zinc-900'}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {quickCaptureShortcut !== 'Alt+Space' && (
+                    <button
+                      type="button"
+                      disabled={isUpdatingShortcut}
+                      onClick={() => handleApplyShortcut('Alt+Space')}
+                      className="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 flex items-center gap-1 transition-colors cursor-pointer"
+                      title="Réinitialiser sur Alt+Espace"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span className="hidden sm:inline">Réinitialiser</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Champ personnalisé si l'option custom est sélectionnée */}
+              {selectedShortcutOption === 'custom' && (
+                <div className={`p-2.5 rounded-xl border ${isDark ? 'bg-zinc-950/60 border-zinc-800' : 'bg-zinc-50 border-zinc-200'} flex flex-col sm:flex-row items-stretch sm:items-center gap-2`}>
+                  <input
+                    type="text"
+                    value={customShortcutInput}
+                    onChange={(e) => setCustomShortcutInput(e.target.value)}
+                    placeholder="Ex: CommandOrControl+Shift+J ou Alt+F11"
+                    className={`flex-1 text-xs px-3 py-1.5 rounded-lg border font-mono outline-none transition-all ${
+                      isDark
+                        ? 'bg-zinc-900 border-zinc-700 text-zinc-100 focus:border-cyan-500'
+                        : 'bg-white border-zinc-300 text-zinc-900 focus:border-cyan-600'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    disabled={isUpdatingShortcut || !customShortcutInput.trim()}
+                    onClick={() => handleApplyShortcut(customShortcutInput)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500 hover:bg-cyan-400 text-black flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Appliquer</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
             <div className="mt-2.5 pt-2.5 border-t border-zinc-800/40 flex items-center justify-between text-[11px]">
               <span className="text-zinc-500">Mode :</span>
               <span className="font-mono text-cyan-400">Always-On-Top & Dictée Vocale</span>

@@ -20,9 +20,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   closeWindow: () => ipcRenderer.invoke('close-window'),
   quitApp: () => ipcRenderer.invoke('quit-app'),
 
-  // Capture Rapide Alt+Espace
+  // Capture Rapide & Raccourci Global
   openQuickCapture: () => ipcRenderer.invoke('open-quick-capture'),
   hideQuickCapture: () => ipcRenderer.invoke('hide-quick-capture'),
+  getQuickCaptureShortcut: () => ipcRenderer.invoke('get-quick-capture-shortcut'),
+  setQuickCaptureShortcut: (shortcut) => ipcRenderer.invoke('set-quick-capture-shortcut', shortcut),
 
   // Démarrage automatique Windows (LoginItemSettings)
   getAutoStart: () => ipcRenderer.invoke('get-auto-start'),
