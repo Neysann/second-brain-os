@@ -287,12 +287,34 @@ export default function QuickCapturePage() {
       setTitle('');
       setContent('');
 
-      // Auto-fermeture après confirmation
-      setTimeout(() => {
-        setIsSaved(false);
-        setIsSubmitting(false);
-        handleClose();
-      }, 700);
+      // Auto-fermeture après confirmation (configurable via les paramètres Desktop)
+      const checkAndClose = async () => {
+        let shouldClose = true;
+        if (typeof window !== 'undefined') {
+          const electron = (window as any).electronAPI;
+          if (electron?.getDesktopConfig) {
+            try {
+              const cfg = await electron.getDesktopConfig();
+              if (cfg && cfg.quickCaptureAutoClose === false) {
+                shouldClose = false;
+              }
+            } catch (_) {}
+          } else {
+            const cached = localStorage.getItem('syntropy_desktop_auto_close_capture');
+            if (cached === 'false') shouldClose = false;
+          }
+        }
+
+        setTimeout(() => {
+          setIsSaved(false);
+          setIsSubmitting(false);
+          if (shouldClose) {
+            handleClose();
+          }
+        }, 700);
+      };
+
+      checkAndClose();
     } catch (err) {
       console.error('Erreur sauvegarde rapide:', err);
       setIsSubmitting(false);

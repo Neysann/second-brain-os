@@ -2,6 +2,26 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.34] - 2026-11-02 (Options Avancées Exclusives Desktop : Cycle de Vie, Tray, GPU & Sauvegardes)
+--------------------------------------------------------------------------------
+1. Contrôle du Cycle de Vie & Action de la Croix [X] de Fermeture :
+- Choix configurable entre la réduction dans la barre d'état système (System Tray) ou la fermeture immédiate de tous les processus de l'application.
+- Démarrage automatique configurable avec Windows (Auto-Start silencieux).
+
+2. Interaction Enrichie avec la Zone de Notification (System Tray) :
+- Configuration du comportement du clic gauche sur l'icône violette du Tray : afficher/masquer l'application principale ou ouvrir instantanément la fenêtre flottante de capture rapide.
+
+3. Prise de Notes Rapides (Quick-Capture) Plus Fluide :
+- Option de fermeture automatique configurable : fermer automatiquement la fenêtre flottante à la validation ou la laisser ouverte pour enchaîner la saisie de plusieurs notes d'affilée.
+
+4. Performance & Maintenance du Moteur Desktop (Chromium Engine) :
+- Bascule d'accélération matérielle GPU : permet de forcer le rendu logiciel en cas de scintillements ou d'incompatibilité de pilote graphique, avec bouton de redémarrage direct.
+- Bouton de purge du cache Desktop : vide en un clic les shaders Chromium, les service workers et le cache temporaire sans déconnecter la session utilisateur.
+
+5. Sauvegardes Locales Automatiques & Système de Fichiers :
+- Configuration de la fréquence de sauvegarde locale (désactivée, automatique à la fermeture de l'application, ou quotidienne).
+- Persistance unifiée de toutes les préférences de bureau dans `%APPDATA%/Syntropy OS/desktop-preferences.json`.
+
 #### [V2.6.33] - 2026-11-02 (Fenêtre Dédiée aux Paramètres de l'Application Desktop)
 --------------------------------------------------------------------------------
 1. Onglet Dédié Exclusif « Application Desktop » :

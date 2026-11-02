@@ -89,6 +89,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
   const features = [
     {
+      icon: Sliders,
+      color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
+      title: 'Syntropy OS V2.6.34 : Options Avancées Exclusives Desktop',
+      desc: 'Nouvelles options dédiées au client natif Windows : comportement de la croix de fermeture [X] (réduire au Tray ou quitter), action du clic sur l\'icône Tray, fermeture automatique ou continue de la Capture Rapide, bascule GPU/accélération matérielle, purge du cache Chromium et fréquence de sauvegarde locale.',
+    },
+    {
       icon: Laptop,
       color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30',
       title: 'Syntropy OS V2.6.33 : Fenêtre Dédiée aux Paramètres Desktop',

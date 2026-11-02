@@ -17,6 +17,14 @@ import {
   FolderOpen,
   Info,
   CheckCircle2,
+  Zap,
+  RefreshCw,
+  Trash2,
+  Sliders,
+  Cpu,
+  Clock,
+  Power,
+  Layers,
 } from 'lucide-react';
 import AdminUpdateSection from './AdminUpdateSection';
 import { APP_VERSION } from '@/lib/version';
@@ -53,21 +61,38 @@ export default function DesktopSettingsSection({
 }: DesktopSettingsSectionProps) {
   const [appVersion, setAppVersion] = useState<string>(APP_VERSION);
   const [isDesktopApp, setIsDesktopApp] = useState(false);
-  const [autoStartEnabled, setAutoStartEnabled] = useState(false);
-  const [localBackupFolder, setLocalBackupFolder] = useState('');
-  const [isExportingLocal, setIsExportingLocal] = useState(false);
 
-  // Raccourci Clavier Global Quick-Capture
+  // 1. Cycle de vie & Démarrage
+  const [autoStartEnabled, setAutoStartEnabled] = useState(false);
+  const [closeToTray, setCloseToTray] = useState(true);
+
+  // 2. Prise de Notes Rapides (Quick Capture)
   const [quickCaptureShortcut, setQuickCaptureShortcut] = useState('Alt+Space');
   const [selectedShortcutOption, setSelectedShortcutOption] = useState('Alt+Space');
   const [customShortcutInput, setCustomShortcutInput] = useState('');
   const [isUpdatingShortcut, setIsUpdatingShortcut] = useState(false);
+  const [quickCaptureAutoClose, setQuickCaptureAutoClose] = useState(true);
 
+  // 3. Barre des tâches & System Tray
+  const [trayClickAction, setTrayClickAction] = useState<'toggle-app' | 'open-quick-capture'>('toggle-app');
+
+  // 4. Performance, GPU & Maintenance
+  const [hardwareAcceleration, setHardwareAcceleration] = useState(true);
+  const [initialGpuSetting, setInitialGpuSetting] = useState(true);
+  const [isClearingCache, setIsClearingCache] = useState(false);
+
+  // 5. Sauvegardes Locales
+  const [localBackupFolder, setLocalBackupFolder] = useState('');
+  const [autoBackupInterval, setAutoBackupInterval] = useState<'disabled' | 'on_close' | 'daily'>('disabled');
+  const [isExportingLocal, setIsExportingLocal] = useState(false);
+
+  // Chargement initial des préférences natives Desktop
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const electron = (window as any).electronAPI;
       if (electron?.isDesktop) {
         setIsDesktopApp(true);
+
         if (electron.getAppVersion) {
           electron
             .getAppVersion()
@@ -76,13 +101,45 @@ export default function DesktopSettingsSection({
             })
             .catch(() => {});
         }
+
         if (electron.getAutoStart) {
           electron
             .getAutoStart()
             .then((res: boolean) => setAutoStartEnabled(Boolean(res)))
             .catch(() => {});
         }
-        if (electron.getQuickCaptureShortcut) {
+
+        if (electron.getDesktopConfig) {
+          electron
+            .getDesktopConfig()
+            .then((cfg: any) => {
+              if (cfg) {
+                if (typeof cfg.closeToTray === 'boolean') setCloseToTray(cfg.closeToTray);
+                if (cfg.trayClickAction) setTrayClickAction(cfg.trayClickAction);
+                if (typeof cfg.hardwareAcceleration === 'boolean') {
+                  setHardwareAcceleration(cfg.hardwareAcceleration);
+                  setInitialGpuSetting(cfg.hardwareAcceleration);
+                }
+                if (typeof cfg.quickCaptureAutoClose === 'boolean') {
+                  setQuickCaptureAutoClose(cfg.quickCaptureAutoClose);
+                }
+                if (cfg.autoBackupInterval) setAutoBackupInterval(cfg.autoBackupInterval);
+                if (cfg.autoBackupFolder) setLocalBackupFolder(cfg.autoBackupFolder);
+
+                if (cfg.shortcut) {
+                  setQuickCaptureShortcut(cfg.shortcut);
+                  const found = RECOMMENDED_SHORTCUTS.some((o) => o.id === cfg.shortcut);
+                  if (found) {
+                    setSelectedShortcutOption(cfg.shortcut);
+                  } else {
+                    setSelectedShortcutOption('custom');
+                    setCustomShortcutInput(cfg.shortcut);
+                  }
+                }
+              }
+            })
+            .catch(() => {});
+        } else if (electron.getQuickCaptureShortcut) {
           electron
             .getQuickCaptureShortcut()
             .then((sc: string) => {
@@ -100,12 +157,25 @@ export default function DesktopSettingsSection({
             .catch(() => {});
         }
       }
+
       const savedFolder = localStorage.getItem('syntropy_local_backup_folder') || '';
-      setLocalBackupFolder(savedFolder);
+      if (savedFolder && !localBackupFolder) setLocalBackupFolder(savedFolder);
     }
   }, []);
 
-  // 1. Démarrage Automatique (Auto-Start)
+  // Helpers de persistance de configuration Electron
+  const updateDesktopConfig = async (patch: Record<string, any>) => {
+    const electron = (window as any).electronAPI;
+    if (electron?.setDesktopConfig) {
+      try {
+        await electron.setDesktopConfig(patch);
+      } catch (err) {
+        console.error('Erreur setDesktopConfig:', err);
+      }
+    }
+  };
+
+  // 1. Cycle de vie & Démarrage
   const handleToggleAutoStart = async () => {
     const electron = (window as any).electronAPI;
     if (!electron?.setAutoStart) {
@@ -125,6 +195,17 @@ export default function DesktopSettingsSection({
     } catch (err: any) {
       onNotification(`Erreur auto-start : ${err?.message || err}`, 'error');
     }
+  };
+
+  const handleToggleCloseToTray = async (value: boolean) => {
+    setCloseToTray(value);
+    await updateDesktopConfig({ closeToTray: value });
+    onNotification(
+      value
+        ? 'Le clic sur la croix [X] réduira désormais Syntropy OS dans la barre d\'état (Tray).'
+        : 'Le clic sur la croix [X] quittera désormais complètement l\'application.',
+      'success'
+    );
   };
 
   // 2. Remappage Raccourci Clavier Global
@@ -153,6 +234,7 @@ export default function DesktopSettingsSection({
           setCustomShortcutInput(confirmed);
         }
         localStorage.setItem('syntropy_desktop_quick_capture_shortcut', confirmed);
+        await updateDesktopConfig({ shortcut: confirmed });
         onNotification(`Raccourci de capture rapide mis à jour : ${confirmed}`, 'success');
       } else {
         onNotification(res?.error || 'Échec de la modification du raccourci.', 'error');
@@ -173,7 +255,71 @@ export default function DesktopSettingsSection({
     }
   };
 
-  // 3. Notification Native Windows Toast
+  const handleToggleQuickCaptureAutoClose = async (value: boolean) => {
+    setQuickCaptureAutoClose(value);
+    localStorage.setItem('syntropy_desktop_auto_close_capture', value ? 'true' : 'false');
+    await updateDesktopConfig({ quickCaptureAutoClose: value });
+    onNotification(
+      value
+        ? 'La capture rapide se fermera automatiquement après chaque validation.'
+        : 'La fenêtre de capture restera ouverte pour vous permettre d\'enchaîner vos saisies.',
+      'success'
+    );
+  };
+
+  // 3. Barre des tâches & Tray
+  const handleChangeTrayClickAction = async (action: 'toggle-app' | 'open-quick-capture') => {
+    setTrayClickAction(action);
+    await updateDesktopConfig({ trayClickAction: action });
+    onNotification(
+      action === 'open-quick-capture'
+        ? 'Le clic gauche sur l\'icône Tray ouvrira désormais la Capture Rapide.'
+        : 'Le clic gauche sur l\'icône Tray affichera ou masquera l\'application principale.',
+      'success'
+    );
+  };
+
+  // 4. Performance, GPU & Maintenance
+  const handleToggleHardwareAcceleration = async (value: boolean) => {
+    setHardwareAcceleration(value);
+    await updateDesktopConfig({ hardwareAcceleration: value });
+    onNotification(
+      `Accélération matérielle ${value ? 'activée' : 'désactivée'}. Veuillez redémarrer l'application.`,
+      'info'
+    );
+  };
+
+  const handleRelaunchApp = () => {
+    const electron = (window as any).electronAPI;
+    if (electron?.relaunchApp) {
+      electron.relaunchApp();
+    } else {
+      window.location.reload();
+    }
+  };
+
+  const handleClearDesktopCache = async () => {
+    const electron = (window as any).electronAPI;
+    if (!electron?.clearDesktopCache) {
+      onNotification('Nettoyage du cache disponible sur l\'application Desktop native.', 'info');
+      return;
+    }
+    setIsClearingCache(true);
+    try {
+      const res = await electron.clearDesktopCache();
+      if (res?.success) {
+        onNotification('Cache shaders, workers et stockage temporaire vidé avec succès !', 'success');
+      } else {
+        onNotification(`Erreur vidage cache : ${res?.error || 'Échec'}`, 'error');
+      }
+    } catch (err: any) {
+      onNotification(`Erreur : ${err?.message || err}`, 'error');
+    } finally {
+      setIsClearingCache(false);
+    }
+  };
+
+  // 5. Notification Native Windows Toast
   const handleTriggerTestNotification = async () => {
     const electron = (window as any).electronAPI;
     if (!electron?.showNotification) {
@@ -187,7 +333,7 @@ export default function DesktopSettingsSection({
     onNotification('Notification native Windows Toast envoyée avec succès !', 'success');
   };
 
-  // 4. Système de fichiers local
+  // 6. Système de fichiers local & Sauvegardes
   const handleSelectLocalFolder = async () => {
     const electron = (window as any).electronAPI;
     if (!electron?.selectBackupFolder) {
@@ -198,8 +344,20 @@ export default function DesktopSettingsSection({
     if (folder) {
       setLocalBackupFolder(folder);
       localStorage.setItem('syntropy_local_backup_folder', folder);
+      await updateDesktopConfig({ autoBackupFolder: folder });
       onNotification(`Dossier de sauvegarde sélectionné : ${folder}`, 'success');
     }
+  };
+
+  const handleChangeAutoBackupInterval = async (interval: 'disabled' | 'on_close' | 'daily') => {
+    setAutoBackupInterval(interval);
+    await updateDesktopConfig({ autoBackupInterval: interval });
+    const labels = {
+      disabled: 'Sauvegardes automatiques désactivées (manuelles uniquement).',
+      on_close: 'Sauvegarde automatique activée à chaque fermeture de l\'application.',
+      daily: 'Sauvegarde quotidienne locale activée.',
+    };
+    onNotification(labels[interval], 'success');
   };
 
   const handleExportLocalJsonBackup = async () => {
@@ -282,6 +440,8 @@ export default function DesktopSettingsSection({
     }
   };
 
+  const hasGpuSettingChanged = hardwareAcceleration !== initialGpuSetting;
+
   return (
     <div className="space-y-6">
       {/* Bannière Header Desktop */}
@@ -343,9 +503,9 @@ export default function DesktopSettingsSection({
         </div>
       </div>
 
-      {/* Grille Principale des Paramètres Desktop */}
+      {/* SECTION 1 : CYCLE DE VIE & DÉMARRAGE */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* 1. Lancement au Démarrage de Windows (Auto-Start) */}
+        {/* Lancement au Démarrage de Windows */}
         <div
           className={`p-5 rounded-2xl border transition-colors ${
             isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200'
@@ -360,7 +520,7 @@ export default function DesktopSettingsSection({
                 </span>
               </div>
               <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                Démarre Syntropy OS silencieusement en arrière-plan dès le boot de Windows.
+                Démarre Syntropy OS silencieusement en arrière-plan dès le boot de votre ordinateur.
               </p>
             </div>
 
@@ -386,38 +546,79 @@ export default function DesktopSettingsSection({
                 autoStartEnabled ? 'text-emerald-400' : 'text-zinc-500'
               }`}
             >
-              {autoStartEnabled ? 'Lancement automatique actif' : 'Désactivé'}
+              {autoStartEnabled ? 'Actif au boot Windows' : 'Désactivé'}
             </span>
           </div>
         </div>
 
-        {/* 2. Zone de Notification Windows (System Tray) */}
+        {/* Action de fermeture de la croix [X] */}
         <div
           className={`p-5 rounded-2xl border transition-colors ${
             isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200'
           }`}
         >
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)] animate-pulse" />
-              <span className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
-                System Tray & Menu Barre des Tâches
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Power className="w-4 h-4 text-pink-400" />
+                <span className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                  Action du Bouton Fermer [X]
+                </span>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-pink-500/10 text-pink-400 border border-pink-500/20">
+                Cycle de vie
               </span>
             </div>
             <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              Icône violette active près de l&apos;horloge. Le clic sur la croix [X] réduit l&apos;application dans le Tray au lieu de la fermer.
+              Comportement lors d&apos;un clic sur la croix [X] en haut à droite de la fenêtre.
             </p>
-          </div>
-          <div className="mt-3 pt-3 border-t border-zinc-800/40 flex items-center gap-2 text-[10px] text-zinc-400 flex-wrap">
-            <span className="px-1.5 py-0.5 rounded bg-zinc-800/80 border border-zinc-700">⏯️ Pomodoro</span>
-            <span className="px-1.5 py-0.5 rounded bg-zinc-800/80 border border-zinc-700">📋 Top 3 tâches</span>
-            <span className="px-1.5 py-0.5 rounded bg-zinc-800/80 border border-zinc-700">📝 Note rapide</span>
-            <span className="px-1.5 py-0.5 rounded bg-zinc-800/80 border border-zinc-700">🚪 Quitter</span>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => handleToggleCloseToTray(true)}
+                className={`p-2 rounded-xl text-xs font-medium border text-left transition-all cursor-pointer ${
+                  closeToTray
+                    ? 'bg-purple-500/15 border-purple-500/40 text-purple-300 font-semibold'
+                    : isDark
+                    ? 'bg-zinc-800/50 border-zinc-700/60 text-zinc-400 hover:text-zinc-200'
+                    : 'bg-zinc-100 border-zinc-200 text-zinc-600 hover:text-zinc-900'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Layers className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Réduire au Tray</span>
+                </div>
+                <div className="text-[10px] text-zinc-500 leading-tight">
+                  Reste actif en arrière-plan près de l&apos;horloge
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleToggleCloseToTray(false)}
+                className={`p-2 rounded-xl text-xs font-medium border text-left transition-all cursor-pointer ${
+                  !closeToTray
+                    ? 'bg-red-500/15 border-red-500/40 text-red-300 font-semibold'
+                    : isDark
+                    ? 'bg-zinc-800/50 border-zinc-700/60 text-zinc-400 hover:text-zinc-200'
+                    : 'bg-zinc-100 border-zinc-200 text-zinc-600 hover:text-zinc-900'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 mb-1">
+                  <LogOut className="w-3.5 h-3.5 text-red-400" />
+                  <span>Quitter l&apos;App</span>
+                </div>
+                <div className="text-[10px] text-zinc-500 leading-tight">
+                  Arrête immédiatement tous les processus
+                </div>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 3. Carte Remappage Raccourci Clavier Global (Quick-Capture) */}
+      {/* SECTION 2 : PRISE DE NOTES RAPIDES (QUICK CAPTURE) */}
       <div
         className={`p-5 rounded-2xl border transition-colors ${
           isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200'
@@ -428,14 +629,14 @@ export default function DesktopSettingsSection({
             <div className="flex items-center gap-2 flex-wrap">
               <Keyboard className="w-4 h-4 text-cyan-400" />
               <span className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
-                Capture Rapide Globale (Fenêtre Flottante)
+                Capture Rapide Globale (Fenêtre Flottante Dédiée)
               </span>
               <span className="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 text-[11px] font-mono border border-cyan-500/30 flex items-center gap-1 font-semibold">
                 <span>{quickCaptureShortcut}</span>
               </span>
             </div>
             <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              Fenêtre flottante sans bordure au-dessus de tout le système d&apos;exploitation pour capturer notes, tâches et idées dans l&apos;Inbox.
+              Fenêtre flottante sans bordure au-dessus de tout Windows pour capturer notes, tâches et idées sans quitter votre flux de travail.
             </p>
           </div>
 
@@ -452,7 +653,7 @@ export default function DesktopSettingsSection({
           </div>
         </div>
 
-        {/* Sélecteur de Remappage */}
+        {/* Sélecteur de Raccourci Clavier */}
         <div className={`mt-3.5 pt-3.5 border-t ${isDark ? 'border-zinc-800/60' : 'border-zinc-100'} space-y-2.5`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <label className={`text-xs font-medium flex items-center gap-1.5 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
@@ -502,7 +703,6 @@ export default function DesktopSettingsSection({
             </div>
           </div>
 
-          {/* Champ personnalisé si custom sélectionné */}
           {selectedShortcutOption === 'custom' && (
             <div
               className={`p-2.5 rounded-xl border ${
@@ -533,18 +733,207 @@ export default function DesktopSettingsSection({
           )}
         </div>
 
-        <div className="mt-2.5 pt-2.5 border-t border-zinc-800/40 flex items-center justify-between text-[11px]">
-          <span className="text-zinc-500">Mode d&apos;exécution :</span>
-          <span className="font-mono text-cyan-400">Always-On-Top & Dictée Vocale</span>
+        {/* Option Comportement après validation */}
+        <div className={`mt-3.5 pt-3.5 border-t ${isDark ? 'border-zinc-800/60' : 'border-zinc-100'} flex items-center justify-between gap-3`}>
+          <div>
+            <div className={`text-xs font-semibold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+              Fermeture automatique après enregistrement
+            </div>
+            <div className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              {quickCaptureAutoClose
+                ? 'Ferme la fenêtre dès validation. Décochez pour enchaîner plusieurs notes sans rouvrir la fenêtre.'
+                : 'La fenêtre reste ouverte après chaque note validée pour enchaîner vos saisies rapides.'}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleToggleQuickCaptureAutoClose(!quickCaptureAutoClose)}
+            className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer flex-shrink-0 ${
+              quickCaptureAutoClose
+                ? 'bg-cyan-500 justify-end'
+                : isDark
+                ? 'bg-zinc-800 justify-start'
+                : 'bg-zinc-300 justify-start'
+            }`}
+          >
+            <div className="w-4 h-4 rounded-full bg-white shadow-md" />
+          </button>
         </div>
       </div>
 
-      {/* 4. Mises à Jour Automatiques de l'Application (electron-updater) */}
+      {/* SECTION 3 : BARRE DES TÂCHES & SYSTEM TRAY */}
+      <div
+        className={`p-5 rounded-2xl border transition-colors ${
+          isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200'
+        }`}
+      >
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)] animate-pulse" />
+              <span className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                Icône System Tray & Clic Gauche
+              </span>
+            </div>
+            <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              Action déclenchée lors d&apos;un simple clic gauche sur l&apos;icône violette Syntropy OS près de l&apos;horloge Windows.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleChangeTrayClickAction('toggle-app')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all cursor-pointer ${
+                trayClickAction === 'toggle-app'
+                  ? 'bg-purple-500/20 border-purple-500/50 text-purple-300 font-semibold'
+                  : isDark
+                  ? 'bg-zinc-800/60 border-zinc-700 text-zinc-400 hover:text-zinc-200'
+                  : 'bg-zinc-100 border-zinc-200 text-zinc-600 hover:text-zinc-900'
+              }`}
+            >
+              Afficher / Masquer l&apos;App
+            </button>
+            <button
+              type="button"
+              onClick={() => handleChangeTrayClickAction('open-quick-capture')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all cursor-pointer ${
+                trayClickAction === 'open-quick-capture'
+                  ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300 font-semibold'
+                  : isDark
+                  ? 'bg-zinc-800/60 border-zinc-700 text-zinc-400 hover:text-zinc-200'
+                  : 'bg-zinc-100 border-zinc-200 text-zinc-600 hover:text-zinc-900'
+              }`}
+            >
+              Ouvrir Capture Rapide
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-3 pt-3 border-t border-zinc-800/40 flex items-center gap-2 text-[10px] text-zinc-400 flex-wrap">
+          <span className="text-zinc-500">Menu contextuel (clic droit) :</span>
+          <span className="px-1.5 py-0.5 rounded bg-zinc-800/80 border border-zinc-700">⏯️ Pomodoro</span>
+          <span className="px-1.5 py-0.5 rounded bg-zinc-800/80 border border-zinc-700">📋 Top 3 tâches</span>
+          <span className="px-1.5 py-0.5 rounded bg-zinc-800/80 border border-zinc-700">📝 Note rapide</span>
+          <span className="px-1.5 py-0.5 rounded bg-zinc-800/80 border border-zinc-700">🚪 Quitter</span>
+        </div>
+      </div>
+
+      {/* SECTION 4 : PERFORMANCE, GPU & MAINTENANCE DU CACHE */}
+      <div
+        className={`p-5 rounded-2xl border transition-colors ${
+          isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200'
+        }`}
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-emerald-400" />
+              <span className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                Performance & Maintenance Desktop
+              </span>
+            </div>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              Chromium Engine
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Accélération matérielle GPU */}
+            <div
+              className={`p-4 rounded-xl border ${
+                isDark ? 'bg-zinc-950/40 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
+              } flex flex-col justify-between gap-3`}
+            >
+              <div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-amber-400" />
+                    <span className={`text-xs font-semibold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                      Accélération Matérielle GPU
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleHardwareAcceleration(!hardwareAcceleration)}
+                    className={`w-11 h-5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer flex-shrink-0 ${
+                      hardwareAcceleration
+                        ? 'bg-amber-500 justify-end'
+                        : isDark
+                        ? 'bg-zinc-800 justify-start'
+                        : 'bg-zinc-300 justify-start'
+                    }`}
+                  >
+                    <div className="w-4 h-4 rounded-full bg-white shadow" />
+                  </button>
+                </div>
+                <p className={`text-[11px] mt-1.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                  Exploite votre carte graphique pour un rendu ultra-fluide. Désactivez si vous observez des scintillements d&apos;écran ou une consommation anormale sur GPU intégré.
+                </p>
+              </div>
+
+              {hasGpuSettingChanged && (
+                <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-2 text-[11px]">
+                  <span className="text-amber-400 flex items-center gap-1.5">
+                    <Info className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>Redémarrage requis</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleRelaunchApp}
+                    className="px-2 py-1 rounded bg-amber-500 hover:bg-amber-400 text-black font-semibold text-[10px] transition-colors cursor-pointer"
+                  >
+                    Redémarrer
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Vider le cache Desktop */}
+            <div
+              className={`p-4 rounded-xl border ${
+                isDark ? 'bg-zinc-950/40 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
+              } flex flex-col justify-between gap-3`}
+            >
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Trash2 className="w-4 h-4 text-cyan-400" />
+                  <span className={`text-xs font-semibold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                    Cache Chromium & Shaders
+                  </span>
+                </div>
+                <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                  Purge le cache de rendu, les service workers et les shaders compilés sans perdre votre session ni vos données locales.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end">
+                <button
+                  type="button"
+                  disabled={isClearingCache}
+                  onClick={handleClearDesktopCache}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
+                    isDark
+                      ? 'bg-zinc-800 hover:bg-zinc-700 border-zinc-700 text-cyan-300'
+                      : 'bg-white hover:bg-zinc-100 border-zinc-300 text-cyan-700'
+                  }`}
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isClearingCache ? 'animate-spin' : ''}`} />
+                  <span>{isClearingCache ? 'Nettoyage...' : 'Vider le cache Desktop'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION 5 : MISES À JOUR AUTOMATIQUES (electron-updater) */}
       <div>
         <AdminUpdateSection isDark={isDark} onNotification={onNotification} />
       </div>
 
-      {/* 5. Notifications Natives Windows Toast */}
+      {/* SECTION 6 : NOTIFICATIONS NATIVES WINDOWS TOAST */}
       <div
         className={`p-5 rounded-2xl border transition-colors ${
           isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200'
@@ -578,65 +967,107 @@ export default function DesktopSettingsSection({
         </div>
       </div>
 
-      {/* 6. Sauvegardes & Accès au Système de Fichiers Local */}
+      {/* SECTION 7 : SYSTÈME DE FICHIERS LOCAL & SAUVEGARDES */}
       <div
         className={`p-5 rounded-2xl border transition-colors ${
           isDark ? 'bg-zinc-900/60 border-zinc-800' : 'bg-white border-zinc-200'
         }`}
       >
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <HardDrive className="w-4 h-4 text-emerald-400" />
-              <span className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
-                Système de Fichiers Local (Sauvegardes & Exports Directs)
-              </span>
-              <span className="px-2 py-0.2 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                Node.js fs / dialog
-              </span>
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <HardDrive className="w-4 h-4 text-emerald-400" />
+                <span className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                  Système de Fichiers Local & Sauvegardes
+                </span>
+                <span className="px-2 py-0.2 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  Node.js fs / dialog
+                </span>
+              </div>
+              <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                Sélectionnez un répertoire sur votre disque pour sauvegarder vos notes au format Markdown standard (.md) ou générer des copies JSON intégrales.
+              </p>
+              <div className="flex items-center gap-2 pt-1">
+                <span className="text-[11px] text-zinc-500">Dossier cible :</span>
+                <code className="text-[11px] font-mono text-purple-400 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800 truncate max-w-sm">
+                  {localBackupFolder || 'Aucun dossier sélectionné (Cliquez sur Parcourir)'}
+                </code>
+              </div>
             </div>
-            <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              Sélectionnez un répertoire sur votre disque pour sauvegarder vos notes au format Markdown standard (.md) ou générer des copies JSON intégrales.
-            </p>
-            <div className="flex items-center gap-2 pt-1">
-              <span className="text-[11px] text-zinc-500">Dossier cible :</span>
-              <code className="text-[11px] font-mono text-purple-400 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800 truncate max-w-sm">
-                {localBackupFolder || 'Aucun dossier sélectionné (Cliquez sur Parcourir)'}
-              </code>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={handleSelectLocalFolder}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Folder className="w-3.5 h-3.5 text-zinc-400" />
+                <span>Parcourir...</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExportLocalJsonBackup}
+                disabled={isExportingLocal}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Sauvegarder les données au format JSON dans le dossier local"
+              >
+                <Database className="w-3.5 h-3.5" />
+                <span>Sauvegarde JSON</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExportLocalNotesMarkdown}
+                disabled={isExportingLocal}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Exporter toutes les notes en fichiers Markdown (.md)"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>Exporter Notes (.md)</span>
+              </button>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              type="button"
-              onClick={handleSelectLocalFolder}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Folder className="w-3.5 h-3.5 text-zinc-400" />
-              <span>Parcourir...</span>
-            </button>
+          {/* Fréquence de sauvegarde automatique */}
+          <div className={`pt-3.5 border-t ${isDark ? 'border-zinc-800/60' : 'border-zinc-100'} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-purple-400" />
+                <span className={`text-xs font-semibold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                  Fréquence de sauvegarde automatique
+                </span>
+              </div>
+              <div className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                Enregistre une archive JSON automatique dans le dossier cible sélectionné.
+              </div>
+            </div>
 
-            <button
-              type="button"
-              onClick={handleExportLocalJsonBackup}
-              disabled={isExportingLocal}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="Sauvegarder les données au format JSON dans le dossier local"
-            >
-              <Database className="w-3.5 h-3.5" />
-              <span>Sauvegarde JSON</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleExportLocalNotesMarkdown}
-              disabled={isExportingLocal}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="Exporter toutes les notes en fichiers Markdown (.md)"
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Exporter Notes (.md)</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              {(
+                [
+                  { id: 'disabled', label: 'Désactivé' },
+                  { id: 'on_close', label: 'À la fermeture' },
+                  { id: 'daily', label: 'Quotidienne' },
+                ] as const
+              ).map((mode) => (
+                <button
+                  key={mode.id}
+                  type="button"
+                  onClick={() => handleChangeAutoBackupInterval(mode.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all cursor-pointer ${
+                    autoBackupInterval === mode.id
+                      ? 'bg-purple-600/20 border-purple-500/50 text-purple-300 font-semibold'
+                      : isDark
+                      ? 'bg-zinc-800/60 border-zinc-700 text-zinc-400 hover:text-zinc-200'
+                      : 'bg-zinc-100 border-zinc-200 text-zinc-600 hover:text-zinc-900'
+                  }`}
+                >
+                  {mode.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

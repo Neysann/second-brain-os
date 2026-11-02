@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut, Tray, Menu, Notification, ipcMain, dialog, nativeImage, shell } = require('electron');
+const { app, BrowserWindow, globalShortcut, Tray, Menu, Notification, ipcMain, dialog, nativeImage, shell, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
@@ -15,42 +15,72 @@ let localServer = null;
 let currentAppUrl = null;
 let currentQuickCaptureShortcut = 'Alt+Space';
 
+const DEFAULT_DESKTOP_CONFIG = {
+  shortcut: 'Alt+Space',
+  closeToTray: true,
+  trayClickAction: 'toggle-app', // 'toggle-app' | 'open-quick-capture'
+  hardwareAcceleration: true,
+  quickCaptureAutoClose: true,
+  autoBackupInterval: 'disabled', // 'disabled' | 'on_close' | 'daily'
+  autoBackupFolder: '',
+};
+
 /**
- * Gestion de la persistance du raccourci global de capture rapide
+ * Gestion de la persistance des préférences de l'application Desktop
  */
-function getShortcutConfigPath() {
+function getDesktopConfigPath() {
   try {
-    return path.join(app.getPath('userData'), 'desktop-shortcut.json');
+    return path.join(app.getPath('userData'), 'desktop-preferences.json');
   } catch (_) {
     return null;
   }
 }
 
-function loadQuickCaptureShortcut() {
+function loadDesktopConfig() {
   try {
-    const configPath = getShortcutConfigPath();
+    const configPath = getDesktopConfigPath();
     if (configPath && fs.existsSync(configPath)) {
       const data = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      if (data && typeof data.shortcut === 'string' && data.shortcut.trim()) {
-        return data.shortcut.trim();
-      }
+      return { ...DEFAULT_DESKTOP_CONFIG, ...data };
+    }
+    // Migration si ancien fichier desktop-shortcut.json
+    const oldShortcutPath = path.join(app.getPath('userData'), 'desktop-shortcut.json');
+    if (fs.existsSync(oldShortcutPath)) {
+      const old = JSON.parse(fs.readFileSync(oldShortcutPath, 'utf8'));
+      if (old?.shortcut) return { ...DEFAULT_DESKTOP_CONFIG, shortcut: old.shortcut };
     }
   } catch (e) {
-    console.error('[Syntropy Desktop] Erreur lecture raccourci:', e);
+    console.error('[Syntropy Desktop] Erreur lecture config:', e);
   }
-  return 'Alt+Space';
+  return { ...DEFAULT_DESKTOP_CONFIG };
+}
+
+function saveDesktopConfig(patch) {
+  try {
+    const current = loadDesktopConfig();
+    const updated = { ...current, ...patch };
+    const configPath = getDesktopConfigPath();
+    if (configPath) {
+      fs.mkdirSync(path.dirname(configPath), { recursive: true });
+      fs.writeFileSync(configPath, JSON.stringify(updated, null, 2), 'utf8');
+    }
+    if (patch.shortcut) {
+      currentQuickCaptureShortcut = patch.shortcut;
+    }
+    return updated;
+  } catch (e) {
+    console.error('[Syntropy Desktop] Erreur sauvegarde config:', e);
+    return null;
+  }
+}
+
+function loadQuickCaptureShortcut() {
+  const cfg = loadDesktopConfig();
+  return cfg.shortcut || 'Alt+Space';
 }
 
 function saveQuickCaptureShortcut(shortcut) {
-  try {
-    const configPath = getShortcutConfigPath();
-    if (configPath) {
-      fs.mkdirSync(path.dirname(configPath), { recursive: true });
-      fs.writeFileSync(configPath, JSON.stringify({ shortcut }), 'utf8');
-    }
-  } catch (e) {
-    console.error('[Syntropy Desktop] Erreur sauvegarde raccourci:', e);
-  }
+  saveDesktopConfig({ shortcut });
 }
 
 function registerQuickCaptureShortcut(newShortcut) {
@@ -109,6 +139,15 @@ process.on('uncaughtException', (err) => {
   } catch (_) {}
   console.error('[Syntropy OS Desktop Exception]', err);
 });
+
+// Désactiver l'accélération matérielle GPU si configuré par l'utilisateur
+try {
+  const initialCfg = loadDesktopConfig();
+  if (initialCfg.hardwareAcceleration === false) {
+    app.disableHardwareAcceleration();
+    console.log('[Syntropy OS Desktop] Accélération matérielle GPU désactivée par configuration utilisateur');
+  }
+} catch (_) {}
 
 // Configuration de l'identifiant d'application Windows pour la barre des tâches
 app.setAppUserModelId('com.syntropy.os');
@@ -590,9 +629,10 @@ function createMainWindow(appUrl) {
     }
   }, 400);
 
-  // Réduire dans la zone de notification au lieu de fermer si demandée
+  // Réduire dans la zone de notification ou quitter selon les préférences utilisateur
   mainWindow.on('close', (e) => {
-    if (!isQuitting) {
+    const config = loadDesktopConfig();
+    if (!isQuitting && config.closeToTray !== false) {
       e.preventDefault();
       mainWindow.hide();
 
@@ -602,6 +642,9 @@ function createMainWindow(appUrl) {
           content: 'L\'application continue de tourner en arrière-plan.',
         });
       }
+    } else {
+      isQuitting = true;
+      app.quit();
     }
   });
 
@@ -775,6 +818,12 @@ function setupSystemTray(appUrl) {
   updateTrayMenu();
 
   tray.on('click', () => {
+    const config = loadDesktopConfig();
+    if (config.trayClickAction === 'open-quick-capture') {
+      toggleQuickCaptureWindow();
+      return;
+    }
+
     if (mainWindow) {
       if (mainWindow.isVisible()) {
         mainWindow.hide();
@@ -809,6 +858,33 @@ function registerIpcHandlers() {
   ipcMain.handle('get-quick-capture-shortcut', () => currentQuickCaptureShortcut);
   ipcMain.handle('set-quick-capture-shortcut', (_event, shortcut) => {
     return registerQuickCaptureShortcut(shortcut);
+  });
+
+  // Préférences & Maintenance Desktop
+  ipcMain.handle('get-desktop-config', () => loadDesktopConfig());
+  ipcMain.handle('set-desktop-config', (_event, patch) => {
+    const updated = saveDesktopConfig(patch);
+    if (patch.shortcut) {
+      registerQuickCaptureShortcut(patch.shortcut);
+    }
+    return updated;
+  });
+  ipcMain.handle('clear-desktop-cache', async () => {
+    try {
+      if (session?.defaultSession) {
+        await session.defaultSession.clearCache();
+        await session.defaultSession.clearStorageData({
+          storages: ['shadercache', 'serviceworkers', 'cachestorage']
+        });
+      }
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err?.message || err };
+    }
+  });
+  ipcMain.handle('relaunch-app', () => {
+    app.relaunch();
+    app.exit(0);
   });
 
   // Auto-Start (Lancement au démarrage Windows)
