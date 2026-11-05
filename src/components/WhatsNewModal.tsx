@@ -27,7 +27,7 @@ export { CURRENT_VERSION };
  * pour que la pop-up ne s'ouvre PAS au démarrage de l'utilisateur.
  */
 export const IS_MAJOR_RELEASE = true;
-export const LAST_MAJOR_VERSION = '2.6.38';
+export const LAST_MAJOR_VERSION = '2.6.40';
 
 interface FeatureCard {
   icon: React.ElementType;
@@ -93,6 +93,16 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
   // Liste épurée des fonctionnalités majeures (points clés courts et visuels)
   const features: FeatureCard[] = [
+    {
+      icon: BookOpen,
+      color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/30',
+      title: 'V2.6.40 — Refonte Interface des Notes (Obsidian / Notion)',
+      points: [
+        'Explorateur 2 volets : arborescence permanente des dossiers et sous-dossiers avec vues rapides (Toutes, Épinglées, Manuscrites).',
+        'En-tête épuré 46px : fil d\'Ariane interactif avec sélecteur de dossier rapide en 1 clic et menu d\'actions compact (···).',
+        'Barre de formatage capsule flottante au bas de l\'écran et palette mathématique LaTeX activable à la demande (∑ Math).',
+      ],
+    },
     {
       icon: Music,
       color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',

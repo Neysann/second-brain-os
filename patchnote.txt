@@ -2,6 +2,40 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.40] - 2026-11-05 (Refonte Majeure de l'Interface des Notes — Style Obsidian / Notion)
+--------------------------------------------------------------------------------
+1. Disposition Épurée à 2 Volets (Obsidian / Notion) :
+- Élimination complète de l'écran vide bloquant (« Sélectionnez un dossier ») : par défaut, « Toutes les notes » sont immédiatement affichées et la première note est automatiquement sélectionnée sur grand écran pour une entrée instantanée dans le flux d'écriture.
+- Volet gauche (Explorateur permanent) :
+  * En-tête épuré avec titre « Notes », compteur total en badge pill, bouton « Modèles », bouton « + Dossier » racine, bouton de création rapide de note avec menu format (`📝 Texte`, `🖊️ Manuscrite`, `📥 Importer .md`) et bouton pour réduire le volet.
+  * Champ de recherche instantanée avec bouton d'effacement rapide `✕`.
+  * Filtres par tags sous forme de pilules défilantes.
+  * Section Vues Rapides : « Toutes les notes », « Épinglées » (avec badge dynamique si > 0), « Manuscrites (Stylet) » (avec badge dynamique si > 0) et « Sans dossier ».
+  * Section Dossiers hiérarchique permanente : chevrons de dépliage récursifs, pastilles colorées par dossier, compteurs d'éléments, boutons de création de sous-dossier inline (`+`) et suppression au survol.
+  * En-tête de liste dynamique avec nom du filtre en cours, compteur et bouton de réinitialisation « Voir tout ».
+  * Liste scrollable des cartes de notes avec métadonnées claires, badges de format et dates relatives.
+
+2. Élimination des 3 Barres d'Outils Empilées au Sommet :
+- Remplacement du triple bandeau encombrant (~160px) par une barre d'en-tête unique ultra-fine (46px) :
+  * Fil d'Ariane interactif à gauche : badge cliquable `📁 [Nom du dossier ▾]` permettant de déplacer la note dans n'importe quel dossier ou sous-dossier en un clic via une popover dédiée, séparateur `/` et titre de la note.
+  * Badge de format cliquable (`Classique` / `Manuscrit`) pour convertir la note à la volée.
+  * Statut de synchronisation discret : pastille verte `✓ Enregistré` ou pulsation ambrée `⟳ Synchro...`.
+  * Commutateur de modes de vue ergonomique : `[Édition] [Double] [Aperçu]` (ou `[Canvas] [Texte]` pour les notes stylet).
+  * Bouton à bascule `∑ Math` : permet d'ouvrir et de replier à la demande la palette complète de formules LaTeX (`LatexToolbar`) au lieu de saturer l'écran en permanence.
+  * Menu d'actions compact `···` : regroupe les fonctions secondaires (Modèles structurés, Insertion d'emplacement manuscrit, Import Markdown, Ajout de pièces jointes/PDF, Exportation .tex, Guide LaTeX, Épinglage et Suppression).
+
+3. Barre de Formatage Flottante Contextuelle (Glass Capsule) :
+- Capsule de verre flottante au bas de l'écran (`fixed/absolute bottom-5 inset-x-0` avec centrage automatique, effet de verre dépoli `backdrop-blur-xl`, ombres 2xl et bordures fines) :
+  * Titres H1 (`# `) et H2 (`## `).
+  * Styles inline : Gras (`**`), Italique (`*`), Souligné (`<u>`), Barré (`~~`), Surligné (`==`).
+  * Listes et blocs : Case à cocher (`- [ ] `), Puces (`- `), Numérotée (`1. `), Citation (`> `), Bloc de code (```), Ligne séparatrice (`---`).
+  * Raccourci mathématique rapide `∑` (`$...$`).
+  * Bouton d'insertion de bloc manuscrit stylet directement au sein de la note texte.
+- Disparaît automatiquement en mode Aperçu ou en mode Canvas stylet complet pour un confort de lecture optimal.
+
+4. Métadonnées Contextuelles Intégrées :
+- Métadonnées dans la toile d'écriture : sélecteur PARA (`Projet`, `Domaine`, `Ressource`, `Archive`), association à un projet actif, et temps de lecture / compteur de mots automatique en direct (`X mots • ~Y min`).
+
 #### [V2.6.39] - 2026-11-05 (Allègement de la Pop-up Utilisateur & Filtrage des Versions Majeures)
 --------------------------------------------------------------------------------
 1. Filtrage Intelligent de la Pop-up au Démarrage :

@@ -55,6 +55,8 @@ import {
   Loader2,
   Cloud,
   FileCode,
+  MoreHorizontal,
+  Check,
 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -292,6 +294,14 @@ function NotesContent() {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
   const [isNewNoteMenuOpen, setIsNewNoteMenuOpen] = useState(false);
   const newNoteMenuRef = useRef<HTMLDivElement | null>(null);
+
+  // Menus contextuels du nouvel en-tête et palette LaTeX à la demande
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement | null>(null);
+  const [isFolderDropdownOpen, setIsFolderDropdownOpen] = useState(false);
+  const folderDropdownRef = useRef<HTMLDivElement | null>(null);
+  const [isLatexToolbarOpen, setIsLatexToolbarOpen] = useState(false);
+
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const editorFilePickerRef = useRef<HTMLInputElement | null>(null);
@@ -301,18 +311,23 @@ function NotesContent() {
   const [isMarkdownImportModalOpen, setIsMarkdownImportModalOpen] = useState(false);
   const markdownFileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Fermeture du menu de format de note au clic extérieur
+  // Fermeture des menus au clic extérieur
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (newNoteMenuRef.current && !newNoteMenuRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (newNoteMenuRef.current && !newNoteMenuRef.current.contains(target)) {
         setIsNewNoteMenuOpen(false);
       }
+      if (moreMenuRef.current && !moreMenuRef.current.contains(target)) {
+        setIsMoreMenuOpen(false);
+      }
+      if (folderDropdownRef.current && !folderDropdownRef.current.contains(target)) {
+        setIsFolderDropdownOpen(false);
+      }
     };
-    if (isNewNoteMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isNewNoteMenuOpen]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handledNewInkRef = useRef(false);
   const handleCreateNewNoteRef = useRef<(format?: 'text' | 'ink') => Promise<void>>(async () => {});
@@ -1369,21 +1384,25 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
     return Array.from(set);
   }, [notes]);
 
+  const pinnedCount = useMemo(() => notes.filter((n) => n.isPinned).length, [notes]);
+  const inkCount = useMemo(() => notes.filter((n) => n.format === 'ink').length, [notes]);
+  const unassignedCount = useMemo(() => notes.filter((n) => !n.folderId).length, [notes]);
+
   const filteredNotes = useMemo(() => {
     return notes
       .filter((note) => {
-        // Ne pas afficher toutes les notes en vrac si aucun dossier n'est sélectionné (évite l'encombrement visuel)
-        if (selectedFolderFilter === null && !searchQuery.trim()) {
-          return false;
-        }
-
-        // Filtre de Dossier (inclut récursivement les sous-dossiers de ce dossier)
+        // Vues Rapides & Filtre de Dossier
         if (selectedFolderFilter === '__none__') {
           if (note.folderId) return false;
+        } else if (selectedFolderFilter === '__pinned__') {
+          if (!note.isPinned) return false;
+        } else if (selectedFolderFilter === '__ink__') {
+          if (note.format !== 'ink') return false;
         } else if (selectedFolderFilter !== null) {
           const descendantIds = getFolderDescendantIds(selectedFolderFilter, folders);
           if (!note.folderId || !descendantIds.has(note.folderId)) return false;
         }
+        // Si selectedFolderFilter === null -> "Toutes les notes"
 
         // Filtre PARA
         if (selectedParaFilter !== 'all' && note.category !== selectedParaFilter) return false;
@@ -1408,6 +1427,13 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
         return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
       });
   }, [notes, selectedFolderFilter, folders, selectedParaFilter, selectedTag, searchQuery]);
+
+  // Sélection automatique de la première note sur grand écran si aucune note n'est sélectionnée
+  useEffect(() => {
+    if (!selectedNoteId && filteredNotes.length > 0 && typeof window !== 'undefined' && window.innerWidth >= 768) {
+      setSelectedNoteId(filteredNotes[0].id);
+    }
+  }, [selectedNoteId, filteredNotes]);
 
   const renderNoteCard = (note: Note) => {
     const isSelected = note.id === selectedNoteId;
@@ -1525,9 +1551,124 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
     );
   };
 
+  // Rendu récursif de l'arborescence des dossiers & sous-dossiers (Style Notion / Obsidian)
+  const renderFolderTreeNode = (node: FolderTreeNode): React.ReactNode => {
+    const isSelected = selectedFolderFilter === node.folder.id;
+    const isExpanded = expandedFolderIds.has(node.folder.id);
+    const hasChildren = node.children.length > 0;
+    const descendantIds = getFolderDescendantIds(node.folder.id, folders);
+    const descNotes = notes.filter((n) => n.folderId && descendantIds.has(n.folderId));
+    const totalCount = descNotes.length;
+
+    return (
+      <div key={node.folder.id} className="flex flex-col">
+        <div
+          className={`group flex items-center justify-between py-1.5 pr-2 rounded-lg text-xs transition-colors cursor-pointer select-none ${
+            isSelected
+              ? 'bg-indigo-600 text-white font-semibold shadow-xs'
+              : theme === 'dark'
+              ? 'text-zinc-300 hover:bg-zinc-800/80 hover:text-white'
+              : 'text-zinc-700 hover:bg-zinc-200/80 hover:text-zinc-900'
+          }`}
+          style={{ paddingLeft: `${6 + node.level * 14}px` }}
+          onClick={() => {
+            setSelectedFolderFilter(node.folder.id);
+            if (descNotes.length > 0 && (!selectedNoteId || !descendantIds.has(currentNote?.folderId || ''))) {
+              setSelectedNoteId(descNotes[0].id);
+            }
+          }}
+        >
+          <div className="flex items-center gap-1.5 truncate min-w-0">
+            {hasChildren ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpandedFolderIds((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(node.folder.id)) next.delete(node.folder.id);
+                    else next.add(node.folder.id);
+                    return next;
+                  });
+                }}
+                className={`p-0.5 rounded transition-transform hover:scale-110 cursor-pointer ${
+                  isSelected ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+                title={isExpanded ? 'Réduire ce dossier' : 'Développer ce dossier'}
+              >
+                {isExpanded ? (
+                  <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" />
+                ) : (
+                  <ChevronRight className="w-3.5 h-3.5 flex-shrink-0" />
+                )}
+              </button>
+            ) : node.level > 0 ? (
+              <span className={`text-[10px] w-3.5 flex justify-center flex-shrink-0 ${isSelected ? 'text-indigo-200' : 'text-zinc-500'}`}>
+                ↳
+              </span>
+            ) : (
+              <span className="w-3.5 h-3.5 flex-shrink-0" />
+            )}
+
+            <Folder
+              className="w-3.5 h-3.5 flex-shrink-0"
+              style={{ color: isSelected ? '#ffffff' : node.folder.color || '#818cf8' }}
+            />
+            <span className="truncate">{node.folder.name}</span>
+          </div>
+
+          <div className="flex items-center gap-1 flex-shrink-0 text-[11px] font-mono">
+            <span className={isSelected ? 'text-white' : 'text-zinc-400'}>{totalCount}</span>
+
+            {/* Bouton créer un sous-dossier */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenCreateSubfolderModal(node.folder.id);
+              }}
+              className={`opacity-0 group-hover:opacity-100 p-0.5 rounded transition-opacity cursor-pointer ${
+                isSelected
+                  ? 'hover:bg-indigo-700 text-white'
+                  : 'hover:bg-zinc-700/50 text-zinc-400 hover:text-indigo-300'
+              }`}
+              title={`Créer un sous-dossier dans "${node.folder.name}"`}
+            >
+              <Plus className="w-3 h-3" />
+            </button>
+
+            {/* Bouton supprimer dossier */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteFolder(node.folder.id, node.folder.name);
+              }}
+              className={`opacity-0 group-hover:opacity-100 p-0.5 rounded transition-opacity cursor-pointer ${
+                isSelected
+                  ? 'hover:bg-indigo-700 text-white'
+                  : 'hover:bg-zinc-700/50 text-zinc-400 hover:text-rose-400'
+              }`}
+              title="Supprimer ce dossier"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+
+        {/* Sous-dossiers récursifs au dépliage */}
+        {hasChildren && isExpanded && (
+          <div className="flex flex-col space-y-0.5 mt-0.5">
+            {node.children.map((child) => renderFolderTreeNode(child))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="flex h-screen w-full overflow-hidden animate-in fade-in duration-200 relative">
-      {/* 1. Volet Gauche : Dossiers & Liste des notes */}
+      {/* 1. Volet Gauche : Arborescence Notion / Obsidian & Liste des notes */}
       <aside
         onDragOver={(e) => {
           e.preventDefault();
@@ -1555,63 +1696,50 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
             <div className="flex items-center gap-1.5 min-w-0">
               <BookOpen className="w-4 h-4 text-purple-400 flex-shrink-0" />
               <h2 className="font-bold text-sm tracking-tight truncate">
-                Notes & Savoirs
+                Notes
               </h2>
+              <span className="px-1.5 py-0.2 rounded-full bg-indigo-500/10 text-indigo-400 text-[10px] font-mono font-semibold">
+                {notes.length}
+              </span>
             </div>
-            <div className="flex items-center gap-1.5 flex-shrink-0">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <button
+                type="button"
                 onClick={() => setIsTemplateModalOpen(true)}
                 className={`p-1.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
                   theme === 'dark'
                     ? 'border-purple-500/30 text-purple-400 hover:bg-purple-500/10'
                     : 'border-purple-300 text-purple-700 hover:bg-purple-50'
                 }`}
-                title="Modèles de notes structurés (Synthèse, Réunion, Daily, SOP...)"
+                title="Modèles de notes structurés"
               >
                 <LayoutTemplate className="w-3.5 h-3.5" />
               </button>
+
               <button
                 type="button"
-                onClick={() => markdownFileInputRef.current?.click()}
+                onClick={() => {
+                  setNewFolderName('');
+                  setNewFolderParentId(null);
+                  setIsFolderModalOpen(true);
+                }}
                 className={`p-1.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
                   theme === 'dark'
-                    ? 'border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10'
-                    : 'border-cyan-300 text-cyan-700 hover:bg-cyan-50'
+                    ? 'border-zinc-800 text-zinc-400 hover:text-indigo-300 hover:bg-zinc-800'
+                    : 'border-zinc-300 text-zinc-600 hover:text-indigo-600 hover:bg-zinc-100'
                 }`}
-                title="Importer un fichier Markdown (.md)"
+                title="Créer un nouveau dossier racine"
               >
-                <FileCode className="w-3.5 h-3.5" />
+                <FolderPlus className="w-3.5 h-3.5 text-indigo-400" />
               </button>
-              <label
-                className={`p-1.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
-                  theme === 'dark'
-                    ? 'border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
-                    : 'border-zinc-300 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
-                }`}
-                title="Importer un document (Word, Excel, PowerPoint, PDF, Image...)"
-              >
-                <UploadCloud className="w-3.5 h-3.5 text-indigo-400" />
-                <input
-                  type="file"
-                  multiple
-                  accept="application/pdf,image/*,.txt,.md,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.tsv,.ods,.odt,.rtf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files.length > 0) {
-                      handleImportFilesAsNewNotes(e.target.files);
-                      e.target.value = '';
-                    }
-                  }}
-                />
-              </label>
 
-              {/* Bouton Création de Note avec Sélection de Format Intuitive */}
+              {/* Bouton Création de Note avec Menu Format */}
               <div className="relative" ref={newNoteMenuRef}>
                 <button
                   type="button"
                   onClick={() => setIsNewNoteMenuOpen((prev) => !prev)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
-                  title="Créer une nouvelle note (texte classique ou manuscrite)"
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
+                  title="Créer une nouvelle note"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Note</span>
@@ -1620,33 +1748,24 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
 
                 {isNewNoteMenuOpen && (
                   <div
-                    className={`absolute right-0 top-full mt-1.5 w-64 rounded-xl border p-1.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 ${
+                    className={`absolute right-0 top-full mt-1.5 w-60 rounded-xl border p-1 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 ${
                       theme === 'dark'
                         ? 'bg-zinc-900/95 border-zinc-700/80 backdrop-blur-xl text-zinc-100 shadow-black/60'
                         : 'bg-white/95 border-zinc-200 backdrop-blur-xl text-zinc-800 shadow-indigo-900/15'
                     }`}
                   >
-                    <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Format de la note
-                    </div>
                     <button
                       type="button"
                       onClick={() => {
                         setIsNewNoteMenuOpen(false);
                         handleCreateNewNote('text');
                       }}
-                      className="w-full flex items-start gap-2.5 p-2 rounded-lg text-left hover:bg-indigo-600/10 hover:text-indigo-400 transition-colors cursor-pointer group"
+                      className="w-full flex items-center gap-2 p-2 rounded-lg text-left hover:bg-indigo-600/10 hover:text-indigo-400 transition-colors cursor-pointer group"
                     >
-                      <div className="p-1.5 rounded-md bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20 flex-shrink-0 mt-0.5">
-                        <FileText className="w-4 h-4" />
-                      </div>
+                      <FileText className="w-4 h-4 text-indigo-400 flex-shrink-0" />
                       <div className="min-w-0">
-                        <div className="text-xs font-semibold text-zinc-200 group-hover:text-indigo-300">
-                          📝 Note Texte & Markdown
-                        </div>
-                        <div className="text-[10px] text-zinc-400 leading-tight mt-0.5">
-                          Format classique avec LaTeX, tableaux & mise en forme
-                        </div>
+                        <div className="text-xs font-semibold">📝 Note Texte</div>
+                        <div className="text-[10px] text-zinc-400">Markdown, LaTeX & Tableaux</div>
                       </div>
                     </button>
 
@@ -1656,18 +1775,12 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                         setIsNewNoteMenuOpen(false);
                         handleCreateNewNote('ink');
                       }}
-                      className="w-full flex items-start gap-2.5 p-2 rounded-lg text-left hover:bg-purple-600/10 hover:text-purple-400 transition-colors cursor-pointer group mt-0.5"
+                      className="w-full flex items-center gap-2 p-2 rounded-lg text-left hover:bg-purple-600/10 hover:text-purple-400 transition-colors cursor-pointer group mt-0.5"
                     >
-                      <div className="p-1.5 rounded-md bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20 flex-shrink-0 mt-0.5">
-                        <PenTool className="w-4 h-4" />
-                      </div>
+                      <PenTool className="w-4 h-4 text-purple-400 flex-shrink-0" />
                       <div className="min-w-0">
-                        <div className="text-xs font-semibold text-zinc-200 group-hover:text-purple-300">
-                          🖊️ Note Manuscrite (Stylet)
-                        </div>
-                        <div className="text-[10px] text-zinc-400 leading-tight mt-0.5">
-                          Tracé vectoriel fluide, surligneur & canevas infini
-                        </div>
+                        <div className="text-xs font-semibold">🖊️ Note Manuscrite</div>
+                        <div className="text-[10px] text-zinc-400">Stylet, tracé vectoriel fluide</div>
                       </div>
                     </button>
 
@@ -1679,23 +1792,31 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                         setIsNewNoteMenuOpen(false);
                         markdownFileInputRef.current?.click();
                       }}
-                      className="w-full flex items-start gap-2.5 p-2 rounded-lg text-left hover:bg-cyan-600/10 hover:text-cyan-400 transition-colors cursor-pointer group mt-0.5"
+                      className="w-full flex items-center gap-2 p-2 rounded-lg text-left hover:bg-cyan-600/10 hover:text-cyan-400 transition-colors cursor-pointer group"
                     >
-                      <div className="p-1.5 rounded-md bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20 flex-shrink-0 mt-0.5">
-                        <FileCode className="w-4 h-4" />
-                      </div>
+                      <FileCode className="w-4 h-4 text-cyan-400 flex-shrink-0" />
                       <div className="min-w-0">
-                        <div className="text-xs font-semibold text-zinc-200 group-hover:text-cyan-300">
-                          📥 Importer fichier(s) .md
-                        </div>
-                        <div className="text-[10px] text-zinc-400 leading-tight mt-0.5">
-                          Frontmatter YAML, tags automatiques & options d&apos;insertion
-                        </div>
+                        <div className="text-xs font-semibold">📥 Importer .md</div>
+                        <div className="text-[10px] text-zinc-400">Fichier Markdown avec métadonnées</div>
                       </div>
                     </button>
                   </div>
                 )}
               </div>
+
+              {/* Bouton Réduire sidebar desktop */}
+              <button
+                type="button"
+                onClick={() => setIsSidebarCollapsed(true)}
+                className={`hidden md:flex p-1.5 rounded-lg border text-xs transition-all cursor-pointer ${
+                  theme === 'dark'
+                    ? 'border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
+                    : 'border-zinc-300 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                }`}
+                title="Réduire le volet des notes"
+              >
+                <PanelLeftClose className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
 
@@ -1709,11 +1830,20 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher des notes, PDF, tags..."
+              placeholder="Rechercher des notes, tags, contenu..."
               className={`w-full bg-transparent border-none outline-none ${
                 theme === 'dark' ? 'text-zinc-100 placeholder:text-zinc-500' : 'text-zinc-900 placeholder:text-zinc-400'
               }`}
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="text-zinc-400 hover:text-zinc-200 cursor-pointer"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
           </div>
 
           {/* Filtres Tags */}
@@ -1753,241 +1883,169 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
           )}
         </div>
 
-        {/* Section Accordéon Dossiers */}
-        <div className="px-3.5 py-2.5 border-b border-inherit bg-zinc-950/20">
-          <div className="flex items-center justify-between mb-1.5">
+        {/* Vues Rapides & Dossiers */}
+        <div className="border-b border-inherit bg-zinc-950/15 overflow-y-auto max-h-72 scrollbar-thin">
+          {/* Vues Rapides */}
+          <div className="p-2 space-y-0.5">
             <button
-              onClick={() => setShowFolderAccordion(!showFolderAccordion)}
-              className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-200 cursor-pointer"
+              type="button"
+              onClick={() => {
+                setSelectedFolderFilter(null);
+                setSelectedTag(null);
+              }}
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                selectedFolderFilter === null
+                  ? 'bg-indigo-600 text-white font-semibold shadow-xs'
+                  : theme === 'dark'
+                  ? 'text-zinc-300 hover:bg-zinc-800/70 hover:text-white'
+                  : 'text-zinc-700 hover:bg-zinc-200/80 hover:text-zinc-900'
+              }`}
             >
-              <Folder className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Dossiers ({folders.length})</span>
-              {showFolderAccordion ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              <div className="flex items-center gap-2 truncate">
+                <BookOpen className="w-3.5 h-3.5 flex-shrink-0 text-indigo-400" />
+                <span className="truncate">Toutes les notes</span>
+              </div>
+              <span className={`text-[11px] font-mono ${selectedFolderFilter === null ? 'text-white' : 'text-zinc-400'}`}>
+                {notes.length}
+              </span>
             </button>
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => {
-                  setNewFolderName('');
-                  setNewFolderParentId(null);
-                  setIsFolderModalOpen(true);
-                }}
-                className="text-[11px] text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 px-2 py-0.5 rounded hover:bg-indigo-500/10 transition-colors cursor-pointer"
-                title="Créer un nouveau dossier racine"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                + Dossier
-              </button>
+
+            {pinnedCount > 0 && (
               <button
                 type="button"
-                onClick={() => setIsSidebarCollapsed(true)}
-                className={`hidden md:flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold border transition-all cursor-pointer ${
-                  theme === 'dark'
-                    ? 'border-zinc-700/80 bg-zinc-800/90 text-zinc-300 hover:bg-zinc-700 hover:text-white hover:border-zinc-500'
-                    : 'border-zinc-300 bg-zinc-100 text-zinc-700 hover:bg-zinc-200 hover:text-zinc-900'
-                }`}
-                title="Réduire le volet des dossiers et notes (agrandir l'espace d'écriture)"
-              >
-                <PanelLeftClose className="w-3 h-3 text-zinc-400" />
-                <span>Réduire</span>
-              </button>
-            </div>
-          </div>
-
-          {showFolderAccordion && (
-            <div className="space-y-1 mt-1 max-h-60 overflow-y-auto scrollbar-thin">
-              {/* Notes sans dossier */}
-              <button
-                onClick={() => {
-                  setSelectedFolderFilter('__none__');
-                  const unassigned = notes.filter((n) => !n.folderId);
-                  if (unassigned.length > 0 && (!selectedNoteId || currentNote?.folderId)) {
-                    setSelectedNoteId(unassigned[0].id);
-                  }
-                }}
-                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
-                  selectedFolderFilter === '__none__'
-                    ? 'bg-indigo-600 text-white font-semibold'
+                onClick={() => setSelectedFolderFilter('__pinned__')}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                  selectedFolderFilter === '__pinned__'
+                    ? 'bg-amber-600 text-white font-semibold shadow-xs'
                     : theme === 'dark'
-                    ? 'text-zinc-400 hover:bg-zinc-850 hover:text-zinc-200'
-                    : 'text-zinc-600 hover:bg-zinc-200/70 hover:text-zinc-900'
+                    ? 'text-zinc-300 hover:bg-zinc-800/70 hover:text-white'
+                    : 'text-zinc-700 hover:bg-zinc-200/80 hover:text-zinc-900'
                 }`}
               >
                 <div className="flex items-center gap-2 truncate">
-                  <FileText className="w-3.5 h-3.5 flex-shrink-0 text-zinc-500" />
-                  <span className="truncate">Sans dossier</span>
+                  <Pin className="w-3.5 h-3.5 flex-shrink-0 text-amber-400" />
+                  <span className="truncate">Épinglées</span>
                 </div>
-                {(() => {
-                  const unassigned = notes.filter((n) => !n.folderId);
-                  const uClassic = unassigned.filter((n) => n.format !== 'ink').length;
-                  const uInk = unassigned.filter((n) => n.format === 'ink').length;
-                  return (
-                    <div className="flex items-center gap-1 text-[11px] font-mono flex-shrink-0">
-                      <span>{uClassic}</span>
-                      {uInk > 0 && (
-                        <>
-                          <span className="text-zinc-500">•</span>
-                          <span className="text-purple-400 font-semibold">{uInk} 🖊️</span>
-                        </>
-                      )}
-                    </div>
-                  );
-                })()}
+                <span className={`text-[11px] font-mono ${selectedFolderFilter === '__pinned__' ? 'text-white' : 'text-zinc-400'}`}>
+                  {pinnedCount}
+                </span>
               </button>
+            )}
 
-              {/* Arborescence hiérarchique des dossiers et sous-dossiers */}
-              {folderTree.map(function renderNode(node): React.ReactNode {
-                const isSelected = selectedFolderFilter === node.folder.id;
-                const isExpanded = expandedFolderIds.has(node.folder.id);
-                const hasChildren = node.children.length > 0;
-                const descendantIds = getFolderDescendantIds(node.folder.id, folders);
-                const descNotes = notes.filter((n) => n.folderId && descendantIds.has(n.folderId));
-                const folderClassic = descNotes.filter((n) => n.format !== 'ink').length;
-                const folderInk = descNotes.filter((n) => n.format === 'ink').length;
-                const totalCount = descNotes.length;
+            {inkCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setSelectedFolderFilter('__ink__')}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                  selectedFolderFilter === '__ink__'
+                    ? 'bg-purple-600 text-white font-semibold shadow-xs'
+                    : theme === 'dark'
+                    ? 'text-zinc-300 hover:bg-zinc-800/70 hover:text-white'
+                    : 'text-zinc-700 hover:bg-zinc-200/80 hover:text-zinc-900'
+                }`}
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <PenTool className="w-3.5 h-3.5 flex-shrink-0 text-purple-400" />
+                  <span className="truncate">Manuscrites (Stylet)</span>
+                </div>
+                <span className={`text-[11px] font-mono ${selectedFolderFilter === '__ink__' ? 'text-white' : 'text-zinc-400'}`}>
+                  {inkCount}
+                </span>
+              </button>
+            )}
 
-                return (
-                  <div key={node.folder.id} className="flex flex-col">
-                    <div
-                      className={`group flex items-center justify-between py-1.5 pr-2 rounded-lg text-xs transition-colors cursor-pointer ${
-                        isSelected
-                          ? 'bg-indigo-600 text-white font-semibold shadow-xs'
-                          : theme === 'dark'
-                          ? 'text-zinc-300 hover:bg-zinc-850'
-                          : 'text-zinc-700 hover:bg-zinc-200/70'
-                      }`}
-                      style={{ paddingLeft: `${8 + node.level * 14}px` }}
-                      onClick={() => {
-                        setSelectedFolderFilter(node.folder.id);
-                        const descIds = getFolderDescendantIds(node.folder.id, folders);
-                        const folderNotes = notes.filter((n) => n.folderId && descIds.has(n.folderId));
-                        if (folderNotes.length > 0 && (!selectedNoteId || !descIds.has(currentNote?.folderId || ''))) {
-                          setSelectedNoteId(folderNotes[0].id);
-                        }
-                      }}
-                    >
-                      <div className="flex items-center gap-1.5 truncate min-w-0">
-                        {hasChildren ? (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setExpandedFolderIds((prev) => {
-                                const next = new Set(prev);
-                                if (next.has(node.folder.id)) next.delete(node.folder.id);
-                                else next.add(node.folder.id);
-                                return next;
-                              });
-                            }}
-                            className={`p-0.5 rounded transition-transform hover:scale-110 cursor-pointer ${
-                              isSelected ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
-                            }`}
-                            title={isExpanded ? 'Réduire ce dossier' : 'Développer ce dossier'}
-                          >
-                            {isExpanded ? (
-                              <ChevronDown className="w-3 h-3 flex-shrink-0" />
-                            ) : (
-                              <ChevronRight className="w-3 h-3 flex-shrink-0" />
-                            )}
-                          </button>
-                        ) : node.level > 0 ? (
-                          <span className={`text-[10px] w-3 flex justify-center flex-shrink-0 ${isSelected ? 'text-indigo-200' : 'text-zinc-500'}`}>
-                            ↳
-                          </span>
-                        ) : (
-                          <span className="w-3 h-3 flex-shrink-0" />
-                        )}
+            <button
+              type="button"
+              onClick={() => setSelectedFolderFilter('__none__')}
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                selectedFolderFilter === '__none__'
+                  ? 'bg-indigo-600 text-white font-semibold shadow-xs'
+                  : theme === 'dark'
+                  ? 'text-zinc-300 hover:bg-zinc-800/70 hover:text-white'
+                  : 'text-zinc-700 hover:bg-zinc-200/80 hover:text-zinc-900'
+              }`}
+            >
+              <div className="flex items-center gap-2 truncate">
+                <FileText className="w-3.5 h-3.5 flex-shrink-0 text-zinc-400" />
+                <span className="truncate">Sans dossier</span>
+              </div>
+              <span className={`text-[11px] font-mono ${selectedFolderFilter === '__none__' ? 'text-white' : 'text-zinc-400'}`}>
+                {unassignedCount}
+              </span>
+            </button>
+          </div>
 
-                        <span
-                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: node.folder.color || '#6366f1' }}
-                        />
-                        <span className="truncate">{node.folder.name}</span>
-                      </div>
-
-                      <div className="flex items-center gap-1 flex-shrink-0 text-[11px] font-mono">
-                        <span className={isSelected ? 'text-white' : 'text-zinc-400'}>{folderClassic}</span>
-                        {folderInk > 0 && (
-                          <>
-                            <span className="text-zinc-500">•</span>
-                            <span className={isSelected ? 'text-purple-200 font-bold' : 'text-purple-400 font-semibold'}>
-                              {folderInk} 🖊️
-                            </span>
-                          </>
-                        )}
-
-                        {/* Bouton créer un sous-dossier */}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenCreateSubfolderModal(node.folder.id);
-                          }}
-                          className={`opacity-0 group-hover:opacity-100 p-0.5 rounded transition-opacity cursor-pointer ${
-                            isSelected
-                              ? 'hover:bg-indigo-700 text-white'
-                              : 'hover:bg-zinc-700/50 text-zinc-400 hover:text-indigo-300'
-                          }`}
-                          title={`Créer un sous-dossier dans "${node.folder.name}"`}
-                        >
-                          <Plus className="w-3 h-3" />
-                        </button>
-
-                        {/* Bouton supprimer dossier */}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteFolder(node.folder.id, node.folder.name);
-                          }}
-                          className={`opacity-0 group-hover:opacity-100 p-0.5 rounded transition-opacity cursor-pointer ${
-                            isSelected
-                              ? 'hover:bg-indigo-700 text-white'
-                              : 'hover:bg-zinc-700/50 text-zinc-400 hover:text-rose-400'
-                          }`}
-                          title="Supprimer ce dossier"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Sous-dossiers récursifs */}
-                    {hasChildren && isExpanded && (
-                      <div className="flex flex-col space-y-0.5 mt-0.5">
-                        {node.children.map((child) => renderNode(child))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+          {/* Arborescence des Dossiers Notion / Obsidian */}
+          {folders.length > 0 && (
+            <div className="px-2 pb-2 pt-1 border-t border-inherit/40">
+              <div className="flex items-center justify-between px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                <span>Dossiers ({folders.length})</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewFolderName('');
+                    setNewFolderParentId(null);
+                    setIsFolderModalOpen(true);
+                  }}
+                  className="text-indigo-400 hover:text-indigo-300 flex items-center gap-1 hover:bg-indigo-500/10 px-1.5 py-0.5 rounded transition-colors cursor-pointer"
+                  title="Créer un nouveau dossier racine"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Dossier</span>
+                </button>
+              </div>
+              <div className="space-y-0.5 mt-0.5">
+                {folderTree.map((node) => renderFolderTreeNode(node))}
+              </div>
             </div>
+          )}
+        </div>
+
+        {/* Titre & Compteur de la liste filtrée */}
+        <div className="px-3 py-1.5 border-b border-inherit/40 flex items-center justify-between text-[11px] font-semibold text-zinc-400 bg-zinc-950/20">
+          <div className="flex items-center gap-1.5 truncate">
+            <span className="truncate">
+              {selectedFolderFilter === null
+                ? 'Toutes les notes'
+                : selectedFolderFilter === '__pinned__'
+                ? 'Notes épinglées'
+                : selectedFolderFilter === '__ink__'
+                ? 'Notes manuscrites'
+                : selectedFolderFilter === '__none__'
+                ? 'Sans dossier'
+                : folders.find((f) => f.id === selectedFolderFilter)?.name || 'Dossier'}
+            </span>
+            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-zinc-800 text-zinc-400">
+              {filteredNotes.length}
+            </span>
+          </div>
+          {selectedFolderFilter !== null && (
+            <button
+              type="button"
+              onClick={() => setSelectedFolderFilter(null)}
+              className="text-[10px] text-indigo-400 hover:text-indigo-300 hover:underline cursor-pointer flex-shrink-0"
+            >
+              Voir tout
+            </button>
           )}
         </div>
 
         {/* Liste des cartes de notes */}
         <div className="flex-1 overflow-y-auto divide-y divide-inherit/40 scrollbar-thin">
-          {selectedFolderFilter === null && !searchQuery.trim() ? (
-            <div className="text-center py-16 text-zinc-500 text-xs p-6 space-y-3">
-              <div className="w-12 h-12 mx-auto rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shadow-sm">
-                <Folder className="w-6 h-6" />
-              </div>
-              <p className="font-bold text-zinc-300 text-sm">Sélectionnez un dossier</p>
-              <p className="text-zinc-500 text-xs max-w-[210px] mx-auto leading-relaxed">
-                Cliquez sur un dossier ci-dessus ou sur « Sans dossier » pour afficher ses notes.
-              </p>
-            </div>
-          ) : filteredNotes.length === 0 ? (
+          {filteredNotes.length === 0 ? (
             <div className="text-center py-12 text-zinc-500 text-xs p-4 space-y-3">
               <BookOpen className="w-8 h-8 mx-auto text-zinc-600 opacity-60" />
               <p className="font-medium text-zinc-300">Aucune note dans cette sélection.</p>
               <div className="flex items-center justify-center gap-2 pt-1">
                 <button
+                  type="button"
                   onClick={() => handleCreateNewNote('text')}
                   className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 cursor-pointer"
                 >
                   + Note Texte
                 </button>
                 <button
+                  type="button"
                   onClick={() => handleCreateNewNote('ink')}
                   className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-purple-600/20 cursor-pointer"
                 >
@@ -2065,30 +2123,32 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
 
         {currentNote ? (
           <div className="flex flex-col h-full overflow-hidden">
-            {/* Barre de Contrôles & Métadonnées supérieures — Ligne Unique Épurée */}
-            <div
-              className={`px-3 md:px-4 py-2 border-b flex items-center justify-between gap-1.5 md:gap-2.5 transition-colors ${
+            {/* Barre d'En-tête Unique Slim (46px) — Style Notion / Obsidian */}
+            <header
+              className={`h-12 px-3 md:px-4 border-b flex items-center justify-between gap-2 transition-colors flex-shrink-0 select-none ${
                 theme === 'dark' ? 'glass-surface border-zinc-800/80' : 'glass-surface border-zinc-200'
               }`}
             >
-              {/* Gauche : Navigation retour / Dossiers & Sélecteur */}
-              <div className="flex items-center gap-1.5 md:gap-2 min-w-0 flex-shrink">
+              {/* Gauche : Volet toggle + Breadcrumb interactif */}
+              <div className="flex items-center gap-2 min-w-0 flex-shrink">
                 {isSidebarCollapsed && (
                   <button
+                    type="button"
                     onClick={() => setIsSidebarCollapsed(false)}
-                    className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex-shrink-0 ${
+                    className={`hidden md:flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex-shrink-0 ${
                       theme === 'dark'
-                        ? 'bg-indigo-600/15 hover:bg-indigo-600/25 text-indigo-300 border border-indigo-500/30'
-                        : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
+                        ? 'bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 border border-zinc-700/60'
+                        : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-300'
                     }`}
-                    title="Afficher les dossiers et la liste des notes"
+                    title="Ouvrir le volet des dossiers et notes"
                   >
                     <PanelLeftOpen className="w-3.5 h-3.5" />
-                    <span>Dossiers</span>
+                    <span className="text-[11px]">Dossiers</span>
                   </button>
                 )}
 
                 <button
+                  type="button"
                   onClick={() => setSelectedNoteId(null)}
                   className={`md:hidden flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer flex-shrink-0 ${
                     theme === 'dark'
@@ -2101,74 +2161,172 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                   <span>Notes</span>
                 </button>
 
-                {/* Sélecteur de Dossier */}
-                <div className="flex items-center gap-1 min-w-0">
-                  <select
-                    value={folderId}
-                    onChange={(e) => {
-                      const next = e.target.value;
-                      setFolderId(next);
-                      triggerAutoSave(title, content, category, next, projectId, tagsInput, isPinned, attachments);
-                    }}
-                    className={`px-2 py-1 rounded-lg border text-xs focus:outline-none max-w-[110px] sm:max-w-[160px] truncate transition-colors cursor-pointer ${
-                      theme === 'dark'
-                        ? 'border-zinc-800 bg-zinc-900 text-zinc-300'
-                        : 'border-zinc-300 bg-white text-zinc-800 shadow-xs'
-                    }`}
-                    title="Dossier de rangement"
-                  >
-                    <option value="">📁 Sans dossier</option>
-                    {flattenedFolderOptions.map((f) => (
-                      <option key={f.id} value={f.id}>
-                        {f.level > 0 ? `${'\u00A0\u00A0'.repeat(f.level)}↳ ` : ''}📁 {f.name}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={() => {
-                      setNewFolderName('');
-                      setNewFolderParentId(folderId || null);
-                      setIsFolderModalOpen(true);
-                    }}
-                    className={`hidden sm:flex p-1.5 rounded-lg border text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer flex-shrink-0 ${
-                      theme === 'dark' ? 'border-zinc-800 bg-zinc-900 hover:bg-zinc-800' : 'border-zinc-300 bg-white hover:bg-zinc-100'
-                    }`}
-                    title={folderId ? 'Créer un sous-dossier dans ce dossier' : 'Créer un nouveau dossier'}
-                  >
-                    <FolderPlus className="w-3.5 h-3.5 text-indigo-400" />
-                  </button>
+                {/* Breadcrumb Interactif : Dossier ▾ / Titre */}
+                <div className="flex items-center gap-1.5 min-w-0 text-xs">
+                  {/* Folder Picker Popover */}
+                  <div className="relative" ref={folderDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsFolderDropdownOpen((prev) => !prev)}
+                      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer max-w-[140px] sm:max-w-[180px] truncate ${
+                        theme === 'dark'
+                          ? 'border-zinc-800 bg-zinc-900/80 text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                          : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100'
+                      }`}
+                      title="Changer de dossier"
+                    >
+                      {(() => {
+                        const currentF = folders.find((f) => f.id === folderId);
+                        return (
+                          <>
+                            <Folder
+                              className="w-3.5 h-3.5 flex-shrink-0"
+                              style={{ color: currentF?.color || '#a1a1aa' }}
+                            />
+                            <span className="truncate">{currentF ? currentF.name : 'Sans dossier'}</span>
+                            <ChevronDown className={`w-3 h-3 text-zinc-400 transition-transform ${isFolderDropdownOpen ? 'rotate-180' : ''}`} />
+                          </>
+                        );
+                      })()}
+                    </button>
+
+                    {isFolderDropdownOpen && (
+                      <div
+                        className={`absolute left-0 top-full mt-1 w-64 rounded-xl border p-1 shadow-2xl z-50 max-h-72 overflow-y-auto scrollbar-thin animate-in fade-in zoom-in-95 duration-150 ${
+                          theme === 'dark'
+                            ? 'bg-zinc-900/95 border-zinc-700/80 backdrop-blur-xl text-zinc-200 shadow-black/60'
+                            : 'bg-white/95 border-zinc-200 backdrop-blur-xl text-zinc-800 shadow-indigo-900/15'
+                        }`}
+                      >
+                        <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center justify-between">
+                          <span>Ranger dans un dossier</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsFolderDropdownOpen(false);
+                              setNewFolderName('');
+                              setNewFolderParentId(null);
+                              setIsFolderModalOpen(true);
+                            }}
+                            className="text-indigo-400 hover:text-indigo-300 flex items-center gap-0.5 text-[10px] cursor-pointer"
+                          >
+                            <Plus className="w-3 h-3" />
+                            Nouveau
+                          </button>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFolderId('');
+                            triggerAutoSave(title, content, category, '', projectId, tagsInput, isPinned, attachments);
+                            setIsFolderDropdownOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                            !folderId
+                              ? 'bg-indigo-600 text-white font-semibold'
+                              : theme === 'dark'
+                              ? 'hover:bg-zinc-800 text-zinc-300'
+                              : 'hover:bg-zinc-100 text-zinc-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <FileText className="w-3.5 h-3.5 flex-shrink-0 text-zinc-400" />
+                            <span>Sans dossier</span>
+                          </div>
+                          {!folderId && <Check className="w-3.5 h-3.5 flex-shrink-0" />}
+                        </button>
+
+                        <div className="my-1 border-t border-inherit/40" />
+
+                        {flattenedFolderOptions.map((f) => (
+                          <button
+                            key={f.id}
+                            type="button"
+                            onClick={() => {
+                              setFolderId(f.id);
+                              triggerAutoSave(title, content, category, f.id, projectId, tagsInput, isPinned, attachments);
+                              setIsFolderDropdownOpen(false);
+                            }}
+                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                              folderId === f.id
+                                ? 'bg-indigo-600 text-white font-semibold'
+                                : theme === 'dark'
+                                ? 'hover:bg-zinc-800 text-zinc-300'
+                                : 'hover:bg-zinc-100 text-zinc-700'
+                            }`}
+                            style={{ paddingLeft: `${10 + f.level * 12}px` }}
+                          >
+                            <div className="flex items-center gap-1.5 truncate">
+                              <span
+                                className="w-2 h-2 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: f.color || '#6366f1' }}
+                              />
+                              <span className="truncate">{f.name}</span>
+                            </div>
+                            {folderId === f.id && <Check className="w-3.5 h-3.5 flex-shrink-0" />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <span className="text-zinc-500">/</span>
+                  <span className="font-semibold text-zinc-300 truncate max-w-[120px] sm:max-w-[200px] hidden sm:inline">
+                    {title || 'Sans titre'}
+                  </span>
                 </div>
 
-                {/* Badge de Format & Conversion Interactive Rapide (Desktop uniquement dans le header) */}
+                {/* Format switcher badge */}
                 <button
                   type="button"
                   onClick={handleToggleFormat}
-                  className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex-shrink-0 ${
+                  className={`hidden md:flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer flex-shrink-0 ${
                     currentNote.format === 'ink'
                       ? 'bg-purple-500/15 text-purple-300 border-purple-500/30 hover:bg-purple-500/25'
                       : 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/25'
                   }`}
-                  title="Cliquer pour convertir le format (Classique <-> Manuscrit)"
+                  title="Cliquer pour basculer le format (Classique <-> Manuscrit stylet)"
                 >
                   {currentNote.format === 'ink' ? (
                     <>
-                      <PenTool className="w-3.5 h-3.5 text-purple-400" />
+                      <PenTool className="w-3 h-3 text-purple-400" />
                       <span>Manuscrit</span>
-                      <ArrowLeftRight className="w-3 h-3 text-purple-400/60 ml-0.5" />
                     </>
                   ) : (
                     <>
-                      <FileText className="w-3.5 h-3.5 text-indigo-400" />
+                      <FileText className="w-3 h-3 text-indigo-400" />
                       <span>Classique</span>
-                      <ArrowLeftRight className="w-3 h-3 text-indigo-400/60 ml-0.5" />
                     </>
                   )}
                 </button>
               </div>
 
-              {/* Droite : Switcher Modes de vue, Joindre, Épingler, Statut & Corbeille */}
-              <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-                {/* Switcher de modes épuré (icônes seules sur mobile pour un gain d'espace maximal) */}
+              {/* Droite : Statut, Modes de vue, Toggle LaTeX, Menu Plus */}
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                {/* Statut d'enregistrement */}
+                <div
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono border transition-all ${
+                    saveStatus === 'saving'
+                      ? 'border-amber-500/40 bg-amber-500/10 text-amber-400'
+                      : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                  }`}
+                  title={saveStatus === 'saving' ? 'Sauvegarde en cours...' : 'Note enregistrée et synchronisée'}
+                >
+                  {saveStatus === 'saving' ? (
+                    <>
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                      <span className="hidden sm:inline font-semibold">Synchro...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
+                      <span className="hidden sm:inline font-semibold">Enregistré</span>
+                    </>
+                  )}
+                </div>
+
+                {/* Modes de vue */}
                 {currentNote.format === 'ink' ? (
                   <div
                     className={`flex items-center p-0.5 rounded-lg border text-xs ${
@@ -2178,28 +2336,28 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                     <button
                       type="button"
                       onClick={() => setViewMode('ink')}
-                      className={`flex items-center gap-1 px-2 md:px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded-md transition-all cursor-pointer ${
                         viewMode === 'ink'
                           ? 'bg-purple-600 text-white font-semibold shadow-xs'
                           : 'text-zinc-400 hover:text-zinc-200'
                       }`}
-                      title="Canvas Stylet"
+                      title="Mode Canvas Manuscrit"
                     >
-                      <PenTool className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Canvas</span>
+                      <PenTool className="w-3 h-3" />
+                      <span className="hidden sm:inline text-xs">Canvas</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setViewMode('write')}
-                      className={`flex items-center gap-1 px-2 md:px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
                         viewMode === 'write'
                           ? 'bg-zinc-800 text-white font-semibold shadow-xs'
                           : 'text-zinc-400 hover:text-zinc-200'
                       }`}
-                      title="Texte descriptif"
+                      title="Mode Texte"
                     >
-                      <Edit3 className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Texte</span>
+                      <Edit3 className="w-3 h-3" />
+                      <span className="hidden sm:inline text-xs">Texte</span>
                     </button>
                   </div>
                 ) : (
@@ -2209,350 +2367,217 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                     }`}
                   >
                     <button
+                      type="button"
                       onClick={() => setViewMode('write')}
-                      className={`flex items-center gap-1 px-2 md:px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
                         viewMode === 'write'
                           ? 'bg-indigo-600 text-white font-semibold shadow-xs'
                           : 'text-zinc-400 hover:text-zinc-200'
                       }`}
-                      title="Mode Écriture"
+                      title="Mode Édition"
                     >
-                      <Edit3 className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Édition</span>
+                      <Edit3 className="w-3 h-3" />
+                      <span className="hidden sm:inline text-xs">Édition</span>
                     </button>
                     <button
+                      type="button"
                       onClick={() => setViewMode('split')}
-                      className={`hidden lg:flex items-center gap-1 px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
+                      className={`hidden md:flex items-center gap-1 px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
                         viewMode === 'split'
                           ? 'bg-indigo-600 text-white font-semibold shadow-xs'
                           : 'text-zinc-400 hover:text-zinc-200'
                       }`}
-                      title="Mode Côte à côte (Édition + Rendu LaTeX)"
+                      title="Mode Double (Édition + LaTeX)"
                     >
-                      <Columns2 className="w-3.5 h-3.5" />
-                      <span>Double</span>
+                      <Columns2 className="w-3 h-3" />
+                      <span className="text-xs">Double</span>
                     </button>
                     <button
+                      type="button"
                       onClick={() => setViewMode('preview')}
-                      className={`flex items-center gap-1 px-2 md:px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
                         viewMode === 'preview'
                           ? 'bg-purple-600 text-white font-semibold shadow-xs'
                           : 'text-zinc-400 hover:text-zinc-200'
                       }`}
-                      title="Aperçu Présentation"
+                      title="Aperçu Rendu"
                     >
-                      <Eye className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Aperçu</span>
+                      <Eye className="w-3 h-3" />
+                      <span className="hidden sm:inline text-xs">Aperçu</span>
                     </button>
                   </div>
                 )}
 
-                {/* Bouton Importer / Insérer Markdown */}
-                <button
-                  type="button"
-                  onClick={() => markdownFileInputRef.current?.click()}
-                  className={`flex items-center justify-center p-1.5 rounded-lg border transition-all cursor-pointer flex-shrink-0 ${
-                    theme === 'dark'
-                      ? 'bg-zinc-900 hover:bg-zinc-800 text-cyan-400 hover:text-cyan-300 border-zinc-800'
-                      : 'bg-zinc-100 hover:bg-zinc-200 text-cyan-700 border-zinc-200'
-                  }`}
-                  title="Importer ou insérer un fichier Markdown (.md)"
-                >
-                  <FileCode className="w-3.5 h-3.5" />
-                </button>
-
-                {/* Bouton Joindre un Document */}
-                <label
-                  className={`flex items-center justify-center p-1.5 rounded-lg border transition-all cursor-pointer flex-shrink-0 ${
-                    theme === 'dark'
-                      ? 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border-zinc-800'
-                      : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-600 border-zinc-200'
-                  }`}
-                  title="Joindre un document (Word, Excel, PowerPoint, PDF, Image...)"
-                >
-                  <Paperclip className="w-3.5 h-3.5 text-indigo-400" />
-                  <input
-                    ref={editorFilePickerRef}
-                    type="file"
-                    multiple
-                    accept="application/pdf,image/*,.txt,.md,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.tsv,.ods,.odt,.rtf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
-                    className="hidden"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files.length > 0) {
-                        handleAttachFilesToCurrentNote(e.target.files);
-                        e.target.value = '';
-                      }
-                    }}
-                  />
-                </label>
-
-                {/* Bouton Épingler */}
-                <button
-                  onClick={() => {
-                    const next = !isPinned;
-                    setIsPinned(next);
-                    triggerAutoSave(title, content, category, folderId, projectId, tagsInput, next, attachments);
-                  }}
-                  className={`p-1.5 rounded-lg border transition-colors cursor-pointer flex-shrink-0 ${
-                    isPinned
-                      ? 'bg-amber-500/20 border-amber-500/40 text-amber-500 dark:text-amber-400'
-                      : theme === 'dark'
-                      ? 'border-zinc-800 text-zinc-500 hover:text-zinc-300'
-                      : 'border-zinc-300 text-zinc-400 hover:text-zinc-700 bg-white shadow-xs'
-                  }`}
-                  title={isPinned ? 'Détacher' : 'Épingler en haut'}
-                >
-                  <Pin className="w-3.5 h-3.5" />
-                </button>
-
-                {/* Statut d'enregistrement : Badge complet sur desktop, Voyant discret sur mobile */}
-                <div
-                  className={`hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-mono border transition-all flex-shrink-0 ${
-                    saveStatus === 'saving'
-                      ? 'border-amber-500/40 bg-amber-500/10 text-amber-400'
-                      : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
-                  }`}
-                  title={saveStatus === 'saving' ? 'Sauvegarde et synchronisation en cours...' : 'Note enregistrée et synchronisée'}
-                >
-                  {saveStatus === 'saving' ? (
-                    <>
-                      <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-                      <span className="text-[10px] font-semibold">Synchro...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                      <span className="text-[10px] font-semibold">Synchronisé</span>
-                    </>
-                  )}
-                </div>
-
-                {/* Voyant discret sur mobile (< sm) */}
-                <div className="flex sm:hidden items-center justify-center px-1 flex-shrink-0">
-                  {saveStatus === 'saving' ? (
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" title="Sauvegarde en cours..." />
-                  ) : (
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-xs shadow-emerald-400" title="Synchronisé" />
-                  )}
-                </div>
-
-                {/* Bouton Supprimer */}
-                <button
-                  onClick={() => handleDeleteNote(currentNote.id)}
-                  className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer flex-shrink-0"
-                  title="Supprimer cette note"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Barre de Formatage Rapide & Assistant LaTeX — Défilement Horizontal Fluide sur Mobile */}
-            {viewMode !== 'preview' && viewMode !== 'ink' && (
-              <div
-                className={`px-3 md:px-6 py-1.5 border-b flex items-center gap-1.5 md:gap-2 overflow-x-auto scrollbar-none flex-nowrap transition-colors ${
-                  theme === 'dark' ? 'border-zinc-800/80 bg-zinc-900/40' : 'border-zinc-200 bg-zinc-50'
-                }`}
-              >
-                {/* Tailles de titres H1, H2, H3 */}
-                <div className={`flex items-center p-0.5 rounded-lg border flex-shrink-0 ${
-                  theme === 'dark' ? 'bg-zinc-800/60 border-zinc-700/60' : 'bg-zinc-200/80 border-zinc-300'
-                }`}>
+                {/* Bouton Toggle Palette LaTeX (∑ Math) */}
+                {viewMode !== 'preview' && viewMode !== 'ink' && (
                   <button
-                    onClick={() => insertSyntax('# ')}
-                    className={`p-1.5 rounded font-bold text-xs cursor-pointer transition-colors ${
-                      theme === 'dark' ? 'text-zinc-400 hover:text-indigo-300 hover:bg-zinc-700/60' : 'text-zinc-700 hover:text-indigo-600 hover:bg-white'
+                    type="button"
+                    onClick={() => setIsLatexToolbarOpen((prev) => !prev)}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex-shrink-0 ${
+                      isLatexToolbarOpen
+                        ? 'bg-purple-600 text-white border-purple-500 shadow-md shadow-purple-600/30'
+                        : theme === 'dark'
+                        ? 'border-purple-500/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20'
+                        : 'border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100'
                     }`}
-                    title="Grand Titre (H1)"
+                    title={isLatexToolbarOpen ? "Fermer la palette LaTeX" : "Ouvrir la palette de formules LaTeX"}
                   >
-                    <Heading1 className="w-3.5 h-3.5" />
+                    <span className="font-serif font-bold text-xs">∑</span>
+                    <span className="hidden sm:inline">Math</span>
                   </button>
+                )}
+
+                {/* Menu Plus d'actions (···) */}
+                <div className="relative" ref={moreMenuRef}>
                   <button
-                    onClick={() => insertSyntax('## ')}
-                    className={`p-1.5 rounded font-bold text-xs cursor-pointer transition-colors ${
-                      theme === 'dark' ? 'text-zinc-400 hover:text-indigo-300 hover:bg-zinc-700/60' : 'text-zinc-700 hover:text-indigo-600 hover:bg-white'
+                    type="button"
+                    onClick={() => setIsMoreMenuOpen((prev) => !prev)}
+                    className={`p-1.5 rounded-lg border transition-colors cursor-pointer flex-shrink-0 ${
+                      isMoreMenuOpen
+                        ? 'bg-zinc-800 text-zinc-100 border-zinc-600'
+                        : theme === 'dark'
+                        ? 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                        : 'border-zinc-200 bg-white text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 shadow-xs'
                     }`}
-                    title="Titre de Section (H2)"
+                    title="Plus d'actions"
                   >
-                    <Heading2 className="w-3.5 h-3.5" />
+                    <MoreHorizontal className="w-4 h-4" />
                   </button>
-                  <button
-                    onClick={() => insertSyntax('### ')}
-                    className={`p-1.5 rounded font-bold text-xs cursor-pointer transition-colors ${
-                      theme === 'dark' ? 'text-zinc-400 hover:text-indigo-300 hover:bg-zinc-700/60' : 'text-zinc-700 hover:text-indigo-600 hover:bg-white'
-                    }`}
-                    title="Sous-titre (H3)"
-                  >
-                    <Heading3 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
 
-                <div className={`w-px h-4 mx-0.5 flex-shrink-0 ${theme === 'dark' ? 'bg-zinc-700/50' : 'bg-zinc-300'}`} />
-
-                {/* Styles de texte : Gras, Italique, Souligné, Barré, Surligné */}
-                <button
-                  onClick={() => insertSyntax('**', '**')}
-                  className={`p-1.5 rounded cursor-pointer flex-shrink-0 transition-colors ${
-                    theme === 'dark' ? 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200'
-                  }`}
-                  title="Gras (**texte**)"
-                >
-                  <Bold className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => insertSyntax('*', '*')}
-                  className={`p-1.5 rounded cursor-pointer flex-shrink-0 transition-colors ${
-                    theme === 'dark' ? 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200'
-                  }`}
-                  title="Italique (*texte*)"
-                >
-                  <Italic className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => insertSyntax('<u>', '</u>')}
-                  className={`p-1.5 rounded cursor-pointer flex-shrink-0 transition-colors ${
-                    theme === 'dark' ? 'text-zinc-400 hover:text-indigo-300 hover:bg-zinc-800' : 'text-zinc-600 hover:text-indigo-600 hover:bg-zinc-200'
-                  }`}
-                  title="Souligné (<u>texte</u>)"
-                >
-                  <Underline className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => insertSyntax('~~', '~~')}
-                  className={`p-1.5 rounded cursor-pointer flex-shrink-0 transition-colors ${
-                    theme === 'dark' ? 'text-zinc-400 hover:text-rose-400 hover:bg-zinc-800' : 'text-zinc-600 hover:text-rose-600 hover:bg-zinc-200'
-                  }`}
-                  title="Texte barré (~~texte~~)"
-                >
-                  <Strikethrough className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => insertSyntax('==', '==')}
-                  className={`p-1.5 rounded cursor-pointer flex-shrink-0 transition-colors ${
-                    theme === 'dark' ? 'text-zinc-400 hover:text-amber-300 hover:bg-zinc-800' : 'text-zinc-600 hover:text-amber-600 hover:bg-zinc-200'
-                  }`}
-                  title="Surligner en jaune (==texte==)"
-                >
-                  <Highlighter className="w-3.5 h-3.5" />
-                </button>
-
-                <div className={`w-px h-4 mx-0.5 flex-shrink-0 ${theme === 'dark' ? 'bg-zinc-700/50' : 'bg-zinc-300'}`} />
-
-                {/* Listes & Structure */}
-                <button
-                  onClick={() => insertSyntax('- [ ] ')}
-                  className={`p-1.5 rounded cursor-pointer flex-shrink-0 transition-colors ${
-                    theme === 'dark' ? 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200'
-                  }`}
-                  title="Case à cocher (- [ ])"
-                >
-                  <CheckSquare className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => insertSyntax('- ')}
-                  className={`p-1.5 rounded cursor-pointer flex-shrink-0 transition-colors ${
-                    theme === 'dark' ? 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200'
-                  }`}
-                  title="Liste à puces (- )"
-                >
-                  <List className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => insertSyntax('1. ')}
-                  className={`p-1.5 rounded cursor-pointer flex-shrink-0 transition-colors ${
-                    theme === 'dark' ? 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200'
-                  }`}
-                  title="Liste numérotée (1. )"
-                >
-                  <ListOrdered className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => insertSyntax('> ')}
-                  className={`p-1.5 rounded cursor-pointer flex-shrink-0 transition-colors ${
-                    theme === 'dark' ? 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200'
-                  }`}
-                  title="Citation (> )"
-                >
-                  <Quote className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => insertSyntax('```\n', '\n```')}
-                  className={`p-1.5 rounded cursor-pointer flex-shrink-0 transition-colors ${
-                    theme === 'dark' ? 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200'
-                  }`}
-                  title="Bloc de code (```)"
-                >
-                  <Code2 className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => insertSyntax('\n\n---\n\n')}
-                  className={`p-1.5 rounded cursor-pointer flex-shrink-0 transition-colors ${
-                    theme === 'dark' ? 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800' : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200'
-                  }`}
-                  title="Ligne séparatrice horizontale (---)"
-                >
-                  <Minus className="w-3.5 h-3.5" />
-                </button>
-
-                <div className={`w-px h-4 mx-0.5 flex-shrink-0 ${theme === 'dark' ? 'bg-zinc-700/50' : 'bg-zinc-300'}`} />
-
-                {/* Boutons d'action : Manuscrit, Modèles, Tutoriel & LaTeX */}
-                <div className="flex items-center gap-1.5 flex-shrink-0 ml-auto">
-                  {/* Bouton Ajouter Emplacement Manuscrit dans une note classique */}
-                  {currentNote.format !== 'ink' && (
-                    <button
-                      type="button"
-                      onClick={handleAddInkPlacement}
-                      className="flex items-center gap-1.5 px-2 md:px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-600/15 hover:bg-purple-600/25 text-purple-400 border border-purple-500/30 transition-all cursor-pointer flex-shrink-0"
-                      title="Ajouter un emplacement de dessin / note manuscrite au stylet dans la note"
+                  {isMoreMenuOpen && (
+                    <div
+                      className={`absolute right-0 top-full mt-1.5 w-60 rounded-xl border p-1 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 ${
+                        theme === 'dark'
+                          ? 'bg-zinc-900/95 border-zinc-700/80 backdrop-blur-xl text-zinc-200 shadow-black/60'
+                          : 'bg-white/95 border-zinc-200 backdrop-blur-xl text-zinc-800 shadow-indigo-900/15'
+                      }`}
                     >
-                      <PenTool className="w-3.5 h-3.5 text-purple-400" />
-                      <span className="hidden sm:inline">Emplacement manuscrit</span>
-                      <span className="sm:hidden">Manuscrit</span>
-                    </button>
+                      {/* Modèles */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMoreMenuOpen(false);
+                          setIsTemplateModalOpen(true);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs hover:bg-purple-500/15 hover:text-purple-300 transition-colors cursor-pointer text-left"
+                      >
+                        <LayoutTemplate className="w-4 h-4 text-purple-400" />
+                        <span>Modèles de notes structurés</span>
+                      </button>
+
+                      {/* Emplacement manuscrit (si format classique) */}
+                      {currentNote.format !== 'ink' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsMoreMenuOpen(false);
+                            handleAddInkPlacement();
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs hover:bg-purple-500/15 hover:text-purple-300 transition-colors cursor-pointer text-left"
+                        >
+                          <PenTool className="w-4 h-4 text-purple-400" />
+                          <span>Insérer emplacement manuscrit</span>
+                        </button>
+                      )}
+
+                      {/* Importer Markdown */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMoreMenuOpen(false);
+                          markdownFileInputRef.current?.click();
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs hover:bg-cyan-500/15 hover:text-cyan-300 transition-colors cursor-pointer text-left"
+                      >
+                        <FileCode className="w-4 h-4 text-cyan-400" />
+                        <span>Importer fichier Markdown (.md)</span>
+                      </button>
+
+                      {/* Joindre un document */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMoreMenuOpen(false);
+                          editorFilePickerRef.current?.click();
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs hover:bg-indigo-500/15 hover:text-indigo-300 transition-colors cursor-pointer text-left"
+                      >
+                        <Paperclip className="w-4 h-4 text-indigo-400" />
+                        <span>Joindre un document / PDF / image</span>
+                      </button>
+
+                      {/* Exporter en TeX */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMoreMenuOpen(false);
+                          handleExportNoteToTex();
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs hover:bg-emerald-500/15 hover:text-emerald-300 transition-colors cursor-pointer text-left"
+                      >
+                        <Download className="w-4 h-4 text-emerald-400" />
+                        <span>Exporter en LaTeX (.tex)</span>
+                      </button>
+
+                      {/* Tuto LaTeX */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMoreMenuOpen(false);
+                          setIsLatexTutorialOpen(true);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs hover:bg-indigo-500/15 hover:text-indigo-300 transition-colors cursor-pointer text-left"
+                      >
+                        <BookOpen className="w-4 h-4 text-indigo-400" />
+                        <span>Guide & Aide LaTeX</span>
+                      </button>
+
+                      {/* Épingler / Détacher */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMoreMenuOpen(false);
+                          const next = !isPinned;
+                          setIsPinned(next);
+                          triggerAutoSave(title, content, category, folderId, projectId, tagsInput, next, attachments);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs hover:bg-amber-500/15 hover:text-amber-300 transition-colors cursor-pointer text-left"
+                      >
+                        <Pin className={`w-4 h-4 ${isPinned ? 'text-amber-400 fill-amber-400' : 'text-zinc-400'}`} />
+                        <span>{isPinned ? 'Détacher la note' : 'Épingler la note'}</span>
+                      </button>
+
+                      <div className="my-1 border-t border-inherit/40" />
+
+                      {/* Supprimer */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMoreMenuOpen(false);
+                          handleDeleteNote(currentNote.id);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-rose-400 hover:bg-rose-500/15 hover:text-rose-300 transition-colors cursor-pointer text-left"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Supprimer définitivement</span>
+                      </button>
+                    </div>
                   )}
-
-                  <button
-                    onClick={() => setIsTemplateModalOpen(true)}
-                    className="flex items-center gap-1 px-2 md:px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-600/15 hover:bg-purple-600/25 text-purple-400 border border-purple-500/30 transition-all cursor-pointer flex-shrink-0"
-                    title="Choisir ou appliquer un modèle structuré"
-                  >
-                    <LayoutTemplate className="w-3.5 h-3.5 text-purple-400" />
-                    <span>Modèles</span>
-                  </button>
-
-                  <button
-                    onClick={() => setIsLatexTutorialOpen(true)}
-                    className="flex items-center gap-1 px-2 md:px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 transition-all cursor-pointer flex-shrink-0"
-                    title="Ouvrir le guide LaTeX"
-                  >
-                    <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
-                    <span className="hidden sm:inline">Tuto LaTeX</span>
-                    <span className="sm:hidden">Tuto</span>
-                  </button>
-
-                  <button
-                    onClick={() => setIsLatexModalOpen(true)}
-                    className="flex items-center gap-1 px-2.5 md:px-3 py-1 rounded-lg text-xs font-semibold bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 border border-purple-500/30 transition-all cursor-pointer flex-shrink-0"
-                    title="Insérer une formule mathématique LaTeX"
-                  >
-                    <span className="font-serif font-bold text-sm">∑</span>
-                    <span>LaTeX</span>
-                    <Sparkles className="w-3 h-3 text-purple-400 hidden sm:inline" />
-                  </button>
                 </div>
               </div>
-            )}
+            </header>
 
-            {/* Barre et Palette LaTeX complète avec formules, symboles, matrices, labels et export .tex */}
-            {viewMode !== 'preview' && viewMode !== 'ink' && (
-              <LatexToolbar
-                onInsert={handleInsertFromLatexToolbar}
-                labels={extractedLatexLabels}
-                onExportTex={handleExportNoteToTex}
-                onOpenTutorial={() => setIsLatexTutorialOpen(true)}
-                onOpenGallery={() => setIsLatexModalOpen(true)}
-              />
+            {/* Palette LaTeX Dépliable (ouverte uniquement sur clic de ∑ Math) */}
+            {isLatexToolbarOpen && viewMode !== 'preview' && viewMode !== 'ink' && (
+              <div className="border-b border-inherit bg-zinc-950/40 animate-in fade-in slide-in-from-top-2 duration-150 flex-shrink-0">
+                <LatexToolbar
+                  onInsert={handleInsertFromLatexToolbar}
+                  labels={extractedLatexLabels}
+                  onExportTex={handleExportNoteToTex}
+                  onOpenTutorial={() => setIsLatexTutorialOpen(true)}
+                  onOpenGallery={() => setIsLatexModalOpen(true)}
+                />
+              </div>
             )}
 
             {/* Zone Principale de Rédaction / Affichage */}
@@ -2586,37 +2611,6 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                     </>
                   )}
                 </button>
-
-                {/* Fil d'Ariane hiérarchique du dossier */}
-                {folderId ? (
-                  <div className="flex items-center gap-1.5">
-                    <Folder className="w-3.5 h-3.5 text-zinc-500" />
-                    {getFolderPath(folderId, folders).map((f, idx, arr) => (
-                      <span key={f.id} className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedFolderFilter(f.id)}
-                          className="hover:underline font-medium hover:text-indigo-400 transition-colors cursor-pointer flex items-center gap-1"
-                          style={{ color: f.color || undefined }}
-                        >
-                          <span
-                            className="w-1.5 h-1.5 rounded-full inline-block"
-                            style={{ backgroundColor: f.color || '#6366f1' }}
-                          />
-                          {f.name}
-                        </button>
-                        {idx < arr.length - 1 && <span className="text-zinc-600">/</span>}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="text-zinc-500 flex items-center gap-1 text-xs">
-                    <Folder className="w-3.5 h-3.5" />
-                    <span>Sans dossier</span>
-                  </span>
-                )}
-
-                <span className="text-zinc-500 hidden sm:inline">•</span>
 
                 {/* Catégorie PARA */}
                 <div className="flex items-center gap-1">
@@ -3363,6 +3357,183 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                 />
               )}
             </div>
+
+            {/* Barre de Formatage Flottante Contextuelle (Style Notion / Bear / Craft) */}
+            {viewMode !== 'preview' && viewMode !== 'ink' && (
+              <div className="pointer-events-none absolute bottom-5 inset-x-0 flex justify-center z-30 select-none">
+                <div
+                  className={`pointer-events-auto flex items-center gap-0.5 sm:gap-1 p-1.5 rounded-2xl shadow-2xl backdrop-blur-xl border transition-all animate-in slide-in-from-bottom-3 duration-200 ${
+                    theme === 'dark'
+                      ? 'bg-zinc-900/90 border-zinc-700/70 text-zinc-200 shadow-black/60'
+                      : 'bg-white/95 border-zinc-300 text-zinc-800 shadow-indigo-900/15'
+                  }`}
+                >
+                  {/* Titres H1 & H2 */}
+                  <button
+                    type="button"
+                    onClick={() => insertSyntax('# ')}
+                    className={`p-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                      theme === 'dark' ? 'hover:bg-zinc-800 text-zinc-300 hover:text-white' : 'hover:bg-zinc-100 text-zinc-700'
+                    }`}
+                    title="Grand Titre H1 (# )"
+                  >
+                    <Heading1 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertSyntax('## ')}
+                    className={`p-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                      theme === 'dark' ? 'hover:bg-zinc-800 text-zinc-300 hover:text-white' : 'hover:bg-zinc-100 text-zinc-700'
+                    }`}
+                    title="Titre de Section H2 (## )"
+                  >
+                    <Heading2 className="w-3.5 h-3.5" />
+                  </button>
+
+                  <div className={`w-px h-4 mx-0.5 ${theme === 'dark' ? 'bg-zinc-700/60' : 'bg-zinc-300'}`} />
+
+                  {/* Styles de texte */}
+                  <button
+                    type="button"
+                    onClick={() => insertSyntax('**', '**')}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                      theme === 'dark' ? 'hover:bg-zinc-800 text-zinc-300 hover:text-white' : 'hover:bg-zinc-100 text-zinc-700'
+                    }`}
+                    title="Gras (**texte**)"
+                  >
+                    <Bold className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertSyntax('*', '*')}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                      theme === 'dark' ? 'hover:bg-zinc-800 text-zinc-300 hover:text-white' : 'hover:bg-zinc-100 text-zinc-700'
+                    }`}
+                    title="Italique (*texte*)"
+                  >
+                    <Italic className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertSyntax('<u>', '</u>')}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                      theme === 'dark' ? 'hover:bg-zinc-800 text-zinc-300 hover:text-white' : 'hover:bg-zinc-100 text-zinc-700'
+                    }`}
+                    title="Souligné (<u>texte</u>)"
+                  >
+                    <Underline className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertSyntax('~~', '~~')}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                      theme === 'dark' ? 'hover:bg-zinc-800 text-zinc-300 hover:text-white' : 'hover:bg-zinc-100 text-zinc-700'
+                    }`}
+                    title="Barré (~~texte~~)"
+                  >
+                    <Strikethrough className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertSyntax('==', '==')}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer text-amber-400 hover:text-amber-300 ${
+                      theme === 'dark' ? 'hover:bg-zinc-800' : 'hover:bg-zinc-100'
+                    }`}
+                    title="Surligner (==texte==)"
+                  >
+                    <Highlighter className="w-3.5 h-3.5" />
+                  </button>
+
+                  <div className={`w-px h-4 mx-0.5 ${theme === 'dark' ? 'bg-zinc-700/60' : 'bg-zinc-300'}`} />
+
+                  {/* Listes & Éléments structurés */}
+                  <button
+                    type="button"
+                    onClick={() => insertSyntax('- [ ] ')}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                      theme === 'dark' ? 'hover:bg-zinc-800 text-zinc-300 hover:text-white' : 'hover:bg-zinc-100 text-zinc-700'
+                    }`}
+                    title="Case à cocher (- [ ])"
+                  >
+                    <CheckSquare className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertSyntax('- ')}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                      theme === 'dark' ? 'hover:bg-zinc-800 text-zinc-300 hover:text-white' : 'hover:bg-zinc-100 text-zinc-700'
+                    }`}
+                    title="Liste à puces (- )"
+                  >
+                    <List className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertSyntax('1. ')}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                      theme === 'dark' ? 'hover:bg-zinc-800 text-zinc-300 hover:text-white' : 'hover:bg-zinc-100 text-zinc-700'
+                    }`}
+                    title="Liste numérotée (1. )"
+                  >
+                    <ListOrdered className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertSyntax('> ')}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                      theme === 'dark' ? 'hover:bg-zinc-800 text-zinc-300 hover:text-white' : 'hover:bg-zinc-100 text-zinc-700'
+                    }`}
+                    title="Citation (> )"
+                  >
+                    <Quote className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertSyntax('```\n', '\n```')}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                      theme === 'dark' ? 'hover:bg-zinc-800 text-zinc-300 hover:text-white' : 'hover:bg-zinc-100 text-zinc-700'
+                    }`}
+                    title="Bloc de code (```)"
+                  >
+                    <Code2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertSyntax('\n\n---\n\n')}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                      theme === 'dark' ? 'hover:bg-zinc-800 text-zinc-300 hover:text-white' : 'hover:bg-zinc-100 text-zinc-700'
+                    }`}
+                    title="Ligne de séparation (---)"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
+
+                  <div className={`w-px h-4 mx-0.5 ${theme === 'dark' ? 'bg-zinc-700/60' : 'bg-zinc-300'}`} />
+
+                  {/* Math rapide */}
+                  <button
+                    type="button"
+                    onClick={() => insertSyntax('$', '$')}
+                    className="p-1.5 rounded-lg hover:bg-purple-500/20 text-purple-400 font-serif font-bold text-xs transition-colors cursor-pointer"
+                    title="Formule mathématique rapide ($...$)"
+                  >
+                    ∑
+                  </button>
+
+                  {/* Emplacement manuscrit direct */}
+                  {currentNote.format !== 'ink' && (
+                    <button
+                      type="button"
+                      onClick={handleAddInkPlacement}
+                      className="p-1.5 rounded-lg hover:bg-purple-500/20 text-purple-400 transition-colors cursor-pointer"
+                      title="Ajouter un bloc stylet manuscrit dans la note"
+                    >
+                      <PenTool className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 space-y-4 p-6">
