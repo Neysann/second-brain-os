@@ -51,6 +51,7 @@ if (gitDir !== rootDir) {
     'firestore.rules',
     '.firebaserc',
     'README.md',
+    'electron-builder.json',
     'Lancer_Syntropy_Desktop.bat',
     'Synchroniser_Et_Deployer.bat',
   ];

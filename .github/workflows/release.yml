@@ -35,6 +35,8 @@ jobs:
 
       - name: Build Windows Executable
         run: npx electron-builder --win nsis --publish never
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish Release to GitHub
         uses: softprops/action-gh-release@v2
