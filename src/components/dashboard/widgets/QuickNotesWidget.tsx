@@ -2,16 +2,18 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { FileText, Plus, ExternalLink, Trash2, Settings } from 'lucide-react';
+import { FileText, Plus, ExternalLink, Trash2, Settings, StickyNote, Search, Sparkles } from 'lucide-react';
 import { useData } from '@/context/DataContext';
-import { QuickNotesWidgetSettings } from '@/types/dashboard';
+import { QuickNotesWidgetSettings, WidgetSize } from '@/types/dashboard';
 
 interface QuickNotesWidgetProps {
+  size?: WidgetSize;
   settings?: QuickNotesWidgetSettings;
   onOpenSettings?: () => void;
 }
 
 export const QuickNotesWidget: React.FC<QuickNotesWidgetProps> = ({
+  size = 'small',
   settings,
   onOpenSettings,
 }) => {
@@ -19,6 +21,7 @@ export const QuickNotesWidget: React.FC<QuickNotesWidgetProps> = ({
   const [isInputOpen, setIsInputOpen] = useState(false);
   const [newNoteText, setNewNoteText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const cardColor = settings?.cardColor || settings?.themeColor || 'amber';
   const fontSize = settings?.fontSize || 'medium';
@@ -99,11 +102,11 @@ export const QuickNotesWidget: React.FC<QuickNotesWidgetProps> = ({
       : 'text-xs';
 
   // Trier les notes réelles par date de modification / création décroissante
-  const recentNotes = useMemo(() => {
-    return [...notes]
-      .sort((a, b) => (b.updatedAt || b.createdAt).localeCompare(a.updatedAt || a.createdAt))
-      .slice(0, 4);
+  const sortedNotes = useMemo(() => {
+    return [...notes].sort((a, b) => (b.updatedAt || b.createdAt).localeCompare(a.updatedAt || a.createdAt));
   }, [notes]);
+
+  const recentNotes = useMemo(() => sortedNotes.slice(0, 4), [sortedNotes]);
 
   const handleAddQuickNote = async () => {
     if (!newNoteText.trim() || isSubmitting) return;
@@ -130,6 +133,220 @@ export const QuickNotesWidget: React.FC<QuickNotesWidgetProps> = ({
     }
   };
 
+  // ==========================================
+  // VUE 1 : FORMAT SMALL (1x1) - POST-IT STICKY NOTE
+  // ==========================================
+  if (size === 'small') {
+    const latestNote = sortedNotes[0];
+    return (
+      <div className="flex flex-col h-full justify-between p-3 select-none">
+        {/* En-tête compact */}
+        <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
+          <span className="flex items-center gap-1.5 truncate">
+            <StickyNote className={`w-3.5 h-3.5 ${colorStyles.headerIcon}`} />
+            <span className="truncate">Mémo Express</span>
+          </span>
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500">
+            {notes.length}
+          </span>
+        </div>
+
+        {/* Corps Post-it central */}
+        <div className="my-auto">
+          {isInputOpen ? (
+            <div className="space-y-1.5">
+              <input
+                type="text"
+                value={newNoteText}
+                onChange={(e) => setNewNoteText(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Nouveau mémo..."
+                autoFocus
+                className="w-full bg-white dark:bg-zinc-900 border border-amber-500/40 rounded-lg px-2 py-1 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              />
+              <div className="flex items-center justify-end gap-1">
+                <button
+                  type="button"
+                  onClick={() => setIsInputOpen(false)}
+                  className="px-2 py-0.5 rounded text-[10px] text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddQuickNote}
+                  disabled={!newNoteText.trim() || isSubmitting}
+                  className={`px-2 py-0.5 rounded text-[10px] font-medium text-white cursor-pointer ${colorStyles.submitBg} disabled:opacity-50`}
+                >
+                  Ajouter
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={() => setIsInputOpen(true)}
+              className={`p-2.5 rounded-xl border ${colorStyles.bg} hover:border-amber-500/40 transition-all cursor-pointer group shadow-2xs`}
+              title="Cliquer pour écrire un nouveau mémo"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                  <Sparkles className="w-2.5 h-2.5" /> Dernier mémo
+                </span>
+                <span className="text-[9px] text-zinc-400 group-hover:text-amber-500 transition-colors">
+                  + Écrire
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 line-clamp-2">
+                {latestNote?.title || 'Aucun mémo. Cliquez pour ajouter un pense-bête.'}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Pied : Lien notes */}
+        <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-1 border-t border-zinc-100 dark:border-zinc-800/60">
+          <Link
+            href="/notes"
+            className="hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-0.5"
+          >
+            <span>Ouvrir Notes</span>
+            <ExternalLink className="w-2.5 h-2.5" />
+          </Link>
+          <button
+            type="button"
+            onClick={() => setIsInputOpen(true)}
+            className="text-amber-600 dark:text-amber-400 font-medium hover:underline cursor-pointer"
+          >
+            + Rapide
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // VUE 2 : FORMAT LARGE / FULL (2x2 ou 4x1) - PINBOARD MULTI-NOTES
+  // ==========================================
+  if (size === 'large' || size === 'full') {
+    const filteredNotes = sortedNotes.filter((n) =>
+      searchQuery ? n.title.toLowerCase().includes(searchQuery.toLowerCase()) : true
+    );
+
+    return (
+      <div className="flex flex-col h-full justify-between p-3.5 select-none gap-2.5">
+        {/* En-tête large avec barre de recherche et actions */}
+        <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-2">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20">
+              <FileText className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                <span>Tableau de Mémos & Notes</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                  {notes.length} notes
+                </span>
+              </div>
+              <div className="text-[10px] text-zinc-400">Synchronisé en direct avec votre Second Brain</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="w-3 h-3 absolute left-2 top-2 text-zinc-400" />
+              <input
+                type="text"
+                placeholder="Filtrer..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-6 pr-2 py-1 text-[11px] rounded-lg bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-amber-500 w-28 sm:w-36"
+              />
+            </div>
+            <Link
+              href="/notes"
+              className="text-[10px] font-medium px-2 py-1 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors flex items-center gap-1"
+            >
+              <span>Tout voir</span>
+              <ExternalLink className="w-2.5 h-2.5" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Input d'ajout rapide complet */}
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={newNoteText}
+            onChange={(e) => setNewNoteText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={`Créer un nouveau mémo (#${defaultTag})...`}
+            className="flex-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+          />
+          <button
+            type="button"
+            onClick={handleAddQuickNote}
+            disabled={isSubmitting || !newNoteText.trim()}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold text-white transition-all cursor-pointer flex items-center gap-1 shadow-xs ${colorStyles.submitBg} disabled:opacity-50`}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Ajouter</span>
+          </button>
+        </div>
+
+        {/* Grille de post-it / cartes mémos */}
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 overflow-y-auto max-h-[220px] scrollbar-thin pr-1">
+          {filteredNotes.slice(0, 6).map((note, index) => {
+            const cardBg = index % 3 === 0
+              ? 'bg-amber-500/10 border-amber-500/20'
+              : index % 3 === 1
+              ? 'bg-purple-500/10 border-purple-500/20'
+              : 'bg-emerald-500/10 border-emerald-500/20';
+
+            return (
+              <div
+                key={note.id}
+                className={`p-2.5 rounded-xl border ${cardBg} flex flex-col justify-between hover:shadow-xs transition-all group`}
+              >
+                <div>
+                  <div className="flex items-center justify-between text-[9px] text-zinc-400 font-mono mb-1">
+                    <span>
+                      {note.tags?.[0] ? `#${note.tags[0]}` : '#mémo'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => deleteNote(note.id)}
+                      className="p-0.5 rounded text-zinc-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-2.5 h-2.5" />
+                    </button>
+                  </div>
+                  <Link
+                    href="/notes"
+                    className="text-xs font-semibold text-zinc-800 dark:text-zinc-100 hover:text-amber-500 line-clamp-2"
+                  >
+                    {note.title || 'Note sans titre'}
+                  </Link>
+                  {note.content && (
+                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-1">
+                      {note.content.slice(0, 80)}
+                    </p>
+                  )}
+                </div>
+                <div className="text-[8px] text-zinc-400 mt-2 font-mono text-right">
+                  {note.updatedAt ? new Date(note.updatedAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : ''}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // VUE 3 : FORMAT MEDIUM (2x1) - LISTE INTERACTIVE
+  // ==========================================
   return (
     <div className="flex flex-col h-full justify-between p-3 select-none group/widget">
       {/* En-tête */}

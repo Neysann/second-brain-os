@@ -2,6 +2,43 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.38] - 2026-11-05 (Widgets Réactifs Multitailles, Actualités Live RSS & Détection Audio PC)
+--------------------------------------------------------------------------------
+1. Refonte Multitailles Réactive & Authentique de Tous les Widgets :
+- Véritable adaptabilité de tous les widgets du tableau de bord selon leur format (`small` 1x1, `medium` 2x1, `large` 2x2, `full` 4x1) au lieu d'un simple étirement :
+  * 📰 Actualités : Format 1x1 (Dernier flash info & heure relative), 2x1 (Flux chronologique en direct avec filtres thématiques), 2x2 / 4x1 (Portail d'actualités complet avec recherche en direct, onglets par catégorie et grille multi-colonnes).
+  * 🎵 Lecteur Audio : Format 1x1 (Mini-lecteur avec défilement de titre et contrôles immédiats), 2x1 (Carte de lecture avec visualiseur d'ondes, sélecteur de source et bouton d'ambiance zen), 2x2 / 4x1 (Studio audio complet avec lecteur iframe intégré, gestionnaire de playlists personnalisées et synthétiseur de bruits ambiants 432Hz/Nature).
+  * 📅 Calendrier : Format 1x1 (Pastille éphéméride & prochain événement), 2x1 (Vue agenda 4 prochains jours avec pastilles colorées), 2x2 / 4x1 (Grille mensuelle interactive complète avec sélecteur de jour et liste des rendez-vous).
+  * 📝 Tâches & To-Do : Format 1x1 (Tâches prioritaires avec jauge restante), 2x1 (Liste interactive avec ajout inline et tri par statut), 2x2 / 4x1 (Mini-tableau Kanban 3 colonnes « À faire », « En cours » et « Terminées »).
+  * 📂 Projets & Jalons : Format 1x1 (Pourcentage global & projet phare), 2x1 (Barres d'avancement des projets actifs), 2x2 / 4x1 (Tableau de bord de suivi multi-projets avec compteurs de sous-tâches et descriptions).
+  * 📌 Mémos & Notes : Format 1x1 (Post-it compact avec dernier mémo et saisie instantanée), 2x1 (Liste des notes récentes avec tags), 2x2 / 4x1 (Mur de post-it colorés avec recherche et création directe).
+  * ⏱️ Minuteur Focus : Format 1x1 (Cadran circulaire minimaliste), 2x1 (Onglets Focus/Pause et anneau LED), 2x2 / 4x1 (Station de Deep Work avec 4 presets 15m/25m/45m/60m, historique de sessions 🍅 et cycle de 4 pomodoros).
+  * 🎯 Progression Projet : Format 1x1 (Jauge circulaire compacte), 2x1 (Jauge avec commutateur de projet et détails), 2x2 / 4x1 (Matrice comparative de tous les projets avec barres de progression individuelles).
+  * 💬 Citation & Inspiration : Format 1x1 (Snippet court et auteur), 2x1 (Carte atmosphérique illustrée avec silhouette montagne), 2x2 / 4x1 (Studio de réflexion avec piste d'introspection philosophique et sauvegarde dans les notes en 1 clic).
+  * ⚡ Sprint 10 Jours : Format 1x1 (Top 2 habitudes du jour), 2x1 (Checklist du jour avec jauge), 2x2 / 4x1 (Matrice complète des 10 jours avec cases à cocher individuelles pour chaque jour du sprint).
+  * 🧮 Calculatrice Interactive : Format 1x1 (Pavé numérique rapide), 2x1 (Calculatrice 2x1 équilibrée), 2x2 / 4x1 (Espace scientifique & financier avec racine carrée, puissance et ruban d'historique cliquable).
+  * 🎭 Humour & Meme : Format 1x1 (Emoji et punchline), 2x1 (Carte humoristique avec rafraîchissement), 2x2 / 4x1 (Galerie geek de 3 memes simultanés et bouton de copie rapide).
+  * 📡 Flux RSS / Veille : Format 1x1 (Flash de veille avec lien direct), 2x1 (Top 3 articles avec bouton de sauvegarde), 2x2 / 4x1 (Agrégateur de veille complet avec filtres thématiques et temps de lecture).
+
+2. Actualités en Direct Authentiques (Flux RSS Réels & Multi-Catégories) :
+- Remplacement des fausses données simulées par un moteur d'agrégation RSS en direct :
+  * Tech & IA : The Verge, Hacker News, Frandroid.
+  * Sciences : Futura Sciences.
+  * Général & Monde : Franceinfo, Le Monde.
+  * Économie & Business : Les Echos.
+- Prise en charge transparente de CORS : requête directe native dans le client bureau Electron (`fetchUrl`), avec relais proxy de secours et mise en cache locale instantanée pour consultation hors-ligne.
+- Filtres dynamiques par catégorie, recherche instantanée, calcul automatique du temps écoulé (« Il y a 2h », « Hier ») et ouverture directe dans le navigateur par défaut.
+
+3. Lecteur Audio Hybride & Détection du Lecteur Média Windows (SMTC) :
+- Intégration native des System Media Transport Controls (SMTC) de Windows via IPC Electron :
+  * Détection automatique de toute application en cours de lecture sur l'ordinateur (Spotify, YouTube Music, Deezer, Apple Music, VLC, Chrome, Edge).
+  * Affichage en direct du titre, de l'artiste, de l'application source et du statut de lecture.
+  * Contrôle direct depuis Syntropy OS : Lecture / Pause, Piste suivante et Piste précédente sans quitter l'application.
+- Gestionnaire de Playlists Personnalisées :
+  * Possibilité de connecter et d'enregistrer ses propres playlists Spotify (embed web), YouTube (iframes) et Deezer avec persistance locale.
+- Générateur d'Ambiance Zen & Sons de Focus :
+  * Synthétiseur audio Web natif : Ondes Alpha 432 Hz, Pluie relaxante, Vagues de l'Océan, Feu de cheminée, Forêt boréale et Café d'ambiance.
+
 #### [V2.6.37] - 2026-11-05 (Isolement des Thèmes Secrets & Épuration de l'Apparence)
 --------------------------------------------------------------------------------
 1. Retrait des Directions Artistiques Spéciales du Menu Standard :

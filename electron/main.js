@@ -1006,11 +1006,11 @@ function registerIpcHandlers() {
     return { success: false, reason: 'Fichier non trouvé dans dist/' };
   });
 
-  // Requête HTTP directe native (contournement transparent des restrictions CORS pour flux iCal / WebCal)
+  // Requête HTTP directe native (contournement transparent des restrictions CORS pour flux iCal / WebCal / RSS)
   ipcMain.handle('fetch-url', async (_event, payload) => {
     try {
       const targetUrl = typeof payload === 'string' ? payload : payload?.url;
-      const headers = payload?.headers || { Accept: 'text/calendar, text/plain, */*' };
+      const headers = payload?.headers || { Accept: 'application/rss+xml, application/xml, text/xml, text/calendar, text/plain, */*' };
       if (!targetUrl) return { success: false, error: 'URL manquante' };
 
       const response = await fetch(targetUrl, {
@@ -1033,6 +1033,90 @@ function registerIpcHandlers() {
       console.error('[Syntropy OS Desktop] Erreur fetch-url:', err);
       return { success: false, error: err?.message || String(err) };
     }
+  });
+
+  // Détection en direct de l'application musicale active sur le PC (Windows SMTC)
+  ipcMain.handle('get-now-playing', async () => {
+    if (process.platform !== 'win32') return { active: false };
+    return new Promise((resolve) => {
+      const psScript = `
+Add-Type -AssemblyName System.Runtime.WindowsRuntime
+$asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation\`1' })[0]
+[Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager, Windows.Media, ContentType = WindowsRuntime] | Out-Null
+$op = [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]::RequestAsync()
+$task = $asTaskGeneric.MakeGenericMethod([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]).Invoke($null, @($op))
+$manager = $task.Result
+$session = $manager.GetCurrentSession()
+if ($session) {
+    $propOp = $session.TryGetMediaPropertiesAsync()
+    $propTask = $asTaskGeneric.MakeGenericMethod([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties]).Invoke($null, @($propOp))
+    $props = $propTask.Result
+    $info = $session.GetPlaybackInfo()
+    $obj = [PSCustomObject]@{
+        title = $props.Title
+        artist = $props.Artist
+        albumTitle = $props.AlbumTitle
+        appId = $session.SourceAppUserModelId
+        status = $info.PlaybackStatus.ToString()
+        canPlay = $info.Controls.IsPlayEnabled
+        canPause = $info.Controls.IsPauseEnabled
+        canNext = $info.Controls.IsNextEnabled
+        canPrevious = $info.Controls.IsPreviousEnabled
+        active = $true
+    }
+    $obj | ConvertTo-Json -Compress
+} else {
+    Write-Output '{"active":false}'
+}
+`;
+      const { exec } = require('child_process');
+      exec(psScript, { shell: 'powershell.exe', timeout: 3500 }, (err, stdout) => {
+        if (err || !stdout) {
+          resolve({ active: false });
+          return;
+        }
+        try {
+          const parsed = JSON.parse(stdout.trim());
+          resolve(parsed);
+        } catch (_) {
+          resolve({ active: false });
+        }
+      });
+    });
+  });
+
+  // Contrôle de la lecture audio système (Play / Pause / Suivant / Précédent)
+  ipcMain.handle('control-media', async (_event, action) => {
+    if (process.platform !== 'win32') return { success: false };
+    return new Promise((resolve) => {
+      let method = 'TryTogglePlayPauseAsync';
+      if (action === 'play') method = 'TryPlayAsync';
+      else if (action === 'pause') method = 'TryPauseAsync';
+      else if (action === 'next') method = 'TrySkipNextAsync';
+      else if (action === 'previous') method = 'TrySkipPreviousAsync';
+
+      const psScript = `
+Add-Type -AssemblyName System.Runtime.WindowsRuntime
+$asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation\`1' })[0]
+[Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager, Windows.Media, ContentType = WindowsRuntime] | Out-Null
+$op = [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]::RequestAsync()
+$task = $asTaskGeneric.MakeGenericMethod([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]).Invoke($null, @($op))
+$manager = $task.Result
+$session = $manager.GetCurrentSession()
+if ($session) {
+    $callOp = $session.${method}()
+    $callTask = $asTaskGeneric.MakeGenericMethod([System.Boolean]).Invoke($null, @($callOp))
+    Write-Output ($callTask.Result | ConvertTo-Json)
+} else {
+    Write-Output "false"
+}
+`;
+      const { exec } = require('child_process');
+      exec(psScript, { shell: 'powershell.exe', timeout: 3000 }, (err, stdout) => {
+        if (err) resolve({ success: false, error: err.message });
+        else resolve({ success: stdout.trim() === 'true' });
+      });
+    });
   });
 }
 

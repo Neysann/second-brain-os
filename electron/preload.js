@@ -77,7 +77,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Ouvrir l'emplacement du binaire compilé
   openDistFolder: () => ipcRenderer.invoke('open-dist-folder'),
 
-  // Requête HTTP directe native sans restriction CORS (pour flux iCal, webcal, etc.)
+  // Requête HTTP directe native sans restriction CORS (pour flux iCal, webcal, RSS, etc.)
   fetchUrl: (options) =>
     ipcRenderer.invoke('fetch-url', typeof options === 'string' ? { url: options } : options),
+
+  // Détection & Contrôle Multimédia Windows SMTC (Spotify, YouTube Music, Deezer, etc.)
+  getNowPlaying: () => ipcRenderer.invoke('get-now-playing'),
+  controlMedia: (action) => ipcRenderer.invoke('control-media', action),
 });

@@ -90,6 +90,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
   const features = [
     {
+      icon: Music,
+      color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
+      title: 'Syntropy OS V2.6.38 : Widgets Réactifs Multitailles, Actualités Live RSS & Détection Audio PC',
+      desc: 'Tous les widgets du dashboard s\'adaptent désormais véritablement à leur taille (1x1 compact, 2x1 standard, 2x2 et 4x1 complets avec Kanban pour les tâches, matrice 10 jours pour le sprint, etc.). Le widget actualités diffuse de vrais flux RSS réactifs (The Verge, Hacker News, Frandroid, Le Monde, Les Echos), et le lecteur audio détecte automatiquement la musique jouée sur votre PC (Spotify, Deezer, YouTube Music, Chrome) tout en vous permettant de lancer vos propres playlists ou des ambiances zen 432Hz.',
+    },
+    {
       icon: Palette,
       color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
       title: 'Syntropy OS V2.6.37 : Isolement des Thèmes Secrets & Épuration',

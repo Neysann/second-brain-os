@@ -85,7 +85,7 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
 
     switch (config.widgetId) {
       case 'calendar':
-        return <CalendarWidget />;
+        return <CalendarWidget size={config.size} />;
       case 'clock':
         return (
           <ClockWidget
@@ -105,6 +105,7 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
       case 'quick_notes':
         return (
           <QuickNotesWidget
+            size={config.size}
             settings={config.settings}
             onOpenSettings={handleOpenSettings}
           />
@@ -112,42 +113,45 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
       case 'tasks':
         return (
           <TodoListWidget
+            size={config.size}
             settings={config.settings}
             onOpenSettings={handleOpenSettings}
           />
         );
       case 'projects_overview':
-        return <ProjectsOverviewWidget />;
+        return <ProjectsOverviewWidget size={config.size} />;
       case 'project_progress':
-        return <ProjectProgressWidget />;
+        return <ProjectProgressWidget size={config.size} />;
       case 'focus_timer':
         return (
           <FocusTimerWidget
+            size={config.size}
             settings={config.settings}
             onOpenSettings={handleOpenSettings}
           />
         );
       case 'daily_quote':
-        return <DailyQuoteWidget isEditing={isEditing} />;
+        return <DailyQuoteWidget size={config.size} isEditing={isEditing} />;
       case 'audio_player':
         return (
           <AudioPlayerWidget
+            size={config.size}
             settings={config.settings}
             onOpenSettings={handleOpenSettings}
           />
         );
       case 'rss_feed':
-        return <RssFeedWidget />;
+        return <RssFeedWidget size={config.size} />;
       case 'news':
-        return <NewsWidget />;
+        return <NewsWidget size={config.size} />;
       case 'interactive':
-        return <InteractiveCalcWidget />;
+        return <InteractiveCalcWidget size={config.size} />;
       case 'meme':
-        return <MemeWidget />;
+        return <MemeWidget size={config.size} />;
       case 'streak_duo':
         return <StreakWidget size={config.size} />;
       case 'habits_sprint':
-        return <HabitsSprintWidget />;
+        return <HabitsSprintWidget size={config.size} />;
       case 'budget_mini':
         return <BudgetMiniWidget size={config.size} />;
       default:
