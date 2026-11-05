@@ -2,6 +2,25 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.35] - 2026-11-05 (Importation Intelligente de Fichiers Markdown .md)
+--------------------------------------------------------------------------------
+1. Importation Dédiée & Multi-Sources de Fichiers Markdown (.md / .markdown) :
+- Ajout d'actions rapides et dédiées pour importer des fichiers Markdown dans l'écran Notes : bouton direct dans la barre latérale gauche, option d'importation dans le menu "+ Note", bouton d'insertion dans la barre d'édition de la note active et bouton d'import dans l'écran d'accueil sans note ouverte.
+- Support du Glisser-Déposer (Drag & Drop) intuitif : déposer des fichiers .md sur la liste des notes crée directement de nouvelles notes, et déposer sur une note ouverte déclenche la boîte de dialogue de choix.
+
+2. Analyse et Détection Intelligente des Métadonnées :
+- Extraction automatique du frontmatter YAML (standard Obsidian, Hugo, Jekyll) : détection des clés `title`, `tags` (format tableau JSON, liste YAML ou CSV), `category` et date de création.
+- Détection automatique du premier titre H1 (`# Mon Titre`) lorsque le frontmatter est absent, avec repli propre sur le nom du fichier épuré.
+- Nettoyage automatique : le bloc frontmatter est extrait sans polluer le corps de texte Markdown.
+- Aucune pièce jointe binaire superflue n'est créée : les notes restent légères, instantanées et optimales pour la synchronisation Cloud.
+
+3. Boîte de Dialogue & Choix d'Insertion Intelligent :
+- Lorsqu'une note est ouverte dans l'éditeur, l'import d'un fichier .md propose une modale ergonomique avec prévisualisation du titre, des tags et des premières lignes.
+- Choix complet en un clic :
+  * « Créer comme nouvelle note » dans le dossier actif.
+  * « Ajouter à la fin » : concatène le texte Markdown à la suite du contenu actuel et fusionne les tags.
+  * « Remplacer le texte » : écrase le contenu actuel par le fichier Markdown importé avec mise à jour du titre et fusion des tags.
+
 #### [V2.6.34] - 2026-11-02 (Options Avancées Exclusives Desktop : Cycle de Vie, Tray, GPU & Sauvegardes)
 --------------------------------------------------------------------------------
 1. Contrôle du Cycle de Vie & Action de la Croix [X] de Fermeture :

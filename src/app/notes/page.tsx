@@ -54,6 +54,7 @@ import {
   PanelLeftOpen,
   Loader2,
   Cloud,
+  FileCode,
 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -68,6 +69,8 @@ import NoteTemplateModal from '@/components/NoteTemplateModal';
 import { NOTE_TEMPLATES, NoteTemplate } from '@/lib/noteTemplates';
 import InkNoteEditor from '@/components/InkNoteEditor';
 import { processImportedFile, detectDocumentType } from '@/lib/documentImporter';
+import { parseMarkdownContent, readMarkdownFileAsText, ParsedMarkdownNote } from '@/lib/markdownImporter';
+import MarkdownImportModal from '@/components/MarkdownImportModal';
 import { loadAttachmentDataUrl, deleteAttachmentChunks, loadInkBlocksChunks } from '@/lib/dataService';
 import { getAttachmentLocally } from '@/lib/attachmentStorage';
 import { LatexToolbar } from '@/components/LatexToolbar';
@@ -292,6 +295,11 @@ function NotesContent() {
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const editorFilePickerRef = useRef<HTMLInputElement | null>(null);
+
+  // Importation intelligente de fichiers Markdown (.md)
+  const [markdownToImport, setMarkdownToImport] = useState<ParsedMarkdownNote | null>(null);
+  const [isMarkdownImportModalOpen, setIsMarkdownImportModalOpen] = useState(false);
+  const markdownFileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Fermeture du menu de format de note au clic extérieur
   useEffect(() => {
@@ -1178,6 +1186,29 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
 
     for (const file of files) {
       try {
+        const ext = file.name.toLowerCase().split('.').pop() || '';
+        // Traitement intelligent spécifique pour les fichiers Markdown (sans pièces jointes binaires)
+        if (['md', 'markdown'].includes(ext)) {
+          const text = await readMarkdownFileAsText(file);
+          const parsed = parseMarkdownContent(text, file.name);
+          const targetFolderId =
+            selectedFolderFilter && selectedFolderFilter !== '__none__'
+              ? selectedFolderFilter
+              : undefined;
+
+          const created = await addNote({
+            title: parsed.title,
+            content: parsed.content,
+            category: parsed.category,
+            folderId: targetFolderId,
+            tags: parsed.tags.length > 0 ? parsed.tags : ['Markdown'],
+            isPinned: false,
+          });
+
+          setSelectedNoteId(created.id);
+          continue;
+        }
+
         const analyzed = await processImportedFile(file);
 
         const targetFolderId =
@@ -1205,6 +1236,126 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
         console.error('Erreur import fichier:', err);
       }
     }
+  };
+
+  // Importation intelligente de fichier(s) Markdown (.md) avec choix d'insertion
+  const handleImportMarkdownFiles = async (fileList: FileList | File[]) => {
+    const files = Array.from(fileList).filter((f) => {
+      const ext = f.name.toLowerCase().split('.').pop() || '';
+      return ['md', 'markdown', 'txt'].includes(ext) || f.type.includes('markdown');
+    });
+
+    if (files.length === 0) {
+      alert('Veuillez sélectionner au moins un fichier Markdown valide (.md ou .markdown).');
+      return;
+    }
+
+    try {
+      // Cas 1 : 1 seul fichier et une note est actuellement ouverte -> Ouvrir la modale de choix
+      if (files.length === 1 && currentNote) {
+        const text = await readMarkdownFileAsText(files[0]);
+        const parsed = parseMarkdownContent(text, files[0].name);
+        setMarkdownToImport(parsed);
+        setIsMarkdownImportModalOpen(true);
+        return;
+      }
+
+      // Cas 2 : Plusieurs fichiers OU aucune note ouverte -> Création directe des notes
+      const targetFolderId =
+        selectedFolderFilter && selectedFolderFilter !== '__none__'
+          ? selectedFolderFilter
+          : folderId || undefined;
+
+      let createdCount = 0;
+      let lastCreatedId: string | null = null;
+
+      for (const file of files) {
+        const text = await readMarkdownFileAsText(file);
+        const parsed = parseMarkdownContent(text, file.name);
+
+        const created = await addNote({
+          title: parsed.title,
+          content: parsed.content,
+          category: parsed.category,
+          folderId: targetFolderId,
+          tags: parsed.tags.length > 0 ? parsed.tags : ['Markdown'],
+          isPinned: false,
+        });
+
+        createdCount++;
+        lastCreatedId = created.id;
+      }
+
+      if (lastCreatedId) {
+        setSelectedNoteId(lastCreatedId);
+      }
+
+      alert(
+        createdCount === 1
+          ? `Note Markdown « ${files[0].name} » importée avec succès !`
+          : `${createdCount} notes Markdown importées avec succès !`
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erreur lors de l\'import Markdown';
+      alert(msg);
+      console.error('Erreur import Markdown:', err);
+    }
+  };
+
+  const handleCreateNewNoteFromMarkdown = async (parsed: ParsedMarkdownNote, customTitle?: string) => {
+    try {
+      const targetFolderId =
+        selectedFolderFilter && selectedFolderFilter !== '__none__'
+          ? selectedFolderFilter
+          : folderId || undefined;
+
+      const created = await addNote({
+        title: customTitle || parsed.title,
+        content: parsed.content,
+        category: parsed.category,
+        folderId: targetFolderId,
+        tags: parsed.tags.length > 0 ? parsed.tags : ['Markdown'],
+        isPinned: false,
+      });
+
+      setSelectedNoteId(created.id);
+      setIsMarkdownImportModalOpen(false);
+      setMarkdownToImport(null);
+    } catch (err) {
+      console.error('Erreur création note depuis Markdown:', err);
+      alert('Impossible de créer la note.');
+    }
+  };
+
+  const handleInsertAppendMarkdown = (parsed: ParsedMarkdownNote, _customTitle?: string) => {
+    if (!currentNote) return;
+    const separator = content.trim().length > 0 ? '\n\n---\n\n' : '';
+    const nextContent = content + separator + parsed.content;
+    setContent(nextContent);
+
+    // Fusionner les tags existants avec les tags extraits
+    const existingTags = tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
+    const mergedTags = Array.from(new Set([...existingTags, ...parsed.tags]));
+    setTagsInput(mergedTags.join(', '));
+
+    triggerAutoSave(title, nextContent, category, folderId, projectId, mergedTags.join(', '), isPinned, attachments);
+    setIsMarkdownImportModalOpen(false);
+    setMarkdownToImport(null);
+  };
+
+  const handleInsertReplaceMarkdown = (parsed: ParsedMarkdownNote, customTitle?: string) => {
+    if (!currentNote) return;
+    const nextTitle = customTitle && customTitle !== currentNote.title ? customTitle : title;
+    setTitle(nextTitle);
+    setContent(parsed.content);
+
+    const existingTags = tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
+    const mergedTags = Array.from(new Set([...existingTags, ...parsed.tags]));
+    setTagsInput(mergedTags.join(', '));
+
+    triggerAutoSave(nextTitle, parsed.content, category, folderId, projectId, mergedTags.join(', '), isPinned, attachments);
+    setIsMarkdownImportModalOpen(false);
+    setMarkdownToImport(null);
   };
 
   const folderTree = useMemo(() => buildFolderTree(folders), [folders]);
@@ -1378,6 +1529,15 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
     <div className="flex h-screen w-full overflow-hidden animate-in fade-in duration-200 relative">
       {/* 1. Volet Gauche : Dossiers & Liste des notes */}
       <aside
+        onDragOver={(e) => {
+          e.preventDefault();
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleImportFilesAsNewNotes(e.dataTransfer.files);
+          }
+        }}
         className={`${
           selectedNoteId ? 'hidden md:flex' : 'flex'
         } ${
@@ -1409,6 +1569,18 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                 title="Modèles de notes structurés (Synthèse, Réunion, Daily, SOP...)"
               >
                 <LayoutTemplate className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => markdownFileInputRef.current?.click()}
+                className={`p-1.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
+                  theme === 'dark'
+                    ? 'border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10'
+                    : 'border-cyan-300 text-cyan-700 hover:bg-cyan-50'
+                }`}
+                title="Importer un fichier Markdown (.md)"
+              >
+                <FileCode className="w-3.5 h-3.5" />
               </button>
               <label
                 className={`p-1.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
@@ -1495,6 +1667,29 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                         </div>
                         <div className="text-[10px] text-zinc-400 leading-tight mt-0.5">
                           Tracé vectoriel fluide, surligneur & canevas infini
+                        </div>
+                      </div>
+                    </button>
+
+                    <div className="my-1 border-t border-zinc-800/60" />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsNewNoteMenuOpen(false);
+                        markdownFileInputRef.current?.click();
+                      }}
+                      className="w-full flex items-start gap-2.5 p-2 rounded-lg text-left hover:bg-cyan-600/10 hover:text-cyan-400 transition-colors cursor-pointer group mt-0.5"
+                    >
+                      <div className="p-1.5 rounded-md bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20 flex-shrink-0 mt-0.5">
+                        <FileCode className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold text-zinc-200 group-hover:text-cyan-300">
+                          📥 Importer fichier(s) .md
+                        </div>
+                        <div className="text-[10px] text-zinc-400 leading-tight mt-0.5">
+                          Frontmatter YAML, tags automatiques & options d&apos;insertion
                         </div>
                       </div>
                     </button>
@@ -1845,7 +2040,15 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
           e.preventDefault();
           setIsDraggingFile(false);
           if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            handleAttachFilesToCurrentNote(e.dataTransfer.files);
+            const hasMd = Array.from(e.dataTransfer.files).some((f) => {
+              const ext = f.name.toLowerCase().split('.').pop() || '';
+              return ['md', 'markdown'].includes(ext);
+            });
+            if (hasMd) {
+              handleImportMarkdownFiles(e.dataTransfer.files);
+            } else {
+              handleAttachFilesToCurrentNote(e.dataTransfer.files);
+            }
           }
         }}
       >
@@ -1855,7 +2058,7 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
             <UploadCloud className="w-14 h-14 text-indigo-400 animate-bounce mb-3" />
             <h3 className="font-bold text-lg text-white">Déposez vos documents ici</h3>
             <p className="text-xs text-indigo-200 mt-1 max-w-sm">
-              Les fichiers PDF, images et documents seront automatiquement importés et attachés à cette note.
+              Les fichiers Markdown (.md), PDF, images et documents seront automatiquement importés et analysés.
             </p>
           </div>
         )}
@@ -2043,6 +2246,20 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                     </button>
                   </div>
                 )}
+
+                {/* Bouton Importer / Insérer Markdown */}
+                <button
+                  type="button"
+                  onClick={() => markdownFileInputRef.current?.click()}
+                  className={`flex items-center justify-center p-1.5 rounded-lg border transition-all cursor-pointer flex-shrink-0 ${
+                    theme === 'dark'
+                      ? 'bg-zinc-900 hover:bg-zinc-800 text-cyan-400 hover:text-cyan-300 border-zinc-800'
+                      : 'bg-zinc-100 hover:bg-zinc-200 text-cyan-700 border-zinc-200'
+                  }`}
+                  title="Importer ou insérer un fichier Markdown (.md)"
+                >
+                  <FileCode className="w-3.5 h-3.5" />
+                </button>
 
                 {/* Bouton Joindre un Document */}
                 <label
@@ -3182,6 +3399,15 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                 <PenTool className="w-3.5 h-3.5" />
                 + Note Manuscrite
               </button>
+              <button
+                type="button"
+                onClick={() => markdownFileInputRef.current?.click()}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                title="Importer un ou plusieurs fichiers Markdown (.md)"
+              >
+                <FileCode className="w-4 h-4 text-cyan-400" />
+                Importer .md
+              </button>
               <label
                 className="px-4 py-2 rounded-xl text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                 title="Importer un document (Word, Excel, PowerPoint, PDF, Image...)"
@@ -3383,6 +3609,36 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
         onClose={() => setIsTemplateModalOpen(false)}
         onSelectTemplate={handleApplyTemplate}
         hasCurrentNote={!!currentNote}
+      />
+
+      {/* Input de sélection de fichiers Markdown (.md) */}
+      <input
+        ref={markdownFileInputRef}
+        type="file"
+        multiple
+        accept=".md,.markdown,text/markdown,text/plain"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            handleImportMarkdownFiles(e.target.files);
+            e.target.value = '';
+          }
+        }}
+      />
+
+      {/* Modal d'Importation & Choix d'Insertion Markdown */}
+      <MarkdownImportModal
+        isOpen={isMarkdownImportModalOpen}
+        onClose={() => {
+          setIsMarkdownImportModalOpen(false);
+          setMarkdownToImport(null);
+        }}
+        parsedNote={markdownToImport}
+        currentNoteTitle={currentNote?.title}
+        onCreateNewNote={handleCreateNewNoteFromMarkdown}
+        onInsertAppend={handleInsertAppendMarkdown}
+        onInsertReplace={handleInsertReplaceMarkdown}
+        isDark={theme === 'dark'}
       />
     </div>
   );

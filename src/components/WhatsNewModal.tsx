@@ -31,6 +31,7 @@ import {
   BookOpen,
   Keyboard,
   Laptop,
+  FileCode,
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
@@ -88,6 +89,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
   };
 
   const features = [
+    {
+      icon: FileCode,
+      color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30',
+      title: 'Syntropy OS V2.6.35 : Importation Intelligente de Fichiers Markdown (.md)',
+      desc: 'Importez désormais vos fichiers Markdown en un clic via la barre latérale, le menu + Note ou le glisser-déposer. L\'extracteur intelligent lit les métadonnées YAML (tags, dates, titre), détecte les titres H1, et vous laisse choisir entre créer une nouvelle note ou insérer le contenu (append/remplacer) dans la note en cours.',
+    },
     {
       icon: Sliders,
       color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',

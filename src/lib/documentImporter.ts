@@ -1,6 +1,7 @@
 import JSZip from 'jszip';
 import { NoteAttachment } from '@/types';
 import { saveAttachmentLocally } from '@/lib/attachmentStorage';
+import { parseMarkdownContent } from '@/lib/markdownImporter';
 
 export const MAX_ATTACHMENT_SYNC_SIZE = 25 * 1024 * 1024; // 25 Mo max pour la synchronisation fluide multi-appareils
 
@@ -441,7 +442,7 @@ export async function processImportedFile(file: File): Promise<DocumentAnalysisR
 
   const docType = detectDocumentType(file.name, file.type);
   const dataUrl = await readFileAsDataUrl(file);
-  const cleanTitle = file.name.replace(/\.[^/.]+$/, '').trim() || 'Document sans titre';
+  let cleanTitle = file.name.replace(/\.[^/.]+$/, '').trim() || 'Document sans titre';
   const sizeFormatted = formatFileSize(file.size);
 
   let thumbnailUrl: string | undefined;
@@ -584,12 +585,26 @@ export async function processImportedFile(file: File): Promise<DocumentAnalysisR
     }
 
     case 'text': {
-      tags.push('Note');
+      const ext = file.name.toLowerCase().split('.').pop() || '';
       const text = await readFileAsText(file);
-      initialContent = text.startsWith('#')
-        ? text
-        : `# ${cleanTitle}\n\n${text}`;
-      summary = `Fichier texte importé (${sizeFormatted})`;
+
+      if (['md', 'markdown'].includes(ext)) {
+        const parsed = parseMarkdownContent(text, file.name);
+        cleanTitle = parsed.title;
+        if (parsed.tags.length > 0) {
+          tags.push(...parsed.tags);
+        } else {
+          tags.push('Markdown');
+        }
+        initialContent = parsed.content;
+        summary = `Note Markdown importée (${sizeFormatted})`;
+      } else {
+        tags.push('Note');
+        initialContent = text.startsWith('#')
+          ? text
+          : `# ${cleanTitle}\n\n${text}`;
+        summary = `Fichier texte importé (${sizeFormatted})`;
+      }
       break;
     }
 
