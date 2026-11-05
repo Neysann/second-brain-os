@@ -86,6 +86,16 @@ export default function DesktopSettingsSection({
   const [autoBackupInterval, setAutoBackupInterval] = useState<'disabled' | 'on_close' | 'daily'>('disabled');
   const [isExportingLocal, setIsExportingLocal] = useState(false);
 
+  // 6. Dynamic Island Desktop (Nusa × Windows Dynamic Island × Syntropy)
+  const [dynamicIslandEnabled, setDynamicIslandEnabled] = useState(false);
+  const [dynamicIslandStyle, setDynamicIslandStyle] = useState<'pill' | 'notch'>('pill');
+  const [dynamicIslandTrigger, setDynamicIslandTrigger] = useState<'hover' | 'click'>('hover');
+  const [dynamicIslandAutoHideFullscreen, setDynamicIslandAutoHideFullscreen] = useState(true);
+  const [dynamicIslandShortcutTarget, setDynamicIslandShortcutTarget] = useState<'island' | 'classic-window'>('island');
+  const [dynamicIslandDefaultTab, setDynamicIslandDefaultTab] = useState<'media' | 'tasks' | 'focus' | 'habits' | 'shelf'>('media');
+  const [dynamicIslandClipboardHistory, setDynamicIslandClipboardHistory] = useState(true);
+  const [dynamicIslandSystemStats, setDynamicIslandSystemStats] = useState(true);
+
   // Chargement initial des préférences natives Desktop
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -125,6 +135,34 @@ export default function DesktopSettingsSection({
                 }
                 if (cfg.autoBackupInterval) setAutoBackupInterval(cfg.autoBackupInterval);
                 if (cfg.autoBackupFolder) setLocalBackupFolder(cfg.autoBackupFolder);
+
+                if (typeof cfg.dynamicIslandEnabled === 'boolean') {
+                  setDynamicIslandEnabled(cfg.dynamicIslandEnabled);
+                }
+                if (cfg.dynamicIslandStyle === 'pill' || cfg.dynamicIslandStyle === 'notch') {
+                  setDynamicIslandStyle(cfg.dynamicIslandStyle);
+                }
+                if (cfg.dynamicIslandTrigger === 'hover' || cfg.dynamicIslandTrigger === 'click') {
+                  setDynamicIslandTrigger(cfg.dynamicIslandTrigger);
+                }
+                if (typeof cfg.dynamicIslandAutoHideFullscreen === 'boolean') {
+                  setDynamicIslandAutoHideFullscreen(cfg.dynamicIslandAutoHideFullscreen);
+                }
+                if (
+                  cfg.dynamicIslandShortcutTarget === 'island' ||
+                  cfg.dynamicIslandShortcutTarget === 'classic-window'
+                ) {
+                  setDynamicIslandShortcutTarget(cfg.dynamicIslandShortcutTarget);
+                }
+                if (cfg.dynamicIslandDefaultTab) {
+                  setDynamicIslandDefaultTab(cfg.dynamicIslandDefaultTab);
+                }
+                if (typeof cfg.dynamicIslandClipboardHistory === 'boolean') {
+                  setDynamicIslandClipboardHistory(cfg.dynamicIslandClipboardHistory);
+                }
+                if (typeof cfg.dynamicIslandSystemStats === 'boolean') {
+                  setDynamicIslandSystemStats(cfg.dynamicIslandSystemStats);
+                }
 
                 if (cfg.shortcut) {
                   setQuickCaptureShortcut(cfg.shortcut);
@@ -499,6 +537,336 @@ export default function DesktopSettingsSection({
               <LogOut className="w-3.5 h-3.5" />
               <span>Quitter l&apos;App</span>
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION DYNAMIC ISLAND DESKTOP (NUSA × WINDOWS DYNAMIC ISLAND × SYNTROPY) */}
+      <div
+        className={`p-5 rounded-2xl border transition-all ${
+          isDark
+            ? 'bg-gradient-to-br from-zinc-900/90 via-purple-950/20 to-zinc-900/90 border-purple-500/30 shadow-lg shadow-purple-950/10'
+            : 'bg-gradient-to-br from-white via-purple-50/40 to-white border-purple-200 shadow-sm'
+        }`}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-base">🏝️</span>
+              <span className={`text-sm font-extrabold ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
+                Dynamic Island Desktop (Windows Live Hub)
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-purple-500/15 text-purple-300 border border-purple-500/30 font-bold">
+                Nouveau v2.7
+              </span>
+            </div>
+            <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              Pilule interactive en haut de votre écran Windows : contrôle média SMTC & paroles synchronisées, tâches prioritaires, Pomodoro, agenda visio 1-clic, habitudes, Dropzone Shelf et presse-papiers intelligent. Se masque automatiquement quand Syntropy OS est au premier plan.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2.5 flex-shrink-0">
+            <button
+              type="button"
+              onClick={async () => {
+                const electron = (window as any).electronAPI;
+                if (electron?.previewIsland) {
+                  if (!dynamicIslandEnabled) {
+                    setDynamicIslandEnabled(true);
+                    await updateDesktopConfig({ dynamicIslandEnabled: true });
+                  }
+                  await electron.previewIsland();
+                  onNotification(
+                    'Aperçu de la Dynamic Island affiché en haut de votre écran pendant 4 secondes !',
+                    'info'
+                  );
+                } else {
+                  window.open('/dynamic-island', '_blank', 'width=560,height=340');
+                }
+              }}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Tester en direct</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={async () => {
+                const next = !dynamicIslandEnabled;
+                setDynamicIslandEnabled(next);
+                await updateDesktopConfig({ dynamicIslandEnabled: next });
+                onNotification(
+                  next
+                    ? 'Dynamic Island activée ! Réduisez Syntropy OS pour la voir apparaître en haut de votre écran.'
+                    : 'Dynamic Island désactivée.',
+                  'success'
+                );
+              }}
+              className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer flex-shrink-0 ${
+                dynamicIslandEnabled
+                  ? 'bg-purple-600 justify-end'
+                  : isDark
+                  ? 'bg-zinc-800 justify-start'
+                  : 'bg-zinc-300 justify-start'
+              }`}
+              title="Activer / Désactiver la Dynamic Island"
+            >
+              <div className="w-4 h-4 rounded-full bg-white shadow-md" />
+            </button>
+          </div>
+        </div>
+
+        {/* Options détaillées de la Dynamic Island */}
+        <div
+          className={`mt-4 pt-4 border-t ${
+            isDark ? 'border-zinc-800/80' : 'border-zinc-200'
+          } grid grid-cols-1 md:grid-cols-2 gap-3.5`}
+        >
+          {/* Style visuel : Pill Liquid Glass vs Living Notch */}
+          <div
+            className={`p-3.5 rounded-xl border ${
+              isDark ? 'bg-zinc-950/50 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
+            } space-y-2`}
+          >
+            <div className="flex items-center justify-between">
+              <span className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                Style visuel de l&apos;encoche
+              </span>
+              <span className="text-[10px] font-mono text-purple-400">60 FPS Morphing</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  setDynamicIslandStyle('pill');
+                  await updateDesktopConfig({ dynamicIslandStyle: 'pill' });
+                  onNotification('Style Pilule flottante Liquid Glass activé.', 'success');
+                }}
+                className={`p-2 rounded-lg text-xs border text-left transition-all cursor-pointer ${
+                  dynamicIslandStyle === 'pill'
+                    ? 'bg-purple-500/20 border-purple-500/50 text-purple-200 font-bold'
+                    : isDark
+                    ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                    : 'bg-white border-zinc-200 text-zinc-600'
+                }`}
+              >
+                <div>💊 Pilule Flottante</div>
+                <div className="text-[10px] text-zinc-500 font-normal">
+                  Liquid Glass détachée (8px)
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  setDynamicIslandStyle('notch');
+                  await updateDesktopConfig({ dynamicIslandStyle: 'notch' });
+                  onNotification('Style Living Notch collée en haut activé.', 'success');
+                }}
+                className={`p-2 rounded-lg text-xs border text-left transition-all cursor-pointer ${
+                  dynamicIslandStyle === 'notch'
+                    ? 'bg-purple-500/20 border-purple-500/50 text-purple-200 font-bold'
+                    : isDark
+                    ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                    : 'bg-white border-zinc-200 text-zinc-600'
+                }`}
+              >
+                <div>⬛ Living Notch</div>
+                <div className="text-[10px] text-zinc-500 font-normal">
+                  Soudée au bord supérieur (y=0)
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Mode d'ouverture & Onglet par défaut */}
+          <div
+            className={`p-3.5 rounded-xl border ${
+              isDark ? 'bg-zinc-950/50 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
+            } space-y-2.5`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                Déclencheur d&apos;expansion :
+              </span>
+              <div className="flex items-center gap-1.5">
+                {(
+                  [
+                    { id: 'hover', label: 'Survol souris' },
+                    { id: 'click', label: 'Clic uniquement' },
+                  ] as const
+                ).map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={async () => {
+                      setDynamicIslandTrigger(t.id);
+                      await updateDesktopConfig({ dynamicIslandTrigger: t.id });
+                    }}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+                      dynamicIslandTrigger === t.id
+                        ? 'bg-purple-500/20 border-purple-500/50 text-purple-200'
+                        : isDark
+                        ? 'bg-zinc-900 border-zinc-800 text-zinc-400'
+                        : 'bg-white border-zinc-200 text-zinc-600'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <span className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                Onglet par défaut :
+              </span>
+              <select
+                value={dynamicIslandDefaultTab}
+                onChange={async (e) => {
+                  const val = e.target.value as any;
+                  setDynamicIslandDefaultTab(val);
+                  await updateDesktopConfig({ dynamicIslandDefaultTab: val });
+                }}
+                className={`text-xs px-2.5 py-1 rounded-lg border outline-none cursor-pointer ${
+                  isDark
+                    ? 'bg-zinc-900 border-zinc-700 text-zinc-200'
+                    : 'bg-white border-zinc-300 text-zinc-800'
+                }`}
+              >
+                <option value="media">🎵 Média Live & Paroles</option>
+                <option value="tasks">✅ Tâches & Quick-Capture</option>
+                <option value="focus">⏱️ Focus Pomodoro & Agenda</option>
+                <option value="habits">🔥 Habitudes & Lecture</option>
+                <option value="shelf">📥 Dropzone Shelf & Presse-papiers</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Cible du raccourci Alt+Espace & Auto-hide Plein Écran */}
+          <div
+            className={`p-3.5 rounded-xl border ${
+              isDark ? 'bg-zinc-950/50 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
+            } space-y-2.5`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <div className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                  Cible du raccourci ({quickCaptureShortcut})
+                </div>
+                <div className="text-[10px] text-zinc-500">
+                  Ouvrir la saisie rapide dans l&apos;Island ou la fenêtre classique
+                </div>
+              </div>
+              <select
+                value={dynamicIslandShortcutTarget}
+                onChange={async (e) => {
+                  const val = e.target.value as 'island' | 'classic-window';
+                  setDynamicIslandShortcutTarget(val);
+                  await updateDesktopConfig({ dynamicIslandShortcutTarget: val });
+                }}
+                className={`text-xs px-2.5 py-1 rounded-lg border outline-none cursor-pointer ${
+                  isDark
+                    ? 'bg-zinc-900 border-zinc-700 text-zinc-200'
+                    : 'bg-white border-zinc-300 text-zinc-800'
+                }`}
+              >
+                <option value="island">🏝️ Déployer la Dynamic Island</option>
+                <option value="classic-window">🪟 Fenêtre Quick-Capture classique</option>
+              </select>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <div>
+                <div className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                  Masquage auto en Plein Écran / Jeux
+                </div>
+                <div className="text-[10px] text-zinc-500">
+                  Se masque automatiquement pendant vos vidéos et jeux plein écran
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const next = !dynamicIslandAutoHideFullscreen;
+                  setDynamicIslandAutoHideFullscreen(next);
+                  await updateDesktopConfig({ dynamicIslandAutoHideFullscreen: next });
+                }}
+                className={`w-10 h-5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer flex-shrink-0 ${
+                  dynamicIslandAutoHideFullscreen
+                    ? 'bg-purple-600 justify-end'
+                    : isDark
+                    ? 'bg-zinc-800 justify-start'
+                    : 'bg-zinc-300 justify-start'
+                }`}
+              >
+                <div className="w-4 h-4 rounded-full bg-white shadow" />
+              </button>
+            </div>
+          </div>
+
+          {/* Presse-papiers intelligent & Télémétrie CPU/RAM */}
+          <div
+            className={`p-3.5 rounded-xl border ${
+              isDark ? 'bg-zinc-950/50 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
+            } space-y-2.5`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <div className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                  Historique Presse-papiers (20 éléments)
+                </div>
+                <div className="text-[10px] text-zinc-500">
+                  Mémorise textes, liens et extraits de code en mémoire vive
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const next = !dynamicIslandClipboardHistory;
+                  setDynamicIslandClipboardHistory(next);
+                  await updateDesktopConfig({ dynamicIslandClipboardHistory: next });
+                }}
+                className={`w-10 h-5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer flex-shrink-0 ${
+                  dynamicIslandClipboardHistory
+                    ? 'bg-purple-600 justify-end'
+                    : isDark
+                    ? 'bg-zinc-800 justify-start'
+                    : 'bg-zinc-300 justify-start'
+                }`}
+              >
+                <div className="w-4 h-4 rounded-full bg-white shadow" />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <div>
+                <div className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                  Moniteur Système CPU & RAM
+                </div>
+                <div className="text-[10px] text-zinc-500">
+                  Affiche la charge processeur et mémoire en bas de l&apos;Island
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const next = !dynamicIslandSystemStats;
+                  setDynamicIslandSystemStats(next);
+                  await updateDesktopConfig({ dynamicIslandSystemStats: next });
+                }}
+                className={`w-10 h-5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer flex-shrink-0 ${
+                  dynamicIslandSystemStats
+                    ? 'bg-purple-600 justify-end'
+                    : isDark
+                    ? 'bg-zinc-800 justify-start'
+                    : 'bg-zinc-300 justify-start'
+                }`}
+              >
+                <div className="w-4 h-4 rounded-full bg-white shadow" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

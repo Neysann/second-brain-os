@@ -105,11 +105,41 @@ export const getLocalFolders = (userId?: string): NoteFolder[] => {
   }
 };
 
+const SYNC_SENDER_ID = 'ds-' + Math.random().toString(36).slice(2, 9);
+
 const notifyLocalChange = () => {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('second_brain_data_changed'));
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const bc = new BroadcastChannel('syntropy_sync');
+        bc.postMessage({ type: 'data-updated', scope: 'tasks', senderId: SYNC_SENDER_ID });
+        bc.close();
+      }
+    } catch {}
   }
 };
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (
+      e.key &&
+      (e.key.startsWith('second_brain_') || e.key.startsWith('syntropy_reading_'))
+    ) {
+      window.dispatchEvent(new CustomEvent('second_brain_data_changed'));
+    }
+  });
+  try {
+    if (typeof BroadcastChannel !== 'undefined') {
+      const bc = new BroadcastChannel('syntropy_sync');
+      bc.onmessage = (ev) => {
+        if (ev.data && ev.data.senderId !== SYNC_SENDER_ID && ev.data.type === 'data-updated') {
+          window.dispatchEvent(new CustomEvent('second_brain_data_changed'));
+        }
+      };
+    }
+  } catch {}
+}
 
 // --- ABONNEMENT EN TEMPS RÉEL UNIFIÉ & CLOISONNÉ PAR UTILISATEUR ---
 

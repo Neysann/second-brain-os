@@ -85,4 +85,29 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Détection & Contrôle Multimédia Windows SMTC (Spotify, YouTube Music, Deezer, etc.)
   getNowPlaying: () => ipcRenderer.invoke('get-now-playing'),
   controlMedia: (action) => ipcRenderer.invoke('control-media', action),
+  selectMediaSession: (appId) => ipcRenderer.invoke('select-media-session', appId),
+
+  // Dynamic Island Desktop
+  setIslandIgnoreMouse: (ignore) => ipcRenderer.send('set-island-ignore-mouse', Boolean(ignore)),
+  setIslandFocusable: (focusable) => ipcRenderer.send('set-island-focusable', Boolean(focusable)),
+  notifyIslandCaptureClosed: () => ipcRenderer.send('island-capture-closed'),
+  openMainAppRoute: (route) => ipcRenderer.invoke('open-main-app-route', route),
+  openExternalUrl: (url) => ipcRenderer.invoke('open-external-url', url),
+  previewIsland: () => ipcRenderer.invoke('preview-island'),
+  getSystemStats: () => ipcRenderer.invoke('get-system-stats'),
+  getClipboardHistory: () => ipcRenderer.invoke('get-clipboard-history'),
+  copyClipboardItem: (id) => ipcRenderer.invoke('copy-clipboard-item', id),
+  pinClipboardItem: (id) => ipcRenderer.invoke('pin-clipboard-item', id),
+  deleteClipboardItem: (id) => ipcRenderer.invoke('delete-clipboard-item', id),
+  clearClipboardHistory: () => ipcRenderer.invoke('clear-clipboard-history'),
+  onIslandAction: (callback) => {
+    const subscription = (_event, action, data) => callback(action, data);
+    ipcRenderer.on('island-action', subscription);
+    return () => ipcRenderer.removeListener('island-action', subscription);
+  },
+  onNavigateToRoute: (callback) => {
+    const subscription = (_event, route) => callback(route);
+    ipcRenderer.on('navigate-to-route', subscription);
+    return () => ipcRenderer.removeListener('navigate-to-route', subscription);
+  },
 });

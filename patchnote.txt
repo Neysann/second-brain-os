@@ -2,6 +2,43 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.7.0] - 2026-11-05 (Dynamic Island Desktop pour Windows — Nusa × Windows Dynamic Island × Syntropy OS)
+--------------------------------------------------------------------------------
+1. Architecture Native Multi-Fenêtres & Visibilité Intelligente (`electron/island-manager.js`, `electron/main.js`) :
+- Création de `islandWindow` : fenêtre Electron dédiée (`560 × 420 px` centrée à `y = 0`), sans cadre (`frame: false`), transparente (`transparent: true`, `backgroundColor: '#00000000'`), `alwaysOnTop: true` (niveau `'screen-saver'`), `skipTaskbar: true` et `focusable: false` par défaut pour ne jamais voler le focus des applications Windows actives.
+- Activation dynamique du focus clavier (`set-island-focusable`) uniquement lorsque l'utilisateur saisit une tâche ou une note rapide dans l'Island, puis retour automatique en mode non-focusable.
+- Visibilité intelligente : masquage automatique dès que `mainWindow` (Syntropy OS) est visible et au premier plan (`focus` / `show` / `restore`) et réapparition fluide via `islandWindow.showInactive()` dès que Syntropy OS passe en arrière-plan (`blur`), est minimisée (`minimize`) ou réduite dans le System Tray (`hide`).
+- Détection Plein Écran / Jeux (`electron/island-native.js`) : worker PowerShell Win32 persistant interrogeant `GetForegroundWindow`, `GetWindowRect` et `GetClassName` pour masquer automatiquement la Dynamic Island lorsqu'un jeu ou une vidéo plein écran occupe le moniteur principal.
+- Click-Through chirurgical (`setIgnoreMouseEvents(true, { forward: true })`) : les zones transparentes autour de la pilule laissent passer 100 % des clics Windows ; seule la surface physique de la pilule/carte capture la souris au survol, garantissant des animations CSS `cubic-bezier(0.22, 1, 0.36, 1)` à 60 FPS sans saccade.
+
+2. Deux Styles Visuels & Adaptation aux Thèmes Syntropy OS (`src/components/island/DynamicIsland.tsx`) :
+- Style `pill` (Pilule flottante Liquid Glass par défaut) : détachée du bord supérieur (`marginTop: 8px`), capsule `rounded-full` au repos se métamorphosant en carte `rounded-[28px]` à l'expansion, compatible avec tous les thèmes Syntropy (`syntropy` Liquid Glass + `accentColor`, `nothing` Dot-Matrix, `cyberpunk` néon, `oled`).
+- Style `notch` (Living Notch collée à `y = 0`) : encoche noire profonde `#050507` soudée au sommet central de l'écran avec oreilles concaves SVG fluides à gauche et à droite.
+- Priorité d'affichage dynamique au repos : 1. Pomodoro actif (`MM:SS`) > 2. Réunion imminente (`< 30 min` avec icône visio) > 3. Lecture multimédia active (mini-pochette + égaliseur animé teinté + titre) > 4. État repos (logo Syntropy + compteurs tâches/habitudes + horloge).
+
+3. Les 5 Hubs Productivité Temps Réel de la Dynamic Island (`src/components/island/*`) :
+- Onglet 1 — 🎵 Média Live SMTC & Paroles Synchronisées (`IslandMediaTab.tsx`) :
+  * Passerelle native Windows `GlobalSystemMediaTransportControlsSessionManager` (`electron/island-native.js`) récupérant titre, artiste, album, statut de lecture, timeline (`positionMs` / `durationMs`), liste des sessions actives (sélecteur multi-sources Spotify / navigateur / VLC) et miniature de pochette encodée en Base64 (avec fallback automatique iTunes Search API).
+  * Extraction de la couleur dominante de l'album via `<canvas>` pour teinter l'égaliseur et la barre de progression.
+  * Mode Paroles Synchronisées (`[ 🎤 Paroles ]`) interrogeant l'API LRCLIB (`lrclib.net`) pour faire défiler automatiquement les paroles LRC au rythme du morceau.
+- Onglet 2 — ✅ Tâches Prioritaires & ⚡ Quick-Capture (`IslandTasksCaptureTab.tsx`) :
+  * Affichage des tâches urgentes/hautes du jour avec validation en 1 clic (`toggleTaskStatus`).
+  * Saisie rapide de Tâche (avec sélecteur de priorité) et de Note Markdown avec dictée vocale Web Speech API, activable globalement via `Alt + Espace` (`dynamicIslandShortcutTarget: 'island'`). Suppression de l'ancien mode "Idée" au profit du duo Tâche / Note.
+- Onglet 3 — ⏱️ Focus Pomodoro Synchronisé & 📅 Agenda Visio 1-Clic (`IslandFocusAgendaTab.tsx`, `src/lib/islandSync.ts`) :
+  * Synchronisation bidirectionnelle temps réel (`BroadcastChannel('syntropy_sync')` + `localStorage`) entre le widget Pomodoro du Dashboard (`FocusTimerWidget.tsx`) et la Dynamic Island.
+  * Liste des événements imminents avec détection automatique des liens Google Meet, Microsoft Teams, Zoom et Discord pour afficher un bouton `[ 🎥 Rejoindre ]` en 1 clic.
+- Onglet 4 — 🔥 Habitudes du Jour & 📚 Lecture Rapide (`IslandHabitsReadingTab.tsx`) :
+  * Validation en 1 clic des habitudes quotidiennes (`DailyLifeContext`) avec compteur de série (`🔥 streak`).
+  * Suivi du livre ou manga en cours (`ReadingContext`) avec boutons d'incrément rapide (`+1 chap`, `+3 chap`, `+5 p.`, `+10 p.`).
+- Onglet 5 — 📥 Dropzone File Shelf & 📋 Presse-papiers Intelligent (`IslandShelfClipboardTab.tsx`) :
+  * Étagère temporaire s'ouvrant automatiquement au glisser-déposer de fichiers, images, liens ou textes sur la pilule, avec envoi en 1 clic vers les Notes Syntropy (intégration directe de l'image `![Nom](attachment:id)` dans la note) ou création de Tâche.
+  * Historique du presse-papiers en mémoire vive (20 dernières entrées texte, lien et code) avec copie en 1 clic, épinglage, suppression et conversion en Note Syntropy.
+- Pied de carte — 🖥️ Moniteur Système CPU & RAM : affichage discret de la charge CPU % et RAM % (avec alerte visuelle au-delà de 85 %).
+
+4. Panneau de Configuration Desktop & Menu System Tray (`DesktopSettingsSection.tsx`) :
+- Nouvelle carte complète « 🏝️ Dynamic Island Desktop (Windows Live Hub) » dans Paramètres → Application Bureau permettant d'activer/désactiver l'Island, de choisir entre Pilule flottante et Living Notch, de régler le déclencheur (survol vs clic), la cible du raccourci `Alt+Espace`, l'onglet par défaut, l'auto-hide plein écran, le presse-papiers, la télémétrie CPU/RAM et de lancer un aperçu en direct (`Tester en direct`).
+- Ajout d'une case à cocher rapide « 🏝️ Activer / Masquer Dynamic Island » dans le menu contextuel du System Tray Windows.
+
 #### [V2.6.42] - 2026-11-05 (Intégration Directe des Images dans les Notes & Éditeur Markdown)
 --------------------------------------------------------------------------------
 1. Intégration Visuelle Directe des Images au Sein des Fichiers Notes :

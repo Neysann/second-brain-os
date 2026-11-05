@@ -231,6 +231,38 @@ export const DailyLifeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } catch (e) {
       console.warn('Erreur chargement DailyLife', e);
     }
+
+    const handleStorageSync = (e?: StorageEvent) => {
+      if (e && e.key && !e.key.startsWith('syntropy_habit')) return;
+      try {
+        const sh = localStorage.getItem(HABITS_STORAGE_KEY);
+        if (sh) setHabits(JSON.parse(sh));
+        const sc = localStorage.getItem(CYCLES_STORAGE_KEY);
+        if (sc) setCycles(JSON.parse(sc));
+        const shist = localStorage.getItem(HABIT_HISTORY_STORAGE_KEY);
+        if (shist) setHabitHistory(JSON.parse(shist));
+      } catch {}
+    };
+
+    window.addEventListener('storage', handleStorageSync);
+    let bc: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        bc = new BroadcastChannel('syntropy_sync');
+        bc.onmessage = (ev) => {
+          if (ev.data?.type === 'data-updated' && ev.data?.scope === 'habits') {
+            handleStorageSync();
+          }
+        };
+      }
+    } catch {}
+
+    return () => {
+      window.removeEventListener('storage', handleStorageSync);
+      try {
+        bc?.close();
+      } catch {}
+    };
   }, []);
 
   // Cycle actif (premier cycle avec statut active)
@@ -290,6 +322,13 @@ export const DailyLifeProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         },
       };
       localStorage.setItem(HABIT_HISTORY_STORAGE_KEY, JSON.stringify(updated));
+      try {
+        if (typeof BroadcastChannel !== 'undefined') {
+          const bc = new BroadcastChannel('syntropy_sync');
+          bc.postMessage({ type: 'data-updated', scope: 'habits', senderId: 'dl' });
+          bc.close();
+        }
+      } catch {}
       return updated;
     });
   };

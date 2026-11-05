@@ -21,7 +21,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useSettings } from '@/context/SettingsContext';
 import { TaskPriority } from '@/types';
 
-type CaptureType = 'task' | 'note' | 'idea';
+type CaptureType = 'task' | 'note';
 
 export default function QuickCapturePage() {
   const { addTask, addNote } = useData();
@@ -272,15 +272,6 @@ export default function QuickCapturePage() {
           tags: ['capture-rapide', 'brouillon'],
           isPinned: false,
         });
-      } else if (captureType === 'idea') {
-        // Idée brute vers l'Inbox PARA
-        addNote({
-          title: `💡 Idée : ${title.trim()}`,
-          content: `${content.trim() ? content.trim() + '\n\n' : ''}*Capturé rapidement via le raccourci Alt+Espace le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}*`,
-          category: 'resource',
-          tags: ['inbox', 'idee', 'para-inbox'],
-          isPinned: false,
-        });
       }
 
       setIsSaved(true);
@@ -427,7 +418,6 @@ export default function QuickCapturePage() {
           {[
             { id: 'task' as CaptureType, label: 'Tâche', icon: CheckSquare, color: isDark ? 'text-blue-400' : 'text-blue-600' },
             { id: 'note' as CaptureType, label: 'Note', icon: FileText, color: isDark ? 'text-purple-400' : 'text-purple-600' },
-            { id: 'idea' as CaptureType, label: 'Idée Inbox', icon: Lightbulb, color: isDark ? 'text-amber-400' : 'text-amber-600' },
           ].map((tab) => {
             const Icon = tab.icon;
             const active = captureType === tab.id;

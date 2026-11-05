@@ -106,6 +106,17 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } finally {
       setIsLoaded(true);
     }
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          setSettings((prev) => ({ ...prev, ...parsed }));
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   // 3. Synchronisation cloud avec Firebase (si l'utilisateur est connecté)
