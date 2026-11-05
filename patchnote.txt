@@ -2,6 +2,20 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.39] - 2026-11-05 (Allègement de la Pop-up Utilisateur & Filtrage des Versions Majeures)
+--------------------------------------------------------------------------------
+1. Filtrage Intelligent de la Pop-up au Démarrage :
+- Mise en place d'un système de distinction entre versions majeures (`IS_MAJOR_RELEASE = true`) et correctifs/patchs mineurs.
+- La pop-up des nouveautés au lancement de l'application ne s'ouvre désormais que lors des refontes majeures (jalons clés), évitant d'interrompre l'utilisateur à chaque micro-correctif technique ou patch de maintenance.
+- La modale reste toujours consultable à tout moment depuis les Paramètres > Données & Profil > « Voir les nouveautés ».
+
+2. Allègement Visuel & Format Synthétique pour l'Utilisateur :
+- Refonte des cartes de la modale utilisateur : remplacement des longs pavés de texte descriptifs par des listes à puces concises (2 à 3 points clés par version majeure).
+- Style clair, visuel et orienté bénéfice utilisateur direct (nouveautés visuelles, contrôle musical, import facile).
+
+3. Préservation de l'Exhaustivité du Journal Développeur :
+- Le fichier `patchnote.txt` conserve son rôle de registre technique exhaustif de référence, documentant chaque version, commit, logique interne et correction avec un niveau de détail absolu pour le créateur.
+
 #### [V2.6.38] - 2026-11-05 (Widgets Réactifs Multitailles, Actualités Live RSS & Détection Audio PC)
 --------------------------------------------------------------------------------
 1. Refonte Multitailles Réactive & Authentique de Tous les Widgets :
