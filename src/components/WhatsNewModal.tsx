@@ -90,6 +90,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
   const features = [
     {
+      icon: Sliders,
+      color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
+      title: 'Syntropy OS V2.6.36 : Refonte Complète du Menu des Paramètres',
+      desc: 'Nouvelle navigation latérale verticale (style Linear/macOS), élimination de toutes les options dupliquées, 5 catégories épurées et lisibles, fusion fluide du profil avec l\'état Cloud Firestore, et aperçu compact réactif en direct.',
+    },
+    {
       icon: FileCode,
       color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30',
       title: 'Syntropy OS V2.6.35 : Importation Intelligente de Fichiers Markdown (.md)',

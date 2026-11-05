@@ -2,6 +2,27 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.36] - 2026-11-05 (Refonte Intégrale & Ergonomique du Menu des Paramètres)
+--------------------------------------------------------------------------------
+1. Nouvelle Navigation Latérale Verticale (Sidebar Gauche) :
+- Remplacement du bandeau d'onglets horizontaux (qui débordait et provoquait des cassures visuelles) par une barre latérale verticale moderne, ergonomique et aérée (style Notion / macOS / Linear).
+- Organisation intuitive avec icônes distinctes, libellés principaux et descriptions d'un coup d'œil.
+- Affichage adaptatif et réactif sur tous les formats d'écran.
+
+2. Restructuration & Déduplication Complète des Options :
+- Élimination stricte de toutes les options redondantes et dupliquées (typographie, couleur de feuille stylet, vérifications de version répétées).
+- 5 catégories claires et épurées (+ Desktop et Admin selon l'environnement) :
+  * 🎨 Apparence & Thèmes : Choix du Style UI (Syntropy Liquid Glass, Cyberpunk HUD 2077, Nothing OS), Mode Sombre / Clair / Auto, nuance Sombre absolu OLED (#000000) vs Zinc (#09090b), palette complète d'accentuation dynamique, typographie (Inter, Lora, JetBrains Mono), densité d'affichage (Aéré vs Compact), intensité de luminescence néon et curseur de transparence Liquid Glass.
+  * 📝 Éditeur & Notes : Mode d'ouverture par défaut d'une note (Rédaction, Split avec KaTeX en direct, Lecture), couleur par défaut de la feuille manuscrite Stylus (Noir OLED, Blanc, Sépia, Ardoise), délai d'enregistrement auto vers Firestore (0.5s, 2s, 5s), compteur de mots et liens bidirectionnels (Backlinks).
+  * 📊 Productivité & Méthode PARA : Vue de démarrage par défaut (Dashboard, Kanban, Notes, Calendrier), premier jour de la semaine (Lundi / Dimanche), priorité par défaut des tâches (Basse, Moyenne, Haute) et masquage des catégories PARA vides.
+  * 💾 Données & Profil : Fusion ergonomique du profil utilisateur (Avatar, Salutation personnalisée du dashboard, email et session sécurisée) avec l'état de persistance Cloud Firestore, statistiques de la base, exports souverains (ZIP Markdown classé par dossiers, sauvegarde intégrale JSON), importateur de fichiers .md / .json et modal de nouveautés.
+  * 💻 Application Desktop (exclusif Electron) : Contrôles système Windows (croix [X] vers le System Tray ou fermeture, clic sur l'icône Tray, fermeture auto de la Capture Rapide, accélération GPU, purge du cache Chromium et sauvegardes locales).
+  * 👑 Console Administrateur (réservé aux admins) : Gestion des rôles utilisateurs, maintenance Firestore, drapeaux système et journal d'audit.
+
+3. Carte Miniature de Prévisualisation Réactive en Direct :
+- Suppression de l'ancien mockup statique volumineux (~400 lignes de code) qui provoquait des bugs de dimensionnement.
+- Remplacement par une carte de prévisualisation interactive et compacte reflétant en temps réel la couleur d'accentuation active, l'ambiance sombre/claire, la typographie sélectionnée, la densité et les effets de flou translucide.
+
 #### [V2.6.35] - 2026-11-05 (Importation Intelligente de Fichiers Markdown .md)
 --------------------------------------------------------------------------------
 1. Importation Dédiée & Multi-Sources de Fichiers Markdown (.md / .markdown) :
