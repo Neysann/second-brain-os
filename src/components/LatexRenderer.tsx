@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import katex from 'katex';
 import { useTheme } from '@/context/ThemeContext';
-import { Link2, Check } from 'lucide-react';
+import { Link2, Check, ZoomIn, Loader2, Image as ImageIcon } from 'lucide-react';
+import { NoteAttachment } from '@/types';
+import { getAttachmentLocally } from '@/lib/attachmentStorage';
 
 interface LatexRendererProps {
   content: string;
@@ -11,7 +13,151 @@ interface LatexRendererProps {
   onToggleCheckbox?: (lineIndex: number) => void;
   /** Rendu d'un emplacement manuscrit référencé par une ligne `@@ink:<id>@@`. */
   renderInkBlock?: (blockId: string) => React.ReactNode;
+  /** Pièces jointes de la note pour résoudre `attachment:<id>`. */
+  attachments?: NoteAttachment[];
+  /** Callback lors du clic sur une image pour zoom/aperçu. */
+  onImageClick?: (attachment: NoteAttachment) => void;
 }
+
+interface AttachmentImageRendererProps {
+  src: string;
+  alt: string;
+  attachments?: NoteAttachment[];
+  onImageClick?: (attachment: NoteAttachment) => void;
+}
+
+const AttachmentImageRenderer: React.FC<AttachmentImageRendererProps> = ({
+  src,
+  alt,
+  attachments,
+  onImageClick,
+}) => {
+  const isAttachment = src.startsWith('attachment:');
+  const attId = isAttachment ? src.replace('attachment:', '').trim() : null;
+  const currentAtt = isAttachment && attId ? attachments?.find((a) => a.id === attId) : null;
+
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(
+    isAttachment ? (currentAtt?.dataUrl || currentAtt?.thumbnailUrl || null) : src
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(
+    Boolean(isAttachment && !currentAtt?.dataUrl)
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+    if (isAttachment && attId) {
+      if (currentAtt?.dataUrl) {
+        setResolvedUrl(currentAtt.dataUrl);
+        setIsLoading(false);
+        return;
+      }
+
+      // Tenter de charger depuis IndexedDB local
+      getAttachmentLocally(attId)
+        .then((cached) => {
+          if (isMounted) {
+            if (cached) {
+              setResolvedUrl(cached);
+            } else if (currentAtt?.thumbnailUrl) {
+              setResolvedUrl(currentAtt.thumbnailUrl);
+            }
+            setIsLoading(false);
+          }
+        })
+        .catch(() => {
+          if (isMounted) {
+            if (currentAtt?.thumbnailUrl) {
+              setResolvedUrl(currentAtt.thumbnailUrl);
+            }
+            setIsLoading(false);
+          }
+        });
+    } else {
+      setResolvedUrl(src);
+      setIsLoading(false);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAttachment, attId, currentAtt?.dataUrl, currentAtt?.thumbnailUrl, src]);
+
+  const handleClick = () => {
+    if (!onImageClick) return;
+    if (currentAtt) {
+      onImageClick({
+        ...currentAtt,
+        dataUrl: resolvedUrl || currentAtt.dataUrl,
+      });
+    } else if (attId) {
+      onImageClick({
+        id: attId,
+        name: alt || 'Image',
+        type: 'image/png',
+        size: 0,
+        dataUrl: resolvedUrl,
+        uploadedAt: new Date().toISOString(),
+      });
+    } else {
+      onImageClick({
+        id: `img-${Date.now()}`,
+        name: alt || 'Image',
+        type: 'image/png',
+        size: 0,
+        dataUrl: resolvedUrl,
+        uploadedAt: new Date().toISOString(),
+      });
+    }
+  };
+
+  if (isLoading && !resolvedUrl) {
+    return (
+      <span className="inline-flex items-center gap-2 px-3 py-1.5 my-2 rounded-xl border border-zinc-700/50 bg-zinc-900/60 text-xs text-zinc-400 animate-pulse align-middle">
+        <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
+        <span>Chargement de l'image ({alt || 'en cours'})...</span>
+      </span>
+    );
+  }
+
+  if (!resolvedUrl) {
+    return (
+      <span className="inline-flex items-center gap-2 px-3 py-1.5 my-2 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs text-amber-300 align-middle">
+        <ImageIcon className="w-3.5 h-3.5 text-amber-400" />
+        <span>Image non disponible : {alt || attId || src}</span>
+      </span>
+    );
+  }
+
+  const hasCaption = Boolean(alt && alt !== 'Illustration' && alt !== 'Image' && alt !== 'image');
+
+  return (
+    <span className="my-2 inline-block max-w-full align-middle">
+      <span
+        onClick={handleClick}
+        className="relative group inline-block max-w-full rounded-2xl overflow-hidden border border-zinc-700/60 hover:border-purple-500/60 shadow-lg bg-zinc-950/60 transition-all cursor-pointer"
+        title="Cliquer pour afficher en grand"
+      >
+        <img
+          src={resolvedUrl}
+          alt={alt || 'Image intégrée'}
+          className="max-h-96 w-auto max-w-full rounded-2xl object-contain transition-transform duration-200 group-hover:scale-[1.01]"
+          loading="lazy"
+        />
+        <span className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
+          <span className="px-3 py-1.5 rounded-xl bg-zinc-950/85 text-white text-xs font-medium backdrop-blur-md border border-white/20 shadow-xl flex items-center gap-1.5">
+            <ZoomIn className="w-3.5 h-3.5 text-purple-400" />
+            Agrandir
+          </span>
+        </span>
+      </span>
+      {hasCaption && (
+        <span className="block text-center text-xs text-zinc-400 mt-1 italic font-sans max-w-md">
+          {alt}
+        </span>
+      )}
+    </span>
+  );
+};
 
 interface ParsedEquation {
   id: string;
@@ -21,7 +167,7 @@ interface ParsedEquation {
   cleanMath: string;
 }
 
-export const LatexRenderer: React.FC<LatexRendererProps> = ({ content, className = '', onToggleCheckbox, renderInkBlock }) => {
+export const LatexRenderer: React.FC<LatexRendererProps> = ({ content, className = '', onToggleCheckbox, renderInkBlock, attachments, onImageClick }) => {
   const { theme } = useTheme();
 
   // Fonction de scroll doux vers une équation ciblée
@@ -303,15 +449,16 @@ export const LatexRenderer: React.FC<LatexRendererProps> = ({ content, className
               );
             }
 
-            // Image Markdown ![alt](url)
+            // Image Markdown ![alt](url ou attachment:id)
             const imgMatch = part.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
             if (imgMatch) {
               return (
-                <img
+                <AttachmentImageRenderer
                   key={subKey}
+                  alt={imgMatch[1] || ''}
                   src={imgMatch[2]}
-                  alt={imgMatch[1] || 'Illustration'}
-                  className="max-h-96 rounded-xl my-2 border border-zinc-700/40 object-contain shadow-md"
+                  attachments={attachments}
+                  onImageClick={onImageClick}
                 />
               );
             }

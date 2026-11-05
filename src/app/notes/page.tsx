@@ -57,6 +57,7 @@ import {
   FileCode,
   MoreHorizontal,
   Check,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -310,6 +311,7 @@ function NotesContent() {
   const [markdownToImport, setMarkdownToImport] = useState<ParsedMarkdownNote | null>(null);
   const [isMarkdownImportModalOpen, setIsMarkdownImportModalOpen] = useState(false);
   const markdownFileInputRef = useRef<HTMLInputElement | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   // Fermeture des menus au clic extérieur
   useEffect(() => {
@@ -1124,14 +1126,106 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
     }
   };
 
-  // Insertion d'une image attachée directement dans le texte Markdown
-  const handleInsertImageToMarkdown = async (att: NoteAttachment) => {
-    let url = att.thumbnailUrl || att.dataUrl;
-    if (!url) {
-      url = (await ensureAttachmentDataUrl(att)) || '';
-    }
-    const imgMarkdown = `\n\n![${att.name}](${url})\n\n`;
+  // Insertion d'une image attachée directement dans le texte Markdown via référence propre
+  const handleInsertImageToMarkdown = (att: NoteAttachment) => {
+    const cleanName = (att.name || 'Image').replace(/[\[\]]/g, '');
+    const imgMarkdown = `\n\n![${cleanName}](attachment:${att.id})\n\n`;
     insertSyntax(imgMarkdown, '');
+  };
+
+  // Insertion directe d'une ou plusieurs images dans la note en cours
+  const handleInsertImageFiles = async (
+    fileList: FileList | File[],
+    insertAtCursor: boolean = true
+  ) => {
+    if (!currentNote) return;
+    const files = Array.from(fileList).filter((f) => {
+      const ext = f.name.toLowerCase().split('.').pop() || '';
+      return (
+        f.type.startsWith('image/') ||
+        ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'avif'].includes(ext)
+      );
+    });
+
+    if (files.length === 0) return;
+
+    const newAttachmentsList: NoteAttachment[] = [...attachments];
+    let insertedMarkdown = '';
+
+    for (const file of files) {
+      try {
+        const analyzed = await processImportedFile(file);
+        newAttachmentsList.push(analyzed.attachment);
+        const cleanName = (file.name || 'Image').replace(/[\[\]]/g, '');
+        insertedMarkdown += `\n\n![${cleanName}](attachment:${analyzed.attachment.id})\n\n`;
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Erreur insertion image';
+        console.error('Erreur insertion image:', err);
+        alert(msg);
+      }
+    }
+
+    setAttachments(newAttachmentsList);
+
+    if (insertedMarkdown) {
+      if (insertAtCursor && textareaRef.current && (viewMode === 'write' || viewMode === 'split')) {
+        insertSyntax(insertedMarkdown, '');
+      } else {
+        const updated = content + insertedMarkdown;
+        setContent(updated);
+        triggerAutoSave(
+          title,
+          updated,
+          category,
+          folderId,
+          projectId,
+          tagsInput,
+          isPinned,
+          newAttachmentsList
+        );
+      }
+    } else {
+      triggerAutoSave(
+        title,
+        content,
+        category,
+        folderId,
+        projectId,
+        tagsInput,
+        isPinned,
+        newAttachmentsList
+      );
+    }
+  };
+
+  // Gestion du copier-coller (Ctrl+V) d'images directement dans la note
+  const handleTextareaPaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items || items.length === 0) return;
+
+    const imageFiles: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf('image') !== -1) {
+        const blob = item.getAsFile();
+        if (blob) {
+          const nowStr = new Date().toISOString().replace(/[:.]/g, '-').slice(11, 19);
+          const ext = blob.type.split('/')[1] || 'png';
+          const fileName = blob.name && blob.name !== 'image.png'
+            ? blob.name
+            : `Capture-${nowStr}.${ext}`;
+          const namedFile = typeof window !== 'undefined' && window.File
+            ? new window.File([blob], fileName, { type: blob.type })
+            : Object.assign(blob, { name: fileName });
+          imageFiles.push(namedFile as globalThis.File);
+        }
+      }
+    }
+
+    if (imageFiles.length > 0) {
+      e.preventDefault();
+      await handleInsertImageFiles(imageFiles, true);
+    }
   };
 
   // Importation de fichiers vers la note en cours
@@ -1673,10 +1767,31 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
         onDragOver={(e) => {
           e.preventDefault();
         }}
-        onDrop={(e) => {
+        onDrop={async (e) => {
           e.preventDefault();
           if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            handleImportFilesAsNewNotes(e.dataTransfer.files);
+            const allFiles = Array.from(e.dataTransfer.files);
+            const imageFiles = allFiles.filter((f) => {
+              const ext = f.name.toLowerCase().split('.').pop() || '';
+              return (
+                f.type.startsWith('image/') ||
+                ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'avif'].includes(ext)
+              );
+            });
+            const otherFiles = allFiles.filter((f) => !imageFiles.includes(f));
+
+            // Si des images sont déposées ET qu'une note est ouverte : intégrer directement dans la note
+            if (imageFiles.length > 0) {
+              if (currentNote) {
+                await handleInsertImageFiles(imageFiles, true);
+              } else {
+                await handleImportFilesAsNewNotes(imageFiles);
+              }
+            }
+
+            if (otherFiles.length > 0) {
+              await handleImportFilesAsNewNotes(otherFiles);
+            }
           }
         }}
         className={`${
@@ -2094,18 +2209,35 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
           e.preventDefault();
           setIsDraggingFile(false);
         }}
-        onDrop={(e) => {
+        onPaste={handleTextareaPaste}
+        onDrop={async (e) => {
           e.preventDefault();
           setIsDraggingFile(false);
           if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            const hasMd = Array.from(e.dataTransfer.files).some((f) => {
+            const allFiles = Array.from(e.dataTransfer.files);
+            const mdFiles = allFiles.filter((f) => {
               const ext = f.name.toLowerCase().split('.').pop() || '';
               return ['md', 'markdown'].includes(ext);
             });
-            if (hasMd) {
-              handleImportMarkdownFiles(e.dataTransfer.files);
-            } else {
-              handleAttachFilesToCurrentNote(e.dataTransfer.files);
+            const imageFiles = allFiles.filter((f) => {
+              const ext = f.name.toLowerCase().split('.').pop() || '';
+              return (
+                f.type.startsWith('image/') ||
+                ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'avif'].includes(ext)
+              );
+            });
+            const otherFiles = allFiles.filter(
+              (f) => !mdFiles.includes(f) && !imageFiles.includes(f)
+            );
+
+            if (mdFiles.length > 0) {
+              await handleImportMarkdownFiles(mdFiles);
+            }
+            if (imageFiles.length > 0) {
+              await handleInsertImageFiles(imageFiles, true);
+            }
+            if (otherFiles.length > 0) {
+              await handleAttachFilesToCurrentNote(otherFiles);
             }
           }
         }}
@@ -2424,6 +2556,23 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                   >
                     <span className="font-serif font-bold text-xs">∑</span>
                     <span className="hidden sm:inline">Math</span>
+                  </button>
+                )}
+
+                {/* Bouton Insérer Image */}
+                {viewMode !== 'ink' && (
+                  <button
+                    type="button"
+                    onClick={() => imageInputRef.current?.click()}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex-shrink-0 ${
+                      theme === 'dark'
+                        ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20'
+                        : 'border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                    }`}
+                    title="Insérer une image dans la note (ou collez avec Ctrl+V)"
+                  >
+                    <ImageIcon className="w-3.5 h-3.5 text-indigo-400" />
+                    <span className="hidden sm:inline">Image</span>
                   </button>
                 )}
 
@@ -3062,6 +3211,7 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                         <textarea
                           ref={textareaRef}
                           value={content}
+                          onPaste={handleTextareaPaste}
                           onChange={(e) => {
                             const next = e.target.value;
                             setContent(next);
@@ -3103,6 +3253,7 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                               key={`text-${idx}`}
                               value={seg.text || ''}
                               ref={idx === 0 ? textareaRef : undefined}
+                              onPaste={handleTextareaPaste}
                               onFocus={(e) => {
                                 textareaRef.current = e.currentTarget;
                               }}
@@ -3152,6 +3303,7 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                             <textarea
                               ref={textareaRef}
                               value={content}
+                              onPaste={handleTextareaPaste}
                               onChange={(e) => {
                                 const next = e.target.value;
                                 setContent(next);
@@ -3193,6 +3345,7 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                                   key={`text-split-${idx}`}
                                   value={seg.text || ''}
                                   ref={idx === 0 ? textareaRef : undefined}
+                                  onPaste={handleTextareaPaste}
                                   onFocus={(e) => {
                                     textareaRef.current = e.currentTarget;
                                   }}
@@ -3240,6 +3393,15 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                       >
                         <LatexRenderer
                           content={content}
+                          attachments={attachments}
+                          onImageClick={async (att) => {
+                            let targetAtt = att;
+                            if (!targetAtt.dataUrl) {
+                              const url = await ensureAttachmentDataUrl(att);
+                              if (url) targetAtt = { ...att, dataUrl: url };
+                            }
+                            setPreviewImageModal(targetAtt);
+                          }}
                           onToggleCheckbox={handleToggleCheckbox}
                           renderInkBlock={(blockId) => (
                             <InlineInkBlock
@@ -3298,6 +3460,15 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                     </div>
                     <LatexRenderer
                       content={content}
+                      attachments={attachments}
+                      onImageClick={async (att) => {
+                        let targetAtt = att;
+                        if (!targetAtt.dataUrl) {
+                          const url = await ensureAttachmentDataUrl(att);
+                          if (url) targetAtt = { ...att, dataUrl: url };
+                        }
+                        setPreviewImageModal(targetAtt);
+                      }}
                       onToggleCheckbox={handleToggleCheckbox}
                       renderInkBlock={(blockId) => (
                         <InlineInkBlock
@@ -3531,6 +3702,20 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
                       <PenTool className="w-3.5 h-3.5" />
                     </button>
                   )}
+
+                  {/* Insérer Image dans le texte */}
+                  <button
+                    type="button"
+                    onClick={() => imageInputRef.current?.click()}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                      theme === 'dark'
+                        ? 'hover:bg-indigo-500/20 text-indigo-400'
+                        : 'hover:bg-indigo-100 text-indigo-600'
+                    }`}
+                    title="Insérer une image dans la note (ou collez avec Ctrl+V)"
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             )}
@@ -3792,6 +3977,36 @@ Basculez en mode **"Présentation"** ou **"Double"** en haut à droite pour admi
         onChange={(e) => {
           if (e.target.files && e.target.files.length > 0) {
             handleImportMarkdownFiles(e.target.files);
+            e.target.value = '';
+          }
+        }}
+      />
+
+      {/* Input de sélection d'images pour insertion directe dans la note */}
+      <input
+        ref={imageInputRef}
+        type="file"
+        multiple
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            handleInsertImageFiles(e.target.files, true);
+            e.target.value = '';
+          }
+        }}
+      />
+
+      {/* Input pour joindre des documents généraux */}
+      <input
+        ref={editorFilePickerRef}
+        type="file"
+        multiple
+        accept="application/pdf,image/*,.txt,.md,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.tsv,.ods,.odt,.rtf"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            handleAttachFilesToCurrentNote(e.target.files);
             e.target.value = '';
           }
         }}

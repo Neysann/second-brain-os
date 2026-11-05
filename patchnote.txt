@@ -2,6 +2,26 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.42] - 2026-11-05 (Intégration Directe des Images dans les Notes & Éditeur Markdown)
+--------------------------------------------------------------------------------
+1. Intégration Visuelle Directe des Images au Sein des Fichiers Notes :
+- Fin de la création parasite de notes isolées lors de l'import d'images : le glisser-déposer d'images sur le volet de gauche (arborescence des dossiers) ou sur l'éditeur intègre désormais l'image directement dans la note actuellement ouverte au lieu de créer une note isolée dans le dossier.
+- Si aucune note n'est ouverte lors d'un dépôt d'image, une nouvelle note est créée avec l'image déjà incrustée dans le corps du texte Markdown (syntaxe `![Titre](attachment:id)`), prête à l'annotation.
+
+2. Prise en Charge Multi-Sources Complète (Presse-Papier, Bouton & Drag & Drop) :
+- Copier-Coller instantané (`Ctrl + V`) : coller une capture d'écran ou une image copiée depuis le presse-papier directement dans la zone de saisie crée automatiquement la pièce jointe en arrière-plan, l'enregistre en cache permanent local IndexedDB et insère la référence markdown propre `![Capture-HH-MM-SS.png](attachment:att-id)` à l'endroit exact du curseur.
+- Bouton dédié « 🖼️ Image » : disponible à la fois dans la barre d'outils supérieure de la note (à côté du bouton Math `∑`) et dans la capsule de formatage flottante en bas de l'écran.
+- Correction du sélecteur de documents : liaison du ref `editorFilePickerRef` orphelin dans le menu d'actions `···` et ajout du sélecteur natif masqué `imageInputRef`.
+
+3. Rendu Épuré via Références Markdown `![nom](attachment:id)` & Composant Dédié :
+- Remplacement des énormes blocs de code base64 (`data:image/...`) par une syntaxe Markdown concise et aérée `![Nom](attachment:id)`, préservant la légreté et la lisibilité du texte brut en mode écriture.
+- Nouveau composant `AttachmentImageRenderer` dans `LatexRenderer` :
+  * Résolution transparente des identifiants `attachment:<id>` à partir des pièces jointes ou du cache local IndexedDB (`getAttachmentLocally`).
+  * Affichage d'un loader élégant en cas de chargement asynchrone et d'un repli propre si l'image est indisponible.
+  * Conteneur interactif avec zoom au survol et ouverture de la modale d'agrandissement plein écran haute définition au clic (`onImageClick` relié à `previewImageModal`).
+  * Légende automatique soignée sous l'image issue du texte alternatif Markdown.
+  * Compatibilité totale conservée pour les URLs externes standard (`https://...`) et les Data URLs.
+
 #### [V2.6.41] - 2026-11-05 (Correction Moteur de Mise à Jour Desktop & Téléchargement Direct)
 --------------------------------------------------------------------------------
 1. Correction du Moteur de Téléchargement Electron-Updater :

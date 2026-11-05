@@ -576,10 +576,10 @@ export async function processImportedFile(file: File): Promise<DocumentAnalysisR
     case 'image': {
       tags.push('Image');
       initialContent = `# 🖼️ ${cleanTitle}\n\n` +
+        `![${cleanTitle}](attachment:${attachmentId})\n\n` +
         `> **Image importée** : \`${file.name}\` — Taille : **${sizeFormatted}**.\n\n` +
-        `Ce document visuel est synchronisé sur tous vos appareils. Vous pouvez l'afficher en plein écran ou le télécharger depuis le volet des documents joints ci-dessous.\n\n` +
         `---\n\n` +
-        `*Aperçu disponible dans la grille des pièces jointes.*`;
+        `*Ajoutez vos observations ou réflexions sur cette image ici...*`;
       summary = `Image importée (${sizeFormatted})`;
       break;
     }
