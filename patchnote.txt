@@ -2,6 +2,20 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.41] - 2026-11-05 (Correction Moteur de Mise à Jour Desktop & Téléchargement Direct)
+--------------------------------------------------------------------------------
+1. Correction du Moteur de Téléchargement Electron-Updater :
+- Désactivation du téléchargement différentiel NSIS (`disableDifferentialDownload = true` et `differentialPackage = false`) : sur GitHub Releases, les redirections vers `release-assets.githubusercontent.com` (stockage Azure Blob / AWS S3) échouent fréquemment sur les requêtes HTTP Range avec jetons SAS, causant une rupture de flux ("Cannot download..."). La désactivation force un flux de téléchargement direct standard, stable et fiable.
+- Désactivation de l'installateur web (`disableWebInstaller = true`) pour garantir le téléchargement de l'exécutable complet autonome.
+
+2. Assainissement des Messages d'Erreur & Suppression des URLs Signées :
+- Remplacement des messages d'erreur bruts de 600 caractères exposant les paramètres de signature SAS / JWT (`pr=https&se=...&rscd=attachment...`) par des messages d'aide clairs, pédagogiques et concis en français.
+- Protection dans toutes les notifications système Toast et le panneau de configuration pour ne plus jamais afficher de chaînes d'URL brutes à l'utilisateur.
+
+3. Ajout du Téléchargement de Secours Direct via Navigateur :
+- Nouveau pont IPC `open-direct-download` permettant à l'utilisateur de déclencher le téléchargement de l'exécutable `Syntropy-OS-Setup-X.X.X.exe` directement dans son navigateur par défaut (Chrome, Edge, etc.) avec vitesse maximale et reprise sur erreur.
+- En cas d'échec ou en alternative au téléchargement automatique, un bouton proéminent « 🌐 Télécharger (.exe) via le navigateur » est immédiatement proposé dans les Paramètres > Application Bureau > Mises à jour automatiques.
+
 #### [V2.6.40] - 2026-11-05 (Refonte Majeure de l'Interface des Notes — Style Obsidian / Notion)
 --------------------------------------------------------------------------------
 1. Disposition Épurée à 2 Volets (Obsidian / Notion) :

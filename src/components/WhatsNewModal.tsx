@@ -26,7 +26,7 @@ export { CURRENT_VERSION };
  * Pour les correctifs de bugs ou les micro-changements (patchs réguliers), laisser à false
  * pour que la pop-up ne s'ouvre PAS au démarrage de l'utilisateur.
  */
-export const IS_MAJOR_RELEASE = true;
+export const IS_MAJOR_RELEASE = false;
 export const LAST_MAJOR_VERSION = '2.6.40';
 
 interface FeatureCard {

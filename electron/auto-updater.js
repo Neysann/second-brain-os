@@ -1,7 +1,29 @@
-const { app, Notification, ipcMain } = require('electron');
+const { app, Notification, ipcMain, shell } = require('electron');
 const { autoUpdater } = require('electron-updater');
 
 let isUpdaterConfigured = false;
+
+/**
+ * Nettoie les messages d'erreur d'electron-updater pour éviter d'exposer
+ * des URLs de redirection pré-signées de 600 caractères (tokens Azure / AWS).
+ */
+function sanitizeUpdateError(err) {
+  const msg = err?.message || String(err || '');
+  if (
+    msg.includes('release-assets.githubusercontent.com') ||
+    msg.includes('Cannot download') ||
+    msg.includes('pr=https') ||
+    msg.includes('rscd=') ||
+    msg.includes('sig=') ||
+    msg.includes('jwt=')
+  ) {
+    return "Le téléchargement automatique via GitHub a rencontré un délai d'attente ou une coupure réseau. Cliquez sur « Télécharger via le navigateur » pour obtenir l'installateur officiel sans blocage.";
+  }
+  if (msg.includes('504')) {
+    return "Délai d'attente dépassé (Erreur 504) sur les serveurs GitHub. Veuillez réessayer ou télécharger manuellement.";
+  }
+  return msg || "Erreur lors de la communication avec le canal de mise à jour";
+}
 
 /**
  * Configure et initialise le moteur de mise à jour automatique electron-updater
@@ -15,6 +37,12 @@ function setupAutoUpdater(mainWindow, getAppIcon) {
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.allowPrerelease = false;
+
+  // DÉSACTIVATION ESSENTIELLE du téléchargement différentiel .blockmap :
+  // Sur GitHub Releases, les requêtes HTTP Range échouent fréquemment sur les redirections
+  // release-assets.githubusercontent.com (Azure Blob Storage), provoquant l'erreur "Cannot download ..."
+  autoUpdater.disableDifferentialDownload = true;
+  autoUpdater.disableWebInstaller = true;
 
   // Configuration explicite et robuste du canal GitHub Releases
   try {
@@ -116,7 +144,8 @@ function setupAutoUpdater(mainWindow, getAppIcon) {
     console.warn('[AutoUpdater] ⚠️ Erreur :', err?.message || err);
     mainWindow?.webContents?.send('update-status', {
       status: 'error',
-      message: err?.message || 'Erreur lors de la communication avec le canal de mise à jour',
+      message: sanitizeUpdateError(err),
+      rawError: err?.message || String(err),
       currentVersion: app.getVersion(),
     });
   });
@@ -155,7 +184,7 @@ function registerAutoUpdaterIpc(isDev) {
       console.warn('[AutoUpdater IPC] Erreur check-for-updates:', err?.message || err);
       return {
         success: false,
-        error: err?.message || String(err),
+        error: sanitizeUpdateError(err),
       };
     }
   });
@@ -170,7 +199,26 @@ function registerAutoUpdaterIpc(isDev) {
       return { success: true };
     } catch (err) {
       console.warn('[AutoUpdater IPC] Erreur downloadUpdate:', err?.message || err);
-      return { success: false, error: err?.message || String(err) };
+      return { success: false, error: sanitizeUpdateError(err) };
+    }
+  });
+
+  // 3.1 Ouvrir le téléchargement direct dans le navigateur par défaut
+  ipcMain.handle('open-direct-download', async (_event, version) => {
+    try {
+      const targetVersion = version || app.getVersion();
+      const downloadUrl = `https://github.com/Neysann/second-brain-os/releases/download/v${targetVersion}/Syntropy-OS-Setup-${targetVersion}.exe`;
+      await shell.openExternal(downloadUrl);
+      return { success: true };
+    } catch (err) {
+      console.warn('[AutoUpdater IPC] Erreur open-direct-download:', err);
+      // Fallback vers la page générale des releases
+      try {
+        await shell.openExternal('https://github.com/Neysann/second-brain-os/releases/latest');
+        return { success: true };
+      } catch (e) {
+        return { success: false, error: err?.message || String(err) };
+      }
     }
   });
 

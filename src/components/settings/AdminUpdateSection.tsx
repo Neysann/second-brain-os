@@ -63,6 +63,28 @@ function formatSpeed(bytesPerSecond?: number): string {
   return `${mb.toFixed(1)} Mo/s`;
 }
 
+/**
+ * Nettoie et formate les messages d'erreur de téléchargement GitHub
+ * pour éviter d'afficher des URLs pré-signées SAS/JWT illisibles de 600 caractères.
+ */
+function sanitizeUpdateErrorMessage(msg?: string): string {
+  if (!msg) return 'Erreur lors de la communication avec le serveur de mise à jour';
+  if (
+    msg.includes('release-assets.githubusercontent.com') ||
+    msg.includes('Cannot download') ||
+    msg.includes('pr=https') ||
+    msg.includes('rscd=') ||
+    msg.includes('sig=') ||
+    msg.includes('jwt=')
+  ) {
+    return "Le téléchargement automatique via GitHub a rencontré un délai d'attente ou une coupure réseau. Cliquez sur « Télécharger via le navigateur » ci-dessous pour installer la mise à jour.";
+  }
+  if (msg.includes('504')) {
+    return "Délai d'attente dépassé (Erreur 504) sur les serveurs GitHub. Veuillez réessayer ou télécharger directement.";
+  }
+  return msg;
+}
+
 export default function AdminUpdateSection({
   isDark,
   onNotification,
@@ -99,9 +121,11 @@ export default function AdminUpdateSection({
       if (electron.onUpdateStatus) {
         const unsubscribe = electron.onUpdateStatus((data: UpdateInfoState) => {
           if (!data) return;
+          const cleanMessage = sanitizeUpdateErrorMessage(data.message);
           setUpdateState((prev) => ({
             ...prev,
             ...data,
+            message: cleanMessage,
           }));
 
           if (data.status === 'checking') {
@@ -130,7 +154,7 @@ export default function AdminUpdateSection({
             );
           } else if (data.status === 'error') {
             onNotification?.(
-              `Mise à jour : ${data.message || 'Erreur inconnue'}`,
+              `Mise à jour : ${cleanMessage}`,
               'error'
             );
           }
@@ -175,12 +199,13 @@ export default function AdminUpdateSection({
         });
         onNotification?.('Mode Développement Desktop : auto-updater inactif.', 'info');
       } else if (res?.success === false) {
+        const cleanErr = sanitizeUpdateErrorMessage(res.error);
         setUpdateState({
           status: 'error',
-          message: res.error,
+          message: cleanErr,
           currentVersion: currentAppVersion,
         });
-        onNotification?.(`Recherche de mise à jour : ${res.error}`, 'error');
+        onNotification?.(`Recherche de mise à jour : ${cleanErr}`, 'error');
       }
       onLogAction?.(
         'Vérification des mises à jour',
@@ -190,9 +215,10 @@ export default function AdminUpdateSection({
         'info'
       );
     } catch (err: any) {
+      const cleanErr = sanitizeUpdateErrorMessage(err?.message);
       setUpdateState({
         status: 'error',
-        message: err?.message || 'Erreur réseau ou indisponibilité du canal GitHub',
+        message: cleanErr,
         currentVersion: currentAppVersion,
       });
       onNotification?.('Impossible de contacter le serveur de mises à jour.', 'error');
@@ -215,10 +241,11 @@ export default function AdminUpdateSection({
     try {
       const res = await electron.startUpdateDownload();
       if (res?.success === false) {
+        const cleanErr = sanitizeUpdateErrorMessage(res.error);
         setUpdateState((prev) => ({
           ...prev,
           status: 'error',
-          message: res.error || 'Échec du téléchargement',
+          message: cleanErr,
         }));
         setIsDownloading(false);
       } else {
@@ -232,13 +259,37 @@ export default function AdminUpdateSection({
         );
       }
     } catch (err: any) {
+      const cleanErr = sanitizeUpdateErrorMessage(err?.message);
       setUpdateState((prev) => ({
         ...prev,
         status: 'error',
-        message: err?.message || 'Erreur de téléchargement',
+        message: cleanErr,
       }));
       setIsDownloading(false);
     }
+  };
+
+  // Téléchargement direct officiel via le navigateur par défaut (fallback infaillible)
+  const handleDirectBrowserDownload = async () => {
+    const targetVer = updateState.version || currentAppVersion;
+    const electron = (window as any).electronAPI;
+    if (electron?.openDirectDownload) {
+      await electron.openDirectDownload(targetVer);
+    } else {
+      const url = `https://github.com/Neysann/second-brain-os/releases/download/v${targetVer}/Syntropy-OS-Setup-${targetVer}.exe`;
+      window.open(url, '_blank');
+    }
+    onNotification?.(
+      `Téléchargement de Syntropy-OS-Setup-${targetVer}.exe ouvert dans votre navigateur !`,
+      'info'
+    );
+    onLogAction?.(
+      'Téléchargement Navigateur',
+      `Ouverture du téléchargement direct de la version ${targetVer}`,
+      undefined,
+      'system',
+      'info'
+    );
   };
 
   // Quitter et installer immédiatement
@@ -365,6 +416,17 @@ export default function AdminUpdateSection({
                         style={{ width: `${Math.min(100, Math.max(0, updateState.percent || 0))}%` }}
                       />
                     </div>
+                    <div className="text-[11px] text-zinc-500 pt-0.5 flex items-center gap-1.5">
+                      <span>Téléchargement lent ou bloqué ?</span>
+                      <button
+                        type="button"
+                        onClick={handleDirectBrowserDownload}
+                        className="text-indigo-400 hover:text-indigo-300 underline font-semibold cursor-pointer inline-flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Télécharger directement dans le navigateur
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -400,25 +462,57 @@ export default function AdminUpdateSection({
 
                 {/* 8. Erreur */}
                 {updateState.status === 'error' && (
-                  <>
-                    <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0" />
-                    <span className="text-xs font-mono text-rose-300 max-w-md truncate">
-                      {updateState.message || 'Erreur lors de la communication de mise à jour'}
-                    </span>
-                  </>
+                  <div className="flex flex-col gap-2 w-full">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-xs font-mono text-rose-300 leading-relaxed">
+                        {sanitizeUpdateErrorMessage(updateState.message)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 pt-1 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={handleDirectBrowserDownload}
+                        className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white flex items-center gap-1.5 shadow-md shadow-indigo-600/30 transition-all cursor-pointer"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Télécharger (.exe) via le navigateur</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCheckForUpdates}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium border border-zinc-700 hover:bg-zinc-800 text-zinc-300 transition-colors cursor-pointer flex items-center gap-1"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        <span>Réessayer</span>
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
 
               {/* Bouton d'action contextuel secondaire si disponible */}
               {updateState.status === 'available' && !isDownloading && (
-                <button
-                  type="button"
-                  onClick={handleStartDownload}
-                  className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 shadow-md shadow-purple-600/30 transition-all cursor-pointer flex-shrink-0"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Télécharger la v{updateState.version}</span>
-                </button>
+                <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleStartDownload}
+                    className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 shadow-md shadow-purple-600/30 transition-all cursor-pointer"
+                    title="Téléchargement automatique en arrière-plan"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Mettre à jour (v{updateState.version})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDirectBrowserDownload}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-indigo-500/40 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 flex items-center gap-1.5 transition-all cursor-pointer"
+                    title="Télécharger l'installateur officiel directement via votre navigateur"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Télécharger (.exe) navigateur</span>
+                  </button>
+                </div>
               )}
 
               {updateState.status === 'downloaded' && (
