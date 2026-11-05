@@ -90,6 +90,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
   const features = [
     {
+      icon: Palette,
+      color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
+      title: 'Syntropy OS V2.6.37 : Isolement des Thèmes Secrets & Épuration',
+      desc: 'Les thèmes Cyberpunk HUD et Nothing OS sont désormais exclusivement réservés au Laboratoire Secret des Thèmes (accessible via le Konami Code fléché secret). L\'écran d\'apparence standard reste épuré et propose un bandeau de retour si un thème secret est actif.',
+    },
+    {
       icon: Sliders,
       color: 'text-purple-400 bg-purple-500/10 border-purple-500/30',
       title: 'Syntropy OS V2.6.36 : Refonte Complète du Menu des Paramètres',

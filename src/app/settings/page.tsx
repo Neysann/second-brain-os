@@ -38,6 +38,7 @@ import {
   Brain,
   Info,
   SlidersHorizontal,
+  Terminal,
 } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { useData } from '@/context/DataContext';
@@ -176,7 +177,7 @@ const PAPER_COLOR_SETTINGS: {
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('appearance');
   const [isDesktop, setIsDesktop] = useState(false);
-  const { settings, effectiveTheme, updateSetting, resetSettings } = useSettings();
+  const { settings, effectiveTheme, updateSetting, updateMultipleSettings, resetSettings } = useSettings();
   const { notes, tasks, projects, folders, isFirebaseConnected, addNote } = useData();
   const { user } = useAuth();
   const isAdmin = Boolean(user?.isAdmin || user?.role === 'admin' || (user?.email && isSiteAdmin(user.email)));
@@ -449,7 +450,7 @@ export default function SettingsPage() {
 
   // Définition des onglets de la barre latérale
   const navTabs: { id: SettingsTab; label: string; sub: string; icon: React.ComponentType<{ className?: string }>; highlight?: 'admin' | 'desktop' }[] = [
-    { id: 'appearance', label: 'Apparence & Thèmes', sub: 'Couleurs, styles UI, néon & OLED', icon: Palette },
+    { id: 'appearance', label: 'Apparence & Design', sub: 'Luminosité, accents, néon & OLED', icon: Palette },
     { id: 'editor', label: 'Éditeur & Notes', sub: 'Mode d\'ouverture, stylet & sauvegarde', icon: FileText },
     { id: 'para', label: 'Productivité & PARA', sub: 'Vue par défaut, calendrier & priorités', icon: FolderGit2 },
     { id: 'data', label: 'Données & Profil', sub: 'Compte, Firestore, exports & imports', icon: Database },
@@ -601,9 +602,15 @@ export default function SettingsPage() {
                     <Sparkles className="w-4 h-4" style={{ color: activeAccentHex }} />
                     <span className="text-xs font-bold uppercase tracking-wider">Aperçu Réactif en Direct</span>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-zinc-800/60 text-zinc-400 border border-zinc-700/50">
-                    Style : {settings.uiStyle === 'cyberpunk' ? 'Cyberpunk HUD' : settings.uiStyle === 'nothing' ? 'Nothing OS' : 'Liquid Glass'}
-                  </span>
+                  {(isCyberpunk || isNothing) ? (
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full font-mono font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                      ⚡ Thème secret : {isCyberpunk ? 'Cyberpunk HUD' : 'Nothing OS'}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full font-mono bg-zinc-800/60 text-zinc-400 border border-zinc-700/50">
+                      Liquid Glass UI
+                    </span>
+                  )}
                 </div>
 
                 <div
@@ -659,63 +666,51 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* Styles UI Principaux (Liquid Glass, Cyberpunk HUD, Nothing OS) */}
-              <div className={`p-6 rounded-3xl border space-y-4 ${
-                isDark ? 'bg-zinc-900/50 border-zinc-800/80' : 'bg-white border-zinc-200 shadow-sm'
-              }`}>
-                <div>
-                  <h2 className="text-sm font-bold flex items-center gap-2">
-                    <Palette className="w-4 h-4 text-purple-400" />
-                    Style Visuel de l'Interface (UI)
-                  </h2>
-                  <p className={`text-xs mt-0.5 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                    Sélectionnez la signature graphique globale de votre OS.
-                  </p>
-                </div>
+              {/* Alerte discrète si un thème secret est actuellement actif */}
+              {(isCyberpunk || isNothing) && (
+                <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in ${
+                  isCyberpunk
+                    ? 'border-yellow-500/40 bg-yellow-500/10 text-yellow-200'
+                    : 'border-red-500/40 bg-red-500/10 text-red-200'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-xl ${isCyberpunk ? 'bg-yellow-500/20 text-[#FCEE0A]' : 'bg-red-500/20 text-[#D71920]'}`}>
+                      <Terminal className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold block">
+                        Thème secret actif : {isCyberpunk ? 'Cyberpunk HUD 2077' : 'Nothing OS (Monochrome)'}
+                      </span>
+                      <span className="text-[11px] opacity-80 block">
+                        Cette direction artistique provient du laboratoire secret des thèmes.
+                      </span>
+                    </div>
+                  </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {[
-                    { id: 'syntropy' as const, name: 'Syntropy Liquid Glass', tag: 'Standard', desc: 'Surfaces translucides, flous d’arrière-plan et reflets subtils.' },
-                    { id: 'cyberpunk' as const, name: 'Cyberpunk HUD 2077', tag: 'Néon & Vif', desc: 'Bordures anguleuses, contrastes néon jaune et cyan haute visibilité.' },
-                    { id: 'nothing' as const, name: 'Nothing OS (Monochrome)', tag: 'Dot Matrix', desc: 'Pureté matricielle, noir OLED absolu, typographie pointilliste et rouge glyph.' },
-                  ].map((style) => {
-                    const isSelected = (settings.uiStyle || 'syntropy') === style.id;
-                    return (
-                      <button
-                        key={style.id}
-                        type="button"
-                        onClick={() => {
-                          updateSetting('uiStyle', style.id);
-                          showNotification(`Style UI réglé sur "${style.name}"`);
-                        }}
-                        className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                          isSelected
-                            ? 'ring-2 border-purple-500 bg-purple-500/10'
-                            : isDark
-                            ? 'bg-zinc-950/40 border-zinc-800/80 hover:border-zinc-700'
-                            : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300'
-                        }`}
-                        style={isSelected ? { borderColor: activeAccentHex } : undefined}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                            isSelected ? 'bg-purple-500/20 text-purple-300' : 'bg-zinc-800 text-zinc-400'
-                          }`}>
-                            {style.tag}
-                          </span>
-                          {isSelected && <Check className="w-4 h-4 text-purple-400" style={{ color: activeAccentHex }} />}
-                        </div>
-                        <div>
-                          <span className="text-xs font-bold block">{style.name}</span>
-                          <span className={`text-[11px] block mt-1 ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                            {style.desc}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateMultipleSettings({
+                          uiStyle: 'syntropy',
+                          accentColor: settings.previousAccentColor || 'purple',
+                        });
+                        showNotification('Retour au style standard Syntropy Liquid Glass');
+                      }}
+                      className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white cursor-pointer transition-colors shadow-xs"
+                    >
+                      Revenir au style standard
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsSecretThemeModalOpen(true)}
+                      className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white cursor-pointer transition-colors shadow-xs"
+                    >
+                      Ouvrir le menu secret
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Mode Sombre / Clair / Auto */}
               <div className={`p-6 rounded-3xl border space-y-4 ${

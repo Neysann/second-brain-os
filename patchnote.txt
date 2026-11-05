@@ -2,6 +2,17 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.6.37] - 2026-11-05 (Isolement des Thèmes Secrets & Épuration de l'Apparence)
+--------------------------------------------------------------------------------
+1. Retrait des Directions Artistiques Spéciales du Menu Standard :
+- Les thèmes alternatifs « Cyberpunk HUD 2077 » et « Nothing OS » ont été retirés des réglages d'apparence standards afin de préserver une interface épurée, sobre et focalisée sur le Design System Syntropy Liquid Glass.
+- Ces thèmes restent exclusivement réservés et préservés dans le Laboratoire Secret des Thèmes, déverrouillable uniquement via le Konami Code fléché secret au clavier (Haut, Haut, Bas, Bas, Gauche, Droite, Gauche, Droite).
+
+2. Gestion Discrète du Statut de Thème Secret Actif :
+- Lorsqu'un utilisateur a activé Cyberpunk HUD ou Nothing OS depuis le laboratoire secret, un bandeau d'information discret s'affiche en tête des paramètres d'apparence.
+- Ce bandeau propose deux actions rapides : un bouton pour réinitialiser en un clic vers le style standard Syntropy Liquid Glass, et un bouton pour rouvrir directement la console du laboratoire secret.
+- En mode standard, aucun bloc superflu n'apparaît, garantissant une clarté visuelle absolue.
+
 #### [V2.6.36] - 2026-11-05 (Refonte Intégrale & Ergonomique du Menu des Paramètres)
 --------------------------------------------------------------------------------
 1. Nouvelle Navigation Latérale Verticale (Sidebar Gauche) :
