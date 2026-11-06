@@ -2,6 +2,24 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.7.1] - 2026-11-06 (Refonte Visuelle Apple / BoringNotch & Fiabilisation 100 % des Clics de la Dynamic Island)
+--------------------------------------------------------------------------------
+1. Correction Définitive des Clics sur les Icônes & Hit-Testing Natif Main Process (`electron/island-manager.js`, `electron/preload.js`) :
+- Remplacement du basculement asynchrone `onMouseEnter`/`onMouseLeave` (qui causait des pertes de clics pendant les animations d'ouverture et sur les bordures) par un moteur de hit-testing natif dans le Main Process Electron interrogeant `screen.getCursorScreenPoint()` à 40 Hz dès que la Notch est visible.
+- Synchronisation dynamique de la boîte de collision exacte (`set-island-hitbox` : `108×31` au repos, `252×34` en lecture média, `452×248` ouverte) avec verrouillage immédiat de `setIgnoreMouseEvents(false)` avant le clic et délai de grâce anti-sortie accidentelle de 170 ms.
+- Suppression du `onBlur -> setFocusable(false)` prématuré sur le champ Quick-Capture qui annulait les clics sur les boutons d'action (`+`, priorité, micro) immédiatement après la saisie clavier.
+- Remplacement de la liste déroulante système `<select>` (incompatible avec les fenêtres `screen-saver` non-focusables sous Windows) par un bouton de permutation directe des lecteurs audio (`Spotify ↻`).
+
+2. Refonte Esthétique Minimaliste Style Apple / BoringNotch (`src/components/island/*`) :
+- Suppression totale du texte « Syntropy » et des compteurs surchargés sur la Notch fermée : au repos, la Notch affiche uniquement un point lumineux discret et l'heure tabulaire (`09:20`) dans un format ultra-compact (`108 px`).
+- En lecture musicale, affichage épuré avec mini-pochette haute définition, titre et véritable égaliseur animé à 60 FPS (`@keyframes notchEq`).
+- Panneau ouvert repensé en noir profond uni (`#000000` / `#060608`) avec liseré interne subtil, suppression complète du pied de page encombré (barre CPU/RAM et mentions texte retirées) et navigation supérieure par icônes pures bien espacées (`w-9 h-7`).
+- Recentrage sur les 4 modules essentiels : 🎵 Lecteur Média & Paroles, ✅ Tâches & Saisie Express, 📥 Presse-papiers & Dropzone, 🔥 Habitudes & Lecture (retrait de l'onglet Pomodoro/Agenda de la Notch).
+
+3. Corrections du Pont Multimédia SMTC & Presse-papiers (`electron/island-native.js`, `electron/island-manager.js`) :
+- Normalisation des statuts de lecture WinRT (`Playing` -> `'playing'`, `Paused` -> `'paused'`) et de l'indicateur `hasSession`, ainsi que du formatage lisible des applications sources (`Spotify`, `Chrome`, `Edge`, `Apple Music`, `VLC`).
+- Alignement complet des structures d'entrées du presse-papiers (`id`, `kind`, `text`, `pinned`, `copiedAt`) et des canaux IPC entre `preload.js`, `island-manager.js` et `DynamicIsland.tsx`.
+
 #### [V2.7.0] - 2026-11-05 (Dynamic Island Desktop pour Windows — Nusa × Windows Dynamic Island × Syntropy OS)
 --------------------------------------------------------------------------------
 1. Architecture Native Multi-Fenêtres & Visibilité Intelligente (`electron/island-manager.js`, `electron/main.js`) :

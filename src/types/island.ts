@@ -1,7 +1,7 @@
 export type IslandStyle = 'pill' | 'notch';
 export type IslandTrigger = 'hover' | 'click';
 export type IslandShortcutTarget = 'island' | 'classic-window';
-export type IslandTab = 'media' | 'tasks' | 'focus' | 'habits' | 'shelf';
+export type IslandTab = 'media' | 'tasks' | 'shelf' | 'habits';
 
 export interface DesktopConfig {
   closeToTray?: boolean;
@@ -20,7 +20,6 @@ export interface DesktopConfig {
   dynamicIslandShortcutTarget?: IslandShortcutTarget;
   dynamicIslandDefaultTab?: IslandTab;
   dynamicIslandClipboardHistory?: boolean;
-  dynamicIslandSystemStats?: boolean;
 }
 
 export interface SMTCMediaSession {
@@ -70,13 +69,6 @@ export interface ClipboardEntry {
   kind: 'text' | 'link' | 'code';
   pinned: boolean;
   copiedAt: string;
-}
-
-export interface SystemStats {
-  cpuPercent: number;
-  ramPercent: number;
-  ramUsedGb: number;
-  ramTotalGb: number;
 }
 
 export interface PomodoroSyncState {

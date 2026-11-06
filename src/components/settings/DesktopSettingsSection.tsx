@@ -86,15 +86,14 @@ export default function DesktopSettingsSection({
   const [autoBackupInterval, setAutoBackupInterval] = useState<'disabled' | 'on_close' | 'daily'>('disabled');
   const [isExportingLocal, setIsExportingLocal] = useState(false);
 
-  // 6. Dynamic Island Desktop (Nusa × Windows Dynamic Island × Syntropy)
+  // 6. Dynamic Island Desktop
   const [dynamicIslandEnabled, setDynamicIslandEnabled] = useState(false);
-  const [dynamicIslandStyle, setDynamicIslandStyle] = useState<'pill' | 'notch'>('pill');
+  const [dynamicIslandStyle, setDynamicIslandStyle] = useState<'pill' | 'notch'>('notch');
   const [dynamicIslandTrigger, setDynamicIslandTrigger] = useState<'hover' | 'click'>('hover');
   const [dynamicIslandAutoHideFullscreen, setDynamicIslandAutoHideFullscreen] = useState(true);
   const [dynamicIslandShortcutTarget, setDynamicIslandShortcutTarget] = useState<'island' | 'classic-window'>('island');
-  const [dynamicIslandDefaultTab, setDynamicIslandDefaultTab] = useState<'media' | 'tasks' | 'focus' | 'habits' | 'shelf'>('media');
+  const [dynamicIslandDefaultTab, setDynamicIslandDefaultTab] = useState<'media' | 'tasks' | 'habits' | 'shelf'>('media');
   const [dynamicIslandClipboardHistory, setDynamicIslandClipboardHistory] = useState(true);
-  const [dynamicIslandSystemStats, setDynamicIslandSystemStats] = useState(true);
 
   // Chargement initial des préférences natives Desktop
   useEffect(() => {
@@ -154,14 +153,14 @@ export default function DesktopSettingsSection({
                 ) {
                   setDynamicIslandShortcutTarget(cfg.dynamicIslandShortcutTarget);
                 }
-                if (cfg.dynamicIslandDefaultTab) {
+                if (
+                  cfg.dynamicIslandDefaultTab &&
+                  ['media', 'tasks', 'shelf', 'habits'].includes(cfg.dynamicIslandDefaultTab)
+                ) {
                   setDynamicIslandDefaultTab(cfg.dynamicIslandDefaultTab);
                 }
                 if (typeof cfg.dynamicIslandClipboardHistory === 'boolean') {
                   setDynamicIslandClipboardHistory(cfg.dynamicIslandClipboardHistory);
-                }
-                if (typeof cfg.dynamicIslandSystemStats === 'boolean') {
-                  setDynamicIslandSystemStats(cfg.dynamicIslandSystemStats);
                 }
 
                 if (cfg.shortcut) {
@@ -735,11 +734,10 @@ export default function DesktopSettingsSection({
                     : 'bg-white border-zinc-300 text-zinc-800'
                 }`}
               >
-                <option value="media">🎵 Média Live & Paroles</option>
-                <option value="tasks">✅ Tâches & Quick-Capture</option>
-                <option value="focus">⏱️ Focus Pomodoro & Agenda</option>
+                <option value="media">🎵 Lecteur Média & Paroles</option>
+                <option value="tasks">✅ Tâches & Capture Rapide</option>
+                <option value="shelf">📥 Presse-papiers & Dropzone</option>
                 <option value="habits">🔥 Habitudes & Lecture</option>
-                <option value="shelf">📥 Dropzone Shelf & Presse-papiers</option>
               </select>
             </div>
           </div>
@@ -806,11 +804,11 @@ export default function DesktopSettingsSection({
             </div>
           </div>
 
-          {/* Presse-papiers intelligent & Télémétrie CPU/RAM */}
+          {/* Presse-papiers intelligent */}
           <div
             className={`p-3.5 rounded-xl border ${
               isDark ? 'bg-zinc-950/50 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
-            } space-y-2.5`}
+            } flex flex-col justify-center`}
           >
             <div className="flex items-center justify-between gap-2">
               <div>
@@ -818,7 +816,7 @@ export default function DesktopSettingsSection({
                   Historique Presse-papiers (20 éléments)
                 </div>
                 <div className="text-[10px] text-zinc-500">
-                  Mémorise textes, liens et extraits de code en mémoire vive
+                  Mémorise textes, liens et extraits de code en mémoire vive pour copie rapide en 1 clic
                 </div>
               </div>
               <button
@@ -830,34 +828,6 @@ export default function DesktopSettingsSection({
                 }}
                 className={`w-10 h-5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer flex-shrink-0 ${
                   dynamicIslandClipboardHistory
-                    ? 'bg-purple-600 justify-end'
-                    : isDark
-                    ? 'bg-zinc-800 justify-start'
-                    : 'bg-zinc-300 justify-start'
-                }`}
-              >
-                <div className="w-4 h-4 rounded-full bg-white shadow" />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between gap-2 pt-1">
-              <div>
-                <div className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
-                  Moniteur Système CPU & RAM
-                </div>
-                <div className="text-[10px] text-zinc-500">
-                  Affiche la charge processeur et mémoire en bas de l&apos;Island
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={async () => {
-                  const next = !dynamicIslandSystemStats;
-                  setDynamicIslandSystemStats(next);
-                  await updateDesktopConfig({ dynamicIslandSystemStats: next });
-                }}
-                className={`w-10 h-5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer flex-shrink-0 ${
-                  dynamicIslandSystemStats
                     ? 'bg-purple-600 justify-end'
                     : isDark
                     ? 'bg-zinc-800 justify-start'

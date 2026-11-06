@@ -8,10 +8,6 @@ import {
   Check,
   Mic,
   MicOff,
-  ExternalLink,
-  Flame,
-  Calendar,
-  Send,
 } from 'lucide-react';
 import { Task, TaskPriority } from '@/types';
 import { useData } from '@/context/DataContext';
@@ -33,9 +29,7 @@ export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
 
   const [captureMode, setCaptureMode] = useState<'task' | 'note'>('task');
   const [title, setTitle] = useState('');
-  const [noteContent, setNoteContent] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('high');
-  const [dueDate, setDueDate] = useState<string>('');
   const [isListening, setIsListening] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
 
@@ -44,7 +38,6 @@ export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
 
   const todayStr = new Date().toISOString().split('T')[0];
 
-  // Tri des tâches prioritaires non terminées
   const priorityTasks = React.useMemo(() => {
     const weight: Record<TaskPriority, number> = {
       urgent: 4,
@@ -62,36 +55,24 @@ export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
         if (pw !== 0) return pw;
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       })
-      .slice(0, 4);
+      .slice(0, 3);
   }, [tasks, todayStr]);
 
-  // Activation du focus clavier Electron lorsque autoFocusCapture est demandé (Alt+Espace)
   useEffect(() => {
     if (autoFocusCapture) {
       activateInputFocus();
     }
   }, [autoFocusCapture]);
 
-  const activateInputFocus = async () => {
+  const activateInputFocus = () => {
     onCaptureActiveChange(true);
     const electron = (window as any).electronAPI;
-    if (electron?.setIslandFocusable) {
-      await electron.setIslandFocusable(true);
-    }
+    electron?.setIslandFocusable?.(true);
     setTimeout(() => {
       inputRef.current?.focus();
-    }, 40);
+    }, 30);
   };
 
-  const releaseInputFocus = async () => {
-    onCaptureActiveChange(false);
-    const electron = (window as any).electronAPI;
-    if (electron?.setIslandFocusable) {
-      await electron.setIslandFocusable(false);
-    }
-  };
-
-  // Initialisation Web Speech API
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const SpeechRecognition =
@@ -116,7 +97,8 @@ export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
     }
   }, []);
 
-  const toggleDictation = () => {
+  const toggleDictation = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!recognitionRef.current) return;
     if (isListening) {
       recognitionRef.current.stop();
@@ -127,6 +109,13 @@ export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
         setIsListening(true);
       } catch {}
     }
+  };
+
+  const cyclePriority = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const order: TaskPriority[] = ['medium', 'high', 'urgent'];
+    const idx = order.indexOf(priority);
+    setPriority(order[(idx + 1) % order.length]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,191 +129,158 @@ export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
         status: 'todo',
         priority,
         category: 'project',
-        dueDate: dueDate || todayStr,
-        tags: ['dynamic-island'],
+        dueDate: todayStr,
+        tags: ['notch'],
       });
     } else {
       await addNote({
         title: trimmed,
-        content: noteContent.trim() ? `# ${trimmed}\n\n${noteContent.trim()}` : `# ${trimmed}\n\n`,
+        content: `# ${trimmed}\n\n`,
         category: 'resource',
-        tags: ['dynamic-island', 'note-rapide'],
+        tags: ['notch'],
         isPinned: false,
       });
     }
 
     setTitle('');
-    setNoteContent('');
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 1200);
-    await releaseInputFocus();
+    onCaptureActiveChange(false);
   };
 
-  const handleKeyDown = async (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       e.preventDefault();
-      await releaseInputFocus();
+      onCaptureActiveChange(false);
       const electron = (window as any).electronAPI;
-      if (electron?.islandCaptureClosed) {
-        await electron.islandCaptureClosed();
-      }
+      electron?.islandCaptureClosed?.();
       onCloseIsland();
     }
   };
 
-  const openTasksInApp = () => {
-    const electron = (window as any).electronAPI;
-    if (electron?.openMainAppRoute) {
-      electron.openMainAppRoute(captureMode === 'note' ? '/notes' : '/tasks');
-    }
-  };
+  const priorityMeta =
+    priority === 'urgent'
+      ? { label: 'Urgent', dot: '#f43f5e' }
+      : priority === 'high'
+      ? { label: 'Haute', dot: '#f59e0b' }
+      : { label: 'Normale', dot: '#a1a1aa' };
 
   return (
     <div
-      className="flex flex-col justify-between h-[215px] px-3.5 py-2 select-none"
+      className="flex flex-col justify-between h-full px-5 pb-3.5 pt-1 select-none"
       onKeyDown={handleKeyDown}
     >
-      {/* Barre Quick-Capture : sélecteur Tâche / Note + Champ rapide */}
-      <form onSubmit={handleSubmit} className="space-y-1.5">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1 bg-white/5 p-0.5 rounded-lg border border-white/10">
-            <button
-              type="button"
-              onClick={() => setCaptureMode('task')}
-              className={`px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                captureMode === 'task'
-                  ? 'bg-white text-black shadow-xs'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              <CheckSquare className="w-3 h-3" />
-              <span>Tâche</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setCaptureMode('note')}
-              className={`px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                captureMode === 'note'
-                  ? 'bg-white text-black shadow-xs'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              <FileText className="w-3 h-3" />
-              <span>Note</span>
-            </button>
-          </div>
-
-          {captureMode === 'task' ? (
-            <div className="flex items-center gap-1">
-              {(['medium', 'high', 'urgent'] as TaskPriority[]).map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setPriority(p)}
-                  className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase transition-all cursor-pointer border ${
-                    priority === p
-                      ? p === 'urgent'
-                        ? 'bg-rose-500/30 border-rose-500 text-rose-200'
-                        : p === 'high'
-                        ? 'bg-amber-500/30 border-amber-500 text-amber-200'
-                        : 'bg-purple-500/30 border-purple-500 text-purple-200'
-                      : 'bg-white/5 border-transparent text-zinc-500 hover:text-zinc-300'
-                  }`}
-                >
-                  {p === 'urgent' ? 'Urgent' : p === 'high' ? 'Haute' : 'Normale'}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={openTasksInApp}
-              className="text-[10px] text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer"
-            >
-              <span>Ouvrir Notes</span>
-              <ExternalLink className="w-2.5 h-2.5" />
-            </button>
-          )}
-        </div>
-
-        {/* Champ de saisie Quick-Capture */}
+      {/* Barre de capture minimaliste */}
+      <form onSubmit={handleSubmit} className="space-y-2">
         <div className="flex items-center gap-1.5">
+          {/* Bascule Tâche / Note */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setCaptureMode((m) => (m === 'task' ? 'note' : 'task'));
+            }}
+            className="h-9 px-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-xs font-medium text-zinc-200 flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer flex-shrink-0"
+            title="Basculer entre Tâche et Note"
+          >
+            {captureMode === 'task' ? (
+              <CheckSquare className="w-3.5 h-3.5 text-zinc-300" />
+            ) : (
+              <FileText className="w-3.5 h-3.5 text-zinc-300" />
+            )}
+            <span>{captureMode === 'task' ? 'Tâche' : 'Note'}</span>
+          </button>
+
+          {/* Champ de saisie épuré */}
           <div className="relative flex-1">
             <input
               ref={inputRef}
               type="text"
               value={title}
+              onMouseDown={activateInputFocus}
               onFocus={activateInputFocus}
-              onBlur={() => {
-                setTimeout(() => releaseInputFocus(), 150);
-              }}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={
                 captureMode === 'task'
-                  ? 'Nouvelle tâche rapide (Entrée pour ajouter)...'
-                  : 'Titre de la note rapide (Entrée pour créer)...'
+                  ? 'Ajouter une tâche...'
+                  : 'Créer une note rapide...'
               }
-              className="w-full bg-white/8 hover:bg-white/10 focus:bg-black/60 border border-white/15 focus:border-white/40 rounded-xl px-3 py-1.5 text-xs text-white placeholder:text-zinc-500 outline-none transition-all"
+              className="w-full h-9 bg-white/[0.06] hover:bg-white/[0.09] focus:bg-white/[0.11] rounded-xl pl-3 pr-14 text-xs text-white placeholder:text-zinc-500 outline-none transition-all"
             />
+            {captureMode === 'task' && (
+              <button
+                type="button"
+                onClick={cyclePriority}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-6 px-2 rounded-lg bg-black/40 hover:bg-black/70 text-[10px] font-medium text-zinc-300 flex items-center gap-1 cursor-pointer transition-colors"
+                title="Changer la priorité"
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ backgroundColor: priorityMeta.dot }}
+                />
+                <span>{priorityMeta.label}</span>
+              </button>
+            )}
           </div>
 
           <button
             type="button"
             onClick={toggleDictation}
-            className={`p-1.5 rounded-xl border transition-all cursor-pointer ${
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-95 cursor-pointer flex-shrink-0 ${
               isListening
-                ? 'bg-rose-500/25 border-rose-500 text-rose-300 animate-pulse'
-                : 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-400 hover:text-white'
+                ? 'bg-rose-500/25 text-rose-300 animate-pulse'
+                : 'bg-white/[0.06] hover:bg-white/[0.12] text-zinc-400 hover:text-white'
             }`}
             title="Dictée vocale"
           >
-            {isListening ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
+            {isListening ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
           </button>
 
           <button
             type="submit"
-            disabled={!title.trim()}
-            className="px-2.5 py-1.5 rounded-xl text-xs font-bold text-black bg-white hover:bg-zinc-200 disabled:opacity-40 transition-all flex items-center gap-1 cursor-pointer"
+            disabled={!title.trim() && !justSaved}
+            className="w-9 h-9 rounded-xl bg-white hover:bg-zinc-200 disabled:opacity-30 text-black flex items-center justify-center transition-all active:scale-95 cursor-pointer flex-shrink-0"
+            title="Valider"
           >
-            {justSaved ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Plus className="w-3.5 h-3.5" />}
+            {justSaved ? (
+              <Check className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
+            ) : (
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+            )}
           </button>
         </div>
       </form>
 
-      {/* Liste des tâches prioritaires */}
-      <div className="flex-1 mt-2 overflow-y-auto space-y-1 pr-0.5">
-        <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1">
-          <span>À faire en priorité ({priorityTasks.length})</span>
-          <button
-            type="button"
-            onClick={openTasksInApp}
-            className="text-[10px] font-semibold text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer normal-case"
-          >
-            <span>Tout voir</span>
-            <ExternalLink className="w-2.5 h-2.5" />
-          </button>
-        </div>
-
+      {/* Liste épurée des 3 tâches prioritaires */}
+      <div className="flex-1 mt-2.5 space-y-1.5 overflow-y-auto scrollbar-none">
         {priorityTasks.length === 0 ? (
-          <div className="flex items-center justify-center h-[88px] text-[11px] text-zinc-500">
-            🎉 Toutes vos tâches prioritaires sont terminées !
+          <div className="flex items-center justify-center h-full text-xs text-zinc-500">
+            Aucune tâche en attente
           </div>
         ) : (
           priorityTasks.map((task: Task) => {
-            const isUrgent = task.priority === 'urgent';
-            const isHigh = task.priority === 'high';
+            const dotColor =
+              task.priority === 'urgent'
+                ? '#f43f5e'
+                : task.priority === 'high'
+                ? '#f59e0b'
+                : 'transparent';
             return (
-              <div
+              <button
                 key={task.id}
-                onClick={() => toggleTaskStatus(task.id)}
-                className="group flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.09] border border-white/[0.06] transition-all cursor-pointer"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleTaskStatus(task.id);
+                }}
+                className="w-full h-9 px-3 rounded-xl bg-white/[0.035] hover:bg-white/[0.08] flex items-center justify-between gap-2.5 text-left transition-all active:scale-[0.99] cursor-pointer group"
               >
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2.5 min-w-0">
                   <div
-                    className="w-4 h-4 rounded-md border border-white/25 group-hover:border-white flex items-center justify-center transition-colors flex-shrink-0"
+                    className="w-4 h-4 rounded-full border border-zinc-600 group-hover:border-white flex items-center justify-center transition-colors flex-shrink-0"
                     style={
                       task.status === 'in_progress'
-                        ? { borderColor: accentHex, backgroundColor: `${accentHex}33` }
+                        ? { borderColor: accentHex, backgroundColor: `${accentHex}30` }
                         : undefined
                     }
                   >
@@ -332,31 +288,18 @@ export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
                       <span className="w-1.5 h-1.5 rounded-full bg-white" />
                     )}
                   </div>
-                  <span className="text-xs font-medium text-zinc-200 group-hover:text-white truncate">
+                  <span className="text-[12.5px] font-medium text-zinc-200 group-hover:text-white truncate">
                     {task.title}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  {task.dueDate && (
-                    <span className="text-[9px] font-mono text-zinc-400 flex items-center gap-0.5">
-                      <Calendar className="w-2.5 h-2.5" />
-                      {task.dueDate === todayStr ? "Auj." : task.dueDate.slice(5)}
-                    </span>
-                  )}
-                  {(isUrgent || isHigh) && (
-                    <span
-                      className={`px-1.5 py-0.2 rounded text-[9px] font-bold uppercase ${
-                        isUrgent
-                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                      }`}
-                    >
-                      {isUrgent ? 'Urgent' : 'Haute'}
-                    </span>
-                  )}
-                </div>
-              </div>
+                {dotColor !== 'transparent' && (
+                  <span
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: dotColor }}
+                  />
+                )}
+              </button>
             );
           })
         )}

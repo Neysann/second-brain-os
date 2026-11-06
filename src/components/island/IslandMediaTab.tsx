@@ -9,8 +9,7 @@ import {
   SkipForward,
   Mic2,
   Disc3,
-  Radio,
-  Volume2,
+  RefreshCw,
 } from 'lucide-react';
 import { SMTCMediaInfo, SyncedLyricLine } from '@/types/island';
 
@@ -20,8 +19,6 @@ interface IslandMediaTabProps {
   onControl: (action: 'play' | 'pause' | 'toggle' | 'next' | 'previous') => void;
   onSelectSession: (appId: string) => void;
   fallbackArtwork: string | null;
-  isNothing?: boolean;
-  isCyberpunk?: boolean;
 }
 
 function parseLrc(lrc: string): SyncedLyricLine[] {
@@ -62,8 +59,6 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
   onControl,
   onSelectSession,
   fallbackArtwork,
-  isNothing,
-  isCyberpunk,
 }) => {
   const [showLyrics, setShowLyrics] = useState(false);
   const [lyrics, setLyrics] = useState<SyncedLyricLine[]>([]);
@@ -77,7 +72,6 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
   const isPlaying = media?.status === 'playing';
   const artworkUrl = media?.thumbnailBase64 || fallbackArtwork || null;
 
-  // Synchronise la position locale avec interpolation fluide toutes les 250ms
   useEffect(() => {
     if (typeof media?.positionMs === 'number') {
       setLocalPosMs(media.positionMs);
@@ -139,7 +133,6 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
           }
         }
       } catch {
-        // Ignorer les erreurs réseau LRCLIB
       } finally {
         if (!cancelled) setLyricsLoading(false);
       }
@@ -170,108 +163,100 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
     }
   }, [activeLyricIndex, showLyrics]);
 
+  const handleCycleSession = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const sessions = media?.sessions || [];
+    if (sessions.length <= 1) return;
+    const curIdx = sessions.findIndex((s) => s.id === media?.appId);
+    const next = sessions[(curIdx + 1) % sessions.length];
+    if (next) onSelectSession(next.id);
+  };
+
+  const currentSourceLabel =
+    media?.sessions?.find((s) => s.id === media.appId)?.label ||
+    media?.sessions?.[0]?.label ||
+    'Média';
+
   const durationMs = media?.durationMs || 0;
   const progressPct =
     durationMs > 0 ? Math.min(100, Math.max(0, (localPosMs / durationMs) * 100)) : 0;
 
   if (!hasMedia) {
     return (
-      <div className="flex flex-col items-center justify-center h-[210px] text-center px-4 select-none">
-        <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-3 text-zinc-400">
-          <Disc3 className="w-6 h-6 animate-spin" style={{ animationDuration: '8s' }} />
+      <div className="flex flex-col items-center justify-center h-full text-center px-6 select-none">
+        <div className="w-11 h-11 rounded-2xl bg-white/[0.05] flex items-center justify-center mb-2.5 text-zinc-500">
+          <Disc3 className="w-5 h-5" />
         </div>
-        <p className="text-xs font-bold text-zinc-200">Aucune lecture multimédia détectée</p>
-        <p className="text-[11px] text-zinc-500 mt-1 max-w-xs">
-          Lancez un titre sur Spotify, Apple Music, YouTube, Deezer ou VLC pour contrôler votre musique en direct.
+        <p className="text-[13px] font-medium text-zinc-300">Aucune lecture en cours</p>
+        <p className="text-[11px] text-zinc-500 mt-0.5">
+          Lancez un titre sur Spotify, YouTube ou Apple Music
         </p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col justify-between h-[215px] px-3.5 py-2.5 select-none">
-      {/* Barre supérieure : sélecteur de source SMTC + bouton Paroles */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <span
-            className="w-2 h-2 rounded-full flex-shrink-0 animate-pulse"
-            style={{ backgroundColor: dominantColor }}
-          />
-          {media?.sessions && media.sessions.length > 1 ? (
-            <select
-              value={media.appId || ''}
-              onChange={(e) => onSelectSession(e.target.value)}
-              className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-2 py-0.5 text-[10px] font-semibold text-zinc-200 outline-none cursor-pointer truncate max-w-[180px]"
-            >
-              {media.sessions.map((s) => (
-                <option key={s.id} value={s.id} className="bg-zinc-900 text-zinc-100">
-                  {s.label} {s.status === 'playing' ? '▶' : ''}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 truncate flex items-center gap-1">
-              <Radio className="w-3 h-3 text-zinc-400" />
-              <span>{media?.sessions?.[0]?.label || 'Windows Media'}</span>
-            </span>
-          )}
-        </div>
+    <div className="relative flex flex-col justify-between h-full px-5 pb-4 pt-1 select-none overflow-hidden">
+      {/* Halo ambiant subtil derrière la pochette (style Apple Music / BoringNotch) */}
+      <div
+        className="pointer-events-none absolute -left-6 top-2 w-32 h-32 rounded-full opacity-20 blur-2xl transition-colors duration-700"
+        style={{ backgroundColor: dominantColor }}
+      />
 
-        <button
-          type="button"
-          onClick={() => setShowLyrics((v) => !v)}
-          className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer border ${
-            showLyrics
-              ? 'bg-white text-black border-white shadow-sm'
-              : 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'
-          }`}
-        >
-          <Mic2 className="w-3 h-3" />
-          <span>Paroles</span>
-        </button>
-      </div>
-
-      {/* Corps central : Pochette + Infos OU Paroles Synchronisées */}
       {showLyrics ? (
-        <div className="my-1.5 h-[108px] overflow-y-auto rounded-xl bg-black/40 border border-white/10 px-3 py-2 space-y-1.5 scrollbar-thin">
-          {lyricsLoading ? (
-            <div className="flex items-center justify-center h-full text-[11px] text-zinc-400 animate-pulse">
-              Recherche des paroles synchronisées (LRCLIB)...
-            </div>
-          ) : lyrics.length > 0 ? (
-            lyrics.map((line, i) => {
-              const isCurrent = i === activeLyricIndex;
-              return (
-                <div
-                  key={`${line.timeMs}-${i}`}
-                  ref={isCurrent ? activeLyricRef : null}
-                  className={`text-xs transition-all duration-300 leading-snug ${
-                    isCurrent
-                      ? 'text-white font-extrabold scale-[1.02] origin-left'
-                      : i < activeLyricIndex
-                      ? 'text-zinc-500 font-medium'
-                      : 'text-zinc-400 font-medium'
-                  }`}
-                  style={isCurrent ? { textShadow: `0 0 12px ${dominantColor}` } : undefined}
-                >
-                  {line.text}
-                </div>
-              );
-            })
-          ) : plainLyrics ? (
-            <div className="text-[11px] text-zinc-300 whitespace-pre-line leading-relaxed">
-              {plainLyrics}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full text-[11px] text-zinc-500">
-              Aucune parole synchronisée trouvée pour ce titre.
-            </div>
-          )}
+        <div className="relative z-10 flex flex-col h-[112px]">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-medium text-zinc-400 truncate max-w-[280px]">
+              {media?.title} — {media?.artist}
+            </span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowLyrics(false);
+              }}
+              className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white text-black cursor-pointer transition-transform active:scale-95"
+            >
+              Pochette
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto pr-1 space-y-1.5 scrollbar-none">
+            {lyricsLoading ? (
+              <div className="flex items-center justify-center h-full text-xs text-zinc-500">
+                Chargement des paroles...
+              </div>
+            ) : lyrics.length > 0 ? (
+              lyrics.map((line, i) => {
+                const isCurrent = i === activeLyricIndex;
+                return (
+                  <div
+                    key={`${line.timeMs}-${i}`}
+                    ref={isCurrent ? activeLyricRef : null}
+                    className={`transition-all duration-300 leading-snug ${
+                      isCurrent
+                        ? 'text-[13px] text-white font-semibold'
+                        : 'text-xs text-zinc-600 font-medium'
+                    }`}
+                  >
+                    {line.text}
+                  </div>
+                );
+              })
+            ) : plainLyrics ? (
+              <div className="text-xs text-zinc-400 whitespace-pre-line leading-relaxed">
+                {plainLyrics}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-full text-xs text-zinc-500">
+                Paroles indisponibles pour ce titre
+              </div>
+            )}
+          </div>
         </div>
       ) : (
-        <div className="flex items-center gap-3.5 my-1">
-          {/* Pochette d'album avec halo dynamique */}
-          <div className="relative w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 border border-white/15 shadow-lg bg-zinc-900">
+        <div className="relative z-10 flex items-center gap-4">
+          {/* Pochette haute définition */}
+          <div className="w-[74px] h-[74px] rounded-2xl overflow-hidden flex-shrink-0 bg-zinc-900 shadow-lg ring-1 ring-white/10">
             {artworkUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -283,108 +268,113 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
               <div
                 className="w-full h-full flex items-center justify-center"
                 style={{
-                  background: `radial-gradient(circle at 30% 30%, ${dominantColor}, #18181b)`,
+                  background: `linear-gradient(135deg, ${dominantColor}, #18181b)`,
                 }}
               >
-                <Music className="w-8 h-8 text-white/80" />
+                <Music className="w-7 h-7 text-white/85" />
               </div>
             )}
           </div>
 
-          {/* Titre, Artiste, Album & Visualizer */}
+          {/* Métadonnées épurées */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-extrabold text-white truncate leading-tight">
+              <h3 className="text-[15px] font-semibold text-white tracking-tight truncate">
                 {media?.title}
               </h3>
-              {/* Égaliseur animé */}
-              <div className="flex items-end gap-[2.5px] h-3.5 flex-shrink-0">
-                {[0, 1, 2, 3].map((bar) => (
-                  <span
-                    key={bar}
-                    className="w-[3px] rounded-full transition-all duration-300"
-                    style={{
-                      backgroundColor: isNothing
-                        ? '#D71920'
-                        : isCyberpunk
-                        ? '#FCEE0A'
-                        : dominantColor,
-                      height: isPlaying ? `${[75, 100, 55, 90][bar]}%` : '25%',
-                      animation: isPlaying
-                        ? `pulse ${0.6 + bar * 0.15}s ease-in-out infinite alternate`
-                        : 'none',
-                    }}
-                  />
-                ))}
+
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {media?.sessions && media.sessions.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={handleCycleSession}
+                    className="h-6 px-2 rounded-full bg-white/[0.07] hover:bg-white/[0.14] text-[10px] font-medium text-zinc-300 flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
+                    title="Changer de lecteur audio"
+                  >
+                    <span>{currentSourceLabel}</span>
+                    <RefreshCw className="w-2.5 h-2.5 opacity-70" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowLyrics(true);
+                  }}
+                  className="w-7 h-7 rounded-full bg-white/[0.07] hover:bg-white/[0.15] text-zinc-300 hover:text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                  title="Paroles synchronisées"
+                >
+                  <Mic2 className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
 
-            <p className="text-xs font-semibold text-zinc-300 truncate mt-0.5">
-              {media?.artist || 'Artiste inconnu'}
+            <p className="text-[12.5px] text-zinc-400 truncate mt-0.5">
+              {media?.artist || currentSourceLabel}
             </p>
             {media?.albumTitle && (
-              <p className="text-[10px] text-zinc-500 truncate mt-0.5">{media.albumTitle}</p>
+              <p className="text-[11px] text-zinc-600 truncate mt-0.5">{media.albumTitle}</p>
             )}
           </div>
         </div>
       )}
 
-      {/* Barre de progression + Contrôles Multimédia */}
-      <div className="space-y-1.5">
-        {durationMs > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-[9px] font-mono text-zinc-400 w-7 text-right">
-              {formatMs(localPosMs)}
-            </span>
-            <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-300"
-                style={{
-                  width: `${progressPct}%`,
-                  backgroundColor: isNothing
-                    ? '#D71920'
-                    : isCyberpunk
-                    ? '#FCEE0A'
-                    : dominantColor,
-                }}
-              />
-            </div>
-            <span className="text-[9px] font-mono text-zinc-400 w-7">
-              {formatMs(durationMs)}
-            </span>
+      {/* Timeline + Grands Contrôles Apple Music */}
+      <div className="relative z-10 space-y-2 pt-1">
+        <div className="flex items-center gap-2.5">
+          <span className="text-[10px] font-medium text-zinc-500 tabular-nums w-7 text-right">
+            {durationMs > 0 ? formatMs(localPosMs) : '--:--'}
+          </span>
+          <div className="flex-1 h-[4px] rounded-full bg-white/[0.12] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-white/90 transition-all duration-300"
+              style={{ width: `${durationMs > 0 ? progressPct : isPlaying ? 100 : 0}%` }}
+            />
           </div>
-        )}
+          <span className="text-[10px] font-medium text-zinc-500 tabular-nums w-7">
+            {durationMs > 0 ? formatMs(durationMs) : '--:--'}
+          </span>
+        </div>
 
-        <div className="flex items-center justify-center gap-5 pt-0.5">
+        <div className="flex items-center justify-center gap-6">
           <button
             type="button"
-            onClick={() => onControl('previous')}
-            className="p-1.5 rounded-full text-zinc-300 hover:text-white hover:bg-white/10 transition-all active:scale-90 cursor-pointer"
-            title="Titre précédent"
+            onClick={(e) => {
+              e.stopPropagation();
+              onControl('previous');
+            }}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all active:scale-90 cursor-pointer"
+            title="Précédent"
           >
-            <SkipBack className="w-4 h-4 fill-current" />
+            <SkipBack className="w-[18px] h-[18px] fill-current" />
           </button>
 
           <button
             type="button"
-            onClick={() => onControl('toggle')}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-black bg-white hover:bg-zinc-200 transition-all active:scale-95 shadow-md cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              onControl('toggle');
+            }}
+            className="w-10 h-10 rounded-full flex items-center justify-center bg-white text-black hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer"
             title={isPlaying ? 'Pause' : 'Lecture'}
           >
             {isPlaying ? (
-              <Pause className="w-4 h-4 fill-current" />
+              <Pause className="w-[18px] h-[18px] fill-current" />
             ) : (
-              <Play className="w-4 h-4 ml-0.5 fill-current" />
+              <Play className="w-[18px] h-[18px] ml-0.5 fill-current" />
             )}
           </button>
 
           <button
             type="button"
-            onClick={() => onControl('next')}
-            className="p-1.5 rounded-full text-zinc-300 hover:text-white hover:bg-white/10 transition-all active:scale-90 cursor-pointer"
-            title="Titre suivant"
+            onClick={(e) => {
+              e.stopPropagation();
+              onControl('next');
+            }}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all active:scale-90 cursor-pointer"
+            title="Suivant"
           >
-            <SkipForward className="w-4 h-4 fill-current" />
+            <SkipForward className="w-[18px] h-[18px] fill-current" />
           </button>
         </div>
       </div>

@@ -14,7 +14,6 @@ import {
   Image as ImageIcon,
   File as FileIcon,
   Check,
-  Sparkles,
 } from 'lucide-react';
 import { ShelfItem, ClipboardEntry } from '@/types/island';
 import { NoteAttachment } from '@/types';
@@ -27,11 +26,10 @@ interface IslandShelfClipboardTabProps {
   onClearShelf: () => void;
   clipboardHistory: ClipboardEntry[];
   clipboardEnabled: boolean;
-  onCopyClipboard: (text: string) => void;
+  onCopyClipboard: (idOrText: string) => void;
   onPinClipboard: (id: string) => void;
   onDeleteClipboard: (id: string) => void;
   onClearClipboard: () => void;
-  accentHex: string;
 }
 
 export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = ({
@@ -44,16 +42,16 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
   onPinClipboard,
   onDeleteClipboard,
   onClearClipboard,
-  accentHex,
 }) => {
   const { addNote, addTask } = useData();
-  const [subView, setSubView] = useState<'shelf' | 'clipboard'>(
+  const [subView, setSubView] = useState<'clipboard' | 'shelf'>(
     shelfItems.length > 0 ? 'shelf' : 'clipboard'
   );
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [sentId, setSentId] = useState<string | null>(null);
 
-  const handleSendShelfToNote = async (item: ShelfItem) => {
+  const handleSendShelfToNote = async (e: React.MouseEvent, item: ShelfItem) => {
+    e.stopPropagation();
     const now = new Date().toISOString();
     if ((item.type === 'image' || item.type === 'file') && item.dataUrl) {
       const attId = `att-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
@@ -69,13 +67,13 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
       const isImg = item.type === 'image' || (item.mimeType && item.mimeType.startsWith('image/'));
       const mdBody = isImg
         ? `# ${item.name}\n\n![${item.name}](attachment:${attId})\n`
-        : `# ${item.name}\n\nFichier déposé depuis la Dynamic Island Shelf.\n`;
+        : `# ${item.name}\n\n`;
 
       await addNote({
         title: item.name,
         content: mdBody,
         category: 'resource',
-        tags: ['dynamic-island', 'shelf'],
+        tags: ['shelf'],
         attachments: [attachment],
         isPinned: false,
       });
@@ -85,29 +83,31 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
         title: item.name.slice(0, 60),
         content: `# ${item.name.slice(0, 60)}\n\n${body}\n`,
         category: 'resource',
-        tags: ['dynamic-island', 'shelf'],
+        tags: ['shelf'],
         isPinned: false,
       });
     }
     setSentId(item.id);
-    setTimeout(() => setSentId(null), 1200);
+    setTimeout(() => setSentId(null), 1100);
   };
 
-  const handleSendShelfToTask = async (item: ShelfItem) => {
+  const handleSendShelfToTask = async (e: React.MouseEvent, item: ShelfItem) => {
+    e.stopPropagation();
     await addTask({
       title: item.name.slice(0, 90),
       description: item.content || undefined,
       status: 'todo',
       priority: 'high',
       category: 'project',
-      tags: ['dynamic-island', 'shelf'],
+      tags: ['shelf'],
     });
     setSentId(item.id);
-    setTimeout(() => setSentId(null), 1200);
+    setTimeout(() => setSentId(null), 1100);
   };
 
-  const handleSaveClipAsNote = async (entry: ClipboardEntry) => {
-    const firstLine = entry.text.split(/\r?\n/)[0].trim().slice(0, 55) || 'Extrait Presse-papiers';
+  const handleSaveClipAsNote = async (e: React.MouseEvent, entry: ClipboardEntry) => {
+    e.stopPropagation();
+    const firstLine = entry.text.split(/\r?\n/)[0].trim().slice(0, 55) || 'Extrait copié';
     const formatted =
       entry.kind === 'code'
         ? `# ${firstLine}\n\n\`\`\`\n${entry.text}\n\`\`\`\n`
@@ -117,85 +117,81 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
       title: firstLine,
       content: formatted,
       category: 'resource',
-      tags: ['presse-papiers', entry.kind],
+      tags: ['presse-papiers'],
       isPinned: false,
     });
     setSentId(entry.id);
-    setTimeout(() => setSentId(null), 1200);
+    setTimeout(() => setSentId(null), 1100);
   };
 
-  const triggerCopy = (id: string, text: string) => {
-    onCopyClipboard(text);
+  const triggerCopy = (id: string) => {
+    onCopyClipboard(id);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 1000);
   };
 
   return (
-    <div className="flex flex-col justify-between h-[215px] px-3.5 py-2 select-none">
-      {/* Sous-navigation : Dropzone Shelf vs Presse-papiers */}
+    <div className="flex flex-col justify-between h-full px-5 pb-3.5 pt-1 select-none">
+      {/* Barre supérieure épurée */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1 bg-white/5 p-0.5 rounded-lg border border-white/10">
+        <div className="flex items-center gap-1 bg-white/[0.05] p-0.5 rounded-full">
           <button
             type="button"
-            onClick={() => setSubView('shelf')}
-            className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
-              subView === 'shelf'
-                ? 'bg-white text-black shadow-xs'
+            onClick={(e) => {
+              e.stopPropagation();
+              setSubView('clipboard');
+            }}
+            className={`h-7 px-3 rounded-full text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+              subView === 'clipboard'
+                ? 'bg-white text-black'
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
-            <Inbox className="w-3 h-3" />
-            <span>Dropzone Shelf ({shelfItems.length})</span>
+            <ClipboardList className="w-3.5 h-3.5" />
+            <span>Presse-papiers</span>
           </button>
 
           <button
             type="button"
-            onClick={() => setSubView('clipboard')}
-            className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
-              subView === 'clipboard'
-                ? 'bg-white text-black shadow-xs'
+            onClick={(e) => {
+              e.stopPropagation();
+              setSubView('shelf');
+            }}
+            className={`h-7 px-3 rounded-full text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+              subView === 'shelf'
+                ? 'bg-white text-black'
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
-            <ClipboardList className="w-3 h-3" />
-            <span>Presse-papiers ({clipboardHistory.length})</span>
+            <Inbox className="w-3.5 h-3.5" />
+            <span>Dropzone {shelfItems.length > 0 ? `(${shelfItems.length})` : ''}</span>
           </button>
         </div>
 
-        {subView === 'shelf' && shelfItems.length > 0 && (
+        {(subView === 'shelf' ? shelfItems.length > 0 : clipboardHistory.length > 0) && (
           <button
             type="button"
-            onClick={onClearShelf}
-            className="text-[10px] text-zinc-400 hover:text-rose-400 flex items-center gap-1 cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (subView === 'shelf') onClearShelf();
+              else onClearClipboard();
+            }}
+            className="w-7 h-7 rounded-full hover:bg-white/[0.08] text-zinc-500 hover:text-rose-400 flex items-center justify-center transition-colors cursor-pointer"
+            title="Vider la liste"
           >
-            <Trash2 className="w-3 h-3" />
-            <span>Vider</span>
-          </button>
-        )}
-
-        {subView === 'clipboard' && clipboardHistory.length > 0 && (
-          <button
-            type="button"
-            onClick={onClearClipboard}
-            className="text-[10px] text-zinc-400 hover:text-rose-400 flex items-center gap-1 cursor-pointer"
-          >
-            <Trash2 className="w-3 h-3" />
-            <span>Purger</span>
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
         )}
       </div>
 
-      {/* VUE 1 : DROPZONE FILE SHELF */}
+      {/* Contenu */}
       {subView === 'shelf' ? (
-        <div className="flex-1 mt-2 overflow-y-auto space-y-1.5 pr-0.5">
+        <div className="flex-1 mt-2 overflow-y-auto space-y-1.5 scrollbar-none">
           {shelfItems.length === 0 ? (
-            <div className="h-[155px] rounded-2xl border border-dashed border-white/15 bg-white/[0.02] flex flex-col items-center justify-center text-center px-4">
-              <Inbox className="w-6 h-6 text-zinc-400 mb-1.5" style={{ color: accentHex }} />
-              <p className="text-xs font-bold text-zinc-200">
-                Glissez-déposez des fichiers, images, liens ou textes ici
-              </p>
-              <p className="text-[10px] text-zinc-500 mt-0.5">
-                Gardez-les sous la main ou envoyez-les en 1 clic dans vos Notes et Tâches Syntropy.
+            <div className="h-full rounded-2xl border border-dashed border-white/10 bg-white/[0.02] flex flex-col items-center justify-center text-center px-4">
+              <Inbox className="w-5 h-5 text-zinc-500 mb-1.5" />
+              <p className="text-xs font-medium text-zinc-300">
+                Déposez un fichier, une image ou un lien ici
               </p>
             </div>
           ) : (
@@ -204,7 +200,7 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
               return (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between gap-2 p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-all"
+                  className="h-10 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-between gap-2 transition-all"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     {item.type === 'image' && item.dataUrl ? (
@@ -212,58 +208,49 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
                       <img
                         src={item.dataUrl}
                         alt={item.name}
-                        className="w-8 h-8 rounded-lg object-cover border border-white/15 flex-shrink-0"
+                        className="w-6 h-6 rounded-md object-cover flex-shrink-0"
                       />
+                    ) : item.type === 'link' ? (
+                      <Link2 className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+                    ) : item.type === 'image' ? (
+                      <ImageIcon className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                     ) : (
-                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0 text-zinc-300">
-                        {item.type === 'link' ? (
-                          <Link2 className="w-4 h-4 text-cyan-400" />
-                        ) : item.type === 'image' ? (
-                          <ImageIcon className="w-4 h-4 text-purple-400" />
-                        ) : (
-                          <FileIcon className="w-4 h-4 text-amber-400" />
-                        )}
-                      </div>
+                      <FileIcon className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                     )}
-                    <div className="min-w-0">
-                      <div className="text-xs font-bold text-white truncate">{item.name}</div>
-                      <div className="text-[10px] text-zinc-400 truncate">
-                        {item.type.toUpperCase()}
-                        {item.size ? ` • ${(item.size / 1024).toFixed(1)} Ko` : ''}
-                      </div>
-                    </div>
+                    <span className="text-xs font-medium text-zinc-200 truncate">{item.name}</span>
                   </div>
 
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       type="button"
-                      onClick={() => handleSendShelfToNote(item)}
-                      className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] font-bold text-white flex items-center gap-1 transition-colors cursor-pointer"
-                      title="Envoyer vers les Notes Syntropy"
+                      onClick={(e) => handleSendShelfToNote(e, item)}
+                      className="h-7 px-2.5 rounded-lg bg-white/[0.08] hover:bg-white/[0.16] text-[11px] font-medium text-white flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
+                      title="Envoyer dans les Notes"
                     >
                       {isSent ? (
                         <Check className="w-3 h-3 text-emerald-400" />
                       ) : (
-                        <FileText className="w-3 h-3 text-purple-300" />
+                        <FileText className="w-3 h-3" />
                       )}
                       <span>Note</span>
                     </button>
 
                     <button
                       type="button"
-                      onClick={() => handleSendShelfToTask(item)}
-                      className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] font-bold text-white flex items-center gap-1 transition-colors cursor-pointer"
-                      title="Créer une Tâche"
+                      onClick={(e) => handleSendShelfToTask(e, item)}
+                      className="w-7 h-7 rounded-lg bg-white/[0.08] hover:bg-white/[0.16] text-zinc-200 flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                      title="Créer une tâche"
                     >
-                      <CheckSquare className="w-3 h-3 text-cyan-300" />
-                      <span>Tâche</span>
+                      <CheckSquare className="w-3.5 h-3.5" />
                     </button>
 
                     <button
                       type="button"
-                      onClick={() => onRemoveShelfItem(item.id)}
-                      className="p-1 rounded-lg text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer"
-                      title="Retirer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemoveShelfItem(item.id);
+                      }}
+                      className="w-7 h-7 rounded-lg text-zinc-500 hover:text-rose-400 flex items-center justify-center cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -274,23 +261,16 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
           )}
         </div>
       ) : (
-        /* VUE 2 : PRESSE-PAPIERS INTELLIGENT (20 ENTRÉES TEXTE / LIENS / CODE) */
-        <div className="flex-1 mt-2 overflow-y-auto space-y-1.5 pr-0.5">
+        <div className="flex-1 mt-2 overflow-y-auto space-y-1.5 scrollbar-none">
           {!clipboardEnabled ? (
-            <div className="h-[155px] flex flex-col items-center justify-center text-center px-4 text-zinc-400">
-              <p className="text-xs font-bold text-zinc-300">
-                Historique du presse-papiers désactivé
-              </p>
-              <p className="text-[10px] text-zinc-500 mt-1">
-                Vous pouvez le réactiver dans Paramètres → Application Desktop → Dynamic Island.
-              </p>
+            <div className="h-full flex items-center justify-center text-xs text-zinc-500">
+              Presse-papiers désactivé dans les paramètres
             </div>
           ) : clipboardHistory.length === 0 ? (
-            <div className="h-[155px] flex flex-col items-center justify-center text-center px-4 text-zinc-400">
-              <ClipboardList className="w-6 h-6 text-zinc-500 mb-1.5" />
-              <p className="text-xs font-bold text-zinc-300">Presse-papiers vide</p>
-              <p className="text-[10px] text-zinc-500 mt-0.5">
-                Copiez du texte, un lien ou du code (Ctrl+C) pour le retrouver instantanément ici.
+            <div className="h-full flex flex-col items-center justify-center text-center px-4">
+              <p className="text-xs font-medium text-zinc-400">Aucun élément copié récemment</p>
+              <p className="text-[11px] text-zinc-600 mt-0.5">
+                Faites Ctrl+C sur du texte, un lien ou du code
               </p>
             </div>
           ) : (
@@ -301,80 +281,71 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
               return (
                 <div
                   key={entry.id}
-                  className="group flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.07] transition-all"
+                  onClick={() => triggerCopy(entry.id)}
+                  className="group h-9 px-3 rounded-xl bg-white/[0.035] hover:bg-white/[0.08] flex items-center justify-between gap-2 transition-all cursor-pointer"
                 >
-                  <div
-                    onClick={() => triggerCopy(entry.id, entry.text)}
-                    className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
-                  >
-                    <span className="p-1 rounded-md bg-white/10 text-zinc-300 flex-shrink-0">
-                      {entry.kind === 'link' ? (
-                        <Link2 className="w-3 h-3 text-cyan-400" />
-                      ) : entry.kind === 'code' ? (
-                        <Code2 className="w-3 h-3 text-amber-400" />
-                      ) : (
-                        <FileText className="w-3 h-3 text-purple-400" />
-                      )}
-                    </span>
-                    <span className="text-xs text-zinc-200 group-hover:text-white truncate font-mono">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    {entry.kind === 'link' ? (
+                      <Link2 className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
+                    ) : entry.kind === 'code' ? (
+                      <Code2 className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
+                    )}
+                    <span className="text-xs text-zinc-200 group-hover:text-white truncate">
                       {entry.text}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => triggerCopy(entry.id, entry.text)}
-                      className="px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 text-[9px] font-bold text-white flex items-center gap-0.5 cursor-pointer"
-                      title="Recopier dans le presse-papiers"
-                    >
-                      {isCopied ? (
-                        <>
-                          <Check className="w-2.5 h-2.5 text-emerald-400" />
-                          <span>Copié</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-2.5 h-2.5" />
-                          <span>Copier</span>
-                        </>
-                      )}
-                    </button>
+                  <div className="flex items-center gap-0.5 flex-shrink-0">
+                    {isCopied ? (
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold">
+                        Copié
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => handleSaveClipAsNote(e, entry)}
+                          className="w-7 h-7 rounded-lg hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center cursor-pointer"
+                          title="Enregistrer en Note"
+                        >
+                          {isSent ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          ) : (
+                            <FileText className="w-3.5 h-3.5" />
+                          )}
+                        </button>
 
-                    <button
-                      type="button"
-                      onClick={() => handleSaveClipAsNote(entry)}
-                      className="p-1 rounded bg-white/5 hover:bg-white/15 text-zinc-300 hover:text-white cursor-pointer"
-                      title="Enregistrer en Note Syntropy"
-                    >
-                      {isSent ? (
-                        <Check className="w-3 h-3 text-emerald-400" />
-                      ) : (
-                        <Sparkles className="w-3 h-3 text-purple-300" />
-                      )}
-                    </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPinClipboard(entry.id);
+                          }}
+                          className={`w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer ${
+                            entry.pinned
+                              ? 'text-amber-400'
+                              : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/10'
+                          }`}
+                          title="Épingler"
+                        >
+                          <Pin className="w-3.5 h-3.5" />
+                        </button>
 
-                    <button
-                      type="button"
-                      onClick={() => onPinClipboard(entry.id)}
-                      className={`p-1 rounded cursor-pointer ${
-                        entry.pinned
-                          ? 'text-amber-400 bg-amber-500/20'
-                          : 'text-zinc-500 hover:text-zinc-200'
-                      }`}
-                      title="Épingler"
-                    >
-                      <Pin className="w-3 h-3" />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => onDeleteClipboard(entry.id)}
-                      className="p-1 rounded text-zinc-500 hover:text-rose-400 cursor-pointer"
-                      title="Supprimer"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteClipboard(entry.id);
+                          }}
+                          className="w-7 h-7 rounded-lg hover:bg-white/10 text-zinc-500 hover:text-rose-400 flex items-center justify-center cursor-pointer"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               );

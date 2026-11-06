@@ -1,26 +1,36 @@
 // ==============================================================================
 // SYNTROPY OS — GESTIONNAIRE DE LA DYNAMIC ISLAND DESKTOP (Electron / Windows)
 // ==============================================================================
-// Fenêtre dédiée transparente + click-through, visibilité intelligente, détection
-// plein écran, presse-papiers (20 éléments texte/lien/code, mémoire uniquement),
-// stats CPU/RAM, pont SMTC (via island-native.js) et IPC dédiés.
+// - Hit-testing natif Main Process (screen.getCursorScreenPoint) => 100 % des clics
+//   fonctionnent instantanément sans aucun faux mouvement ni perte de clic.
+// - Visibilité intelligente (masquée quand Syntropy OS est au 1er plan ou jeu plein écran).
+// - Presse-papiers intelligent en mémoire vive (20 entrées texte / lien / code).
 
 const os = require('os');
 const path = require('path');
 const { BrowserWindow, screen, ipcMain, clipboard, shell, app } = require('electron');
 const islandNative = require('./island-native');
 
-const ISLAND_WIDTH = 560;
-const ISLAND_HEIGHT = 420;
+const ISLAND_WIDTH = 520;
+const ISLAND_HEIGHT = 340;
 const CLIPBOARD_MAX = 20;
 const FS_POLL_MS = 3000;
 const CLIP_POLL_MS = 1200;
+const CURSOR_POLL_MS = 25;
 
 function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl }) {
   let islandWindow = null;
   let previewMode = false;
   let previewTimer = null;
-  let forceShow = false; // Quick-Capture déployé : l'Island reste visible
+  let forceShow = false;
+  let isCaptureActive = false;
+  let isFocusable = false;
+  let ignoringMouse = true;
+  let cursorInside = false;
+  let leaveTimer = null;
+  let cursorTimer = null;
+  let hitbox = { width: 150, height: 40, top: 0 };
+
   let isForegroundFullScreen = false;
   let fsTimer = null;
   let clipTimer = null;
@@ -48,11 +58,115 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
     if (w) w.setBounds(getBounds());
   }
 
+  function setIgnoreMouseSafe(ignore) {
+    const w = win();
+    if (!w) return;
+    if (ignoringMouse === ignore) return;
+    ignoringMouse = ignore;
+    try {
+      if (ignore) {
+        w.setIgnoreMouseEvents(true, { forward: true });
+      } else {
+        w.setIgnoreMouseEvents(false);
+      }
+    } catch (_) {}
+  }
+
+  function setFocusableSafe(focusable) {
+    const w = win();
+    if (!w) return;
+    const next = Boolean(focusable);
+    if (isFocusable === next) {
+      if (next) {
+        try { w.focus(); } catch (_) {}
+      }
+      return;
+    }
+    isFocusable = next;
+    try {
+      w.setFocusable(next);
+      if (next) w.focus();
+    } catch (_) {}
+  }
+
+  // ---- Surveillance native du curseur (0 clic perdu, 0 latence IPC) --------
+  function pollCursor() {
+    const w = win();
+    if (!w || !w.isVisible()) return;
+
+    if (isCaptureActive || forceShow) {
+      if (leaveTimer) {
+        clearTimeout(leaveTimer);
+        leaveTimer = null;
+      }
+      setIgnoreMouseSafe(false);
+      return;
+    }
+
+    let pt;
+    let d;
+    try {
+      pt = screen.getCursorScreenPoint();
+      d = screen.getPrimaryDisplay();
+    } catch (_) {
+      return;
+    }
+
+    const centerX = d.bounds.x + d.bounds.width / 2;
+    const halfW = Math.max(65, (hitbox.width || 150) / 2) + 10;
+    const topY = d.bounds.y;
+    const bottomY = d.bounds.y + (hitbox.top || 0) + (hitbox.height || 40) + 12;
+
+    const inside =
+      pt.x >= centerX - halfW &&
+      pt.x <= centerX + halfW &&
+      pt.y >= topY &&
+      pt.y <= bottomY;
+
+    if (inside) {
+      if (leaveTimer) {
+        clearTimeout(leaveTimer);
+        leaveTimer = null;
+      }
+      setIgnoreMouseSafe(false);
+      if (!cursorInside) {
+        cursorInside = true;
+        w.webContents.send('island-hover', true);
+      }
+    } else if (cursorInside && !leaveTimer) {
+      leaveTimer = setTimeout(() => {
+        leaveTimer = null;
+        cursorInside = false;
+        const curWin = win();
+        if (curWin) {
+          curWin.webContents.send('island-hover', false);
+        }
+        setFocusableSafe(false);
+        setIgnoreMouseSafe(true);
+      }, 170);
+    } else if (!cursorInside && !ignoringMouse) {
+      setIgnoreMouseSafe(true);
+    }
+  }
+
+  function startCursorWatcher() {
+    if (cursorTimer) return;
+    cursorTimer = setInterval(pollCursor, CURSOR_POLL_MS);
+  }
+
+  function stopCursorWatcher() {
+    if (cursorTimer) clearInterval(cursorTimer);
+    cursorTimer = null;
+    if (leaveTimer) clearTimeout(leaveTimer);
+    leaveTimer = null;
+    cursorInside = false;
+  }
+
   function notifyVisibility(visible) {
     if (lastVisible === visible) return;
     lastVisible = visible;
     const w = win();
-    if (w) w.webContents.send('island-action', 'visibility', visible);
+    if (w) w.webContents.send('island-visibility', visible);
   }
 
   function updateVisibility() {
@@ -62,10 +176,12 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
 
     const hide = () => {
       if (w.isVisible()) w.hide();
+      stopCursorWatcher();
       notifyVisibility(false);
     };
     const show = () => {
       if (!w.isVisible()) w.showInactive();
+      startCursorWatcher();
       notifyVisibility(true);
     };
 
@@ -82,6 +198,9 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
 
   function createIslandWindow() {
     if (win()) return;
+    ignoringMouse = true;
+    isFocusable = false;
+    cursorInside = false;
     islandWindow = new BrowserWindow({
       ...getBounds(),
       frame: false,
@@ -90,6 +209,9 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
       alwaysOnTop: true,
       skipTaskbar: true,
       resizable: false,
+      movable: false,
+      minimizable: false,
+      maximizable: false,
       hasShadow: false,
       show: false,
       focusable: false,
@@ -106,15 +228,19 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
     islandWindow.loadURL(`${getAppUrl()}/dynamic-island`);
     islandWindow.webContents.on('did-finish-load', () => {
       lastVisible = null;
+      const cfg = loadConfig();
+      islandWindow.webContents.send('island-config-updated', cfg);
       updateVisibility();
     });
     islandWindow.on('closed', () => {
+      stopCursorWatcher();
       islandWindow = null;
       lastVisible = null;
     });
   }
 
   function destroyIslandWindow() {
+    stopCursorWatcher();
     const w = win();
     if (w) w.destroy();
     islandWindow = null;
@@ -162,18 +288,26 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
   function classifyText(text) {
     const t = text.trim();
     if (/^(https?:\/\/|www\.)\S+$/i.test(t)) return 'link';
-    if (t.includes('\n') && /[{};]\s*$|^\s*(const|let|var|function|import|export|class|def|public|SELECT|<\w+)/m.test(t)) return 'code';
+    if (t.includes('\n') && /[{};]\s*$|^\s*(const|let|var|function|import|export|class|def|public|SELECT|<\w+)/m.test(t)) {
+      return 'code';
+    }
     return 'text';
+  }
+
+  function getSerializableClipboard() {
+    return clipboardItems.map(({ key, at, ...rest }) => rest);
   }
 
   function pushClipboardItem(item) {
     clipboardItems = clipboardItems.filter((i) => i.key !== item.key || i.pinned);
     clipboardItems.unshift(item);
     const pinned = clipboardItems.filter((i) => i.pinned);
-    const rest = clipboardItems.filter((i) => !i.pinned).slice(0, Math.max(0, CLIPBOARD_MAX - pinned.length));
+    const rest = clipboardItems
+      .filter((i) => !i.pinned)
+      .slice(0, Math.max(0, CLIPBOARD_MAX - pinned.length));
     clipboardItems = [...pinned, ...rest].sort((a, b) => b.at - a.at);
     const w = win();
-    if (w) w.webContents.send('island-action', 'clipboard-updated');
+    if (w) w.webContents.send('island-clipboard-updated', getSerializableClipboard());
   }
 
   function pollClipboard() {
@@ -186,14 +320,15 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
       const key = `txt:${clipped.length}:${clipped.slice(0, 80)}:${clipped.slice(-40)}`;
       if (key === lastClipKey || key === selfCopyKey) return;
       lastClipKey = key;
+      const now = Date.now();
       pushClipboardItem({
-        id: `clip-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        id: `clip-${now}-${Math.random().toString(36).slice(2, 6)}`,
         key,
-        type: classifyText(clipped),
-        content: clipped,
-        preview: clipped.slice(0, 160),
+        kind: classifyText(clipped),
+        text: clipped,
         pinned: false,
-        at: Date.now(),
+        copiedAt: new Date(now).toISOString(),
+        at: now,
       });
     } catch (_) {}
   }
@@ -223,16 +358,21 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
 
   function getSystemStats() {
     const snap = cpuSnapshot();
-    let cpu = 0;
+    let cpuPercent = 0;
     if (lastCpu) {
       const dTotal = snap.total - lastCpu.total;
       const dIdle = snap.idle - lastCpu.idle;
-      cpu = dTotal > 0 ? Math.round((1 - dIdle / dTotal) * 100) : 0;
+      cpuPercent = dTotal > 0 ? Math.round((1 - dIdle / dTotal) * 100) : 0;
     }
     lastCpu = snap;
     const total = os.totalmem();
     const used = total - os.freemem();
-    return { cpu: Math.max(0, Math.min(100, cpu)), ram: Math.round((used / total) * 100) };
+    return {
+      cpuPercent: Math.max(0, Math.min(100, cpuPercent)),
+      ramPercent: Math.round((used / total) * 100),
+      ramUsedGb: Number((used / 1073741824).toFixed(1)),
+      ramTotalGb: Number((total / 1073741824).toFixed(0)),
+    };
   }
 
   // ---- Pilotage en direct -------------------------------------------------
@@ -249,7 +389,7 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
       destroyIslandWindow();
     }
     const w = win();
-    if (w) w.webContents.send('island-action', 'config-changed', cfg);
+    if (w) w.webContents.send('island-config-updated', cfg);
     updateVisibility();
   }
 
@@ -263,11 +403,12 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
     const w = win();
     if (!w) return false;
     forceShow = true;
+    isCaptureActive = true;
     whenReady(w, () => {
       updateVisibility();
-      w.setFocusable(true);
-      w.focus();
-      w.webContents.send('island-action', 'open-tab', 'capture');
+      setIgnoreMouseSafe(false);
+      setFocusableSafe(true);
+      w.webContents.send('activate-island-capture');
     });
     return true;
   }
@@ -278,12 +419,15 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
     const w = win();
     if (!w) return { success: false };
     updateVisibility();
-    whenReady(w, () => w.webContents.send('island-action', 'preview'));
+    whenReady(w, () => {
+      setIgnoreMouseSafe(false);
+      w.webContents.send('island-preview');
+    });
     if (previewTimer) clearTimeout(previewTimer);
     previewTimer = setTimeout(() => {
       previewMode = false;
       applyConfig();
-    }, 12000);
+    }, 6500);
     return { success: true };
   }
 
@@ -291,24 +435,47 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
     if (ipcRegistered) return;
     ipcRegistered = true;
 
+    ipcMain.on('set-island-hitbox', (_e, nextBox) => {
+      if (nextBox && typeof nextBox.width === 'number' && typeof nextBox.height === 'number') {
+        hitbox = {
+          width: nextBox.width,
+          height: nextBox.height,
+          top: typeof nextBox.top === 'number' ? nextBox.top : 0,
+        };
+      }
+    });
+
     ipcMain.on('set-island-ignore-mouse', (_e, ignore) => {
-      const w = win();
-      if (!w) return;
-      if (ignore) w.setIgnoreMouseEvents(true, { forward: true });
-      else w.setIgnoreMouseEvents(false);
+      if (!ignore) {
+        if (leaveTimer) {
+          clearTimeout(leaveTimer);
+          leaveTimer = null;
+        }
+        setIgnoreMouseSafe(false);
+      } else if (!cursorInside && !isCaptureActive) {
+        setIgnoreMouseSafe(true);
+      }
     });
 
     ipcMain.on('set-island-focusable', (_e, focusable) => {
-      const w = win();
-      if (!w) return;
-      w.setFocusable(Boolean(focusable));
-      if (focusable) w.focus();
+      isCaptureActive = Boolean(focusable);
+      if (focusable) {
+        setIgnoreMouseSafe(false);
+        setFocusableSafe(true);
+      } else {
+        forceShow = false;
+        if (!cursorInside) {
+          setFocusableSafe(false);
+        }
+      }
     });
 
     ipcMain.on('island-capture-closed', () => {
       forceShow = false;
-      const w = win();
-      if (w) w.setFocusable(false);
+      isCaptureActive = false;
+      cursorInside = false;
+      setFocusableSafe(false);
+      setIgnoreMouseSafe(true);
       applyConfig();
     });
 
@@ -316,10 +483,15 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
       const main = getMainWindow();
       if (!main || main.isDestroyed()) return { success: false };
       const safe = typeof route === 'string' && route.startsWith('/') ? route : '/';
+      forceShow = false;
+      isCaptureActive = false;
+      previewMode = false;
+      setFocusableSafe(false);
       if (main.isMinimized()) main.restore();
       main.show();
       main.focus();
       main.webContents.send('navigate-to-route', safe);
+      updateVisibility();
       return { success: true };
     });
 
@@ -336,26 +508,32 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
 
     ipcMain.handle('preview-island', () => previewIsland());
 
-    ipcMain.handle('get-clipboard-history', () => clipboardItems.map(({ key, ...rest }) => rest));
-    ipcMain.handle('copy-clipboard-item', (_e, id) => {
-      const item = clipboardItems.find((i) => i.id === id);
-      if (!item) return { success: false };
-      selfCopyKey = item.key;
-      clipboard.writeText(item.content);
+    ipcMain.handle('get-clipboard-history', () => getSerializableClipboard());
+    ipcMain.handle('copy-clipboard-item', (_e, idOrText) => {
+      const byId = clipboardItems.find((i) => i.id === idOrText);
+      const textToWrite = byId ? byId.text : typeof idOrText === 'string' ? idOrText : '';
+      if (!textToWrite) return { success: false };
+      const clipped = textToWrite.length > 20000 ? textToWrite.slice(0, 20000) : textToWrite;
+      selfCopyKey = `txt:${clipped.length}:${clipped.slice(0, 80)}:${clipped.slice(-40)}`;
+      clipboard.writeText(textToWrite);
       return { success: true };
     });
     ipcMain.handle('pin-clipboard-item', (_e, id) => {
       const item = clipboardItems.find((i) => i.id === id);
       if (item) item.pinned = !item.pinned;
-      return { success: Boolean(item) };
+      clipboardItems = [
+        ...clipboardItems.filter((i) => i.pinned),
+        ...clipboardItems.filter((i) => !i.pinned),
+      ];
+      return getSerializableClipboard();
     });
     ipcMain.handle('delete-clipboard-item', (_e, id) => {
       clipboardItems = clipboardItems.filter((i) => i.id !== id);
-      return { success: true };
+      return getSerializableClipboard();
     });
     ipcMain.handle('clear-clipboard-history', () => {
       clipboardItems = clipboardItems.filter((i) => i.pinned);
-      return { success: true };
+      return getSerializableClipboard();
     });
 
     ipcMain.handle('get-system-stats', () => getSystemStats());
@@ -375,6 +553,7 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
   }
 
   function shutdown() {
+    stopCursorWatcher();
     stopFullscreenDetection();
     stopClipboardWatcher();
     islandNative.stop();
@@ -396,4 +575,3 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
 }
 
 module.exports = { createIslandManager };
-

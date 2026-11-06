@@ -1,10 +1,10 @@
 // ==============================================================================
 // SYNTROPY OS — PONT NATIF WINDOWS POUR LA DYNAMIC ISLAND
 // ==============================================================================
-// Un unique worker PowerShell persistant (compilation Add-Type faite une seule fois)
-// sert : l'état média SMTC (titre, pochette, timeline), les contrôles média et la
-// détection d'application plein écran. Le worker n'est lancé qu'à la demande et
-// s'arrête seul après une période d'inactivité => 0 % CPU au repos.
+// Worker PowerShell persistant (compilation Add-Type unique) pour :
+// - État média Windows SMTC (titre, artiste, pochette Base64, timeline, sessions)
+// - Contrôles média (play, pause, toggle, next, previous, changement de session)
+// - Détection d'application plein écran (Win32 GetForegroundWindow / GetWindowRect)
 
 const { spawn } = require('child_process');
 const path = require('path');
@@ -12,7 +12,6 @@ const fs = require('fs');
 
 const IDLE_KILL_MS = 45000;
 const REQUEST_TIMEOUT_MS = 6000;
-
 const BT = '`';
 
 const WORKER_SCRIPT = [
@@ -53,7 +52,7 @@ const WORKER_SCRIPT = [
   '',
   'function Do-Media {',
   '  $s = Get-Session',
-  "  if (-not $s) { Out-Line 'MEDIA' '{\"active\":false}'; return }",
+  "  if (-not $s) { Out-Line 'MEDIA' '{\"ok\":true,\"hasSession\":false}'; return }",
   '  $props = Await ($s.TryGetMediaPropertiesAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties])',
   '  $info = $s.GetPlaybackInfo()',
   '  $tl = $s.GetTimelineProperties()',
@@ -70,22 +69,28 @@ const WORKER_SCRIPT = [
   '          Await ($reader.LoadAsync([uint32]$size)) ([uint32]) | Out-Null',
   '          $bytes = New-Object byte[] $size',
   '          $reader.ReadBytes($bytes)',
-  "          $script:lastThumb = 'data:' + $stream.ContentType + ';base64,' + [Convert]::ToBase64String($bytes)",
+  "          $ct = if ($stream.ContentType) { $stream.ContentType } else { 'image/jpeg' }",
+  "          $script:lastThumb = 'data:' + $ct + ';base64,' + [Convert]::ToBase64String($bytes)",
   '        }',
   '      }',
   '    } catch {}',
   '  }',
-  '  $apps = @(); foreach ($x in (Get-Manager).GetSessions()) { $apps += $x.SourceAppUserModelId }',
+  '  $sessList = @()',
+  '  foreach ($x in (Get-Manager).GetSessions()) {',
+  '    $xStat = try { $x.GetPlaybackInfo().PlaybackStatus.ToString() } catch { "Stopped" }',
+  '    $sessList += [PSCustomObject]@{ id = $x.SourceAppUserModelId; status = $xStat }',
+  '  }',
   '  $posMs = 0; $durMs = 0',
   '  try { $posMs = [int]$tl.Position.TotalMilliseconds; $durMs = [int]($tl.EndTime - $tl.StartTime).TotalMilliseconds } catch {}',
   '  $obj = [PSCustomObject]@{',
-  '    active = $true',
+  '    ok = $true',
+  '    hasSession = $true',
   '    title = $props.Title',
   '    artist = $props.Artist',
   '    albumTitle = $props.AlbumTitle',
   '    appId = $s.SourceAppUserModelId',
-  '    sessions = $apps',
-  '    status = $info.PlaybackStatus.ToString()',
+  '    rawSessions = $sessList',
+  '    rawStatus = $info.PlaybackStatus.ToString()',
   '    canPlay = $info.Controls.IsPlayEnabled',
   '    canPause = $info.Controls.IsPauseEnabled',
   '    canNext = $info.Controls.IsNextEnabled',
@@ -94,7 +99,7 @@ const WORKER_SCRIPT = [
   '    positionMs = $posMs',
   '    durationMs = $durMs',
   '  }',
-  "  Out-Line 'MEDIA' ($obj | ConvertTo-Json -Compress)",
+  "  Out-Line 'MEDIA' ($obj | ConvertTo-Json -Compress -Depth 4)",
   '}',
   '',
   'function Do-Control($action) {',
@@ -128,6 +133,67 @@ const WORKER_SCRIPT = [
   '}',
 ].join('\r\n');
 
+function formatAppLabel(appId) {
+  if (!appId) return 'Média';
+  const lower = String(appId).toLowerCase();
+  if (lower.includes('spotify')) return 'Spotify';
+  if (lower.includes('applemusic') || lower.includes('itunes')) return 'Apple Music';
+  if (lower.includes('deezer')) return 'Deezer';
+  if (lower.includes('tidal')) return 'Tidal';
+  if (lower.includes('vlc')) return 'VLC';
+  if (lower.includes('chrome')) return 'Chrome';
+  if (lower.includes('msedge') || lower.includes('edge')) return 'Edge';
+  if (lower.includes('firefox') || lower.includes('mozilla')) return 'Firefox';
+  if (lower.includes('brave')) return 'Brave';
+  if (lower.includes('opera')) return 'Opera';
+  if (lower.includes('zen')) return 'Zen';
+  if (lower.includes('arc')) return 'Arc';
+  return String(appId).replace(/\.exe$/i, '').split(/[.\\!]/).pop() || 'Média';
+}
+
+function normalizeStatus(raw) {
+  const s = String(raw || '').toLowerCase();
+  if (s === 'playing') return 'playing';
+  if (s === 'paused') return 'paused';
+  return 'stopped';
+}
+
+function normalizeMediaPayload(rawObj) {
+  if (!rawObj || !rawObj.hasSession || !rawObj.title) {
+    return { ok: true, hasSession: false };
+  }
+  const rawSessions = Array.isArray(rawObj.rawSessions)
+    ? rawObj.rawSessions
+    : rawObj.rawSessions
+    ? [rawObj.rawSessions]
+    : [];
+
+  const sessions = rawSessions.map((s) => ({
+    id: s.id,
+    label: formatAppLabel(s.id),
+    status: normalizeStatus(s.status),
+    isCurrent: s.id === rawObj.appId,
+  }));
+
+  return {
+    ok: true,
+    hasSession: true,
+    title: rawObj.title || '',
+    artist: rawObj.artist || '',
+    albumTitle: rawObj.albumTitle || '',
+    appId: rawObj.appId || '',
+    sessions,
+    status: normalizeStatus(rawObj.rawStatus),
+    canPlay: Boolean(rawObj.canPlay),
+    canPause: Boolean(rawObj.canPause),
+    canNext: Boolean(rawObj.canNext),
+    canPrevious: Boolean(rawObj.canPrevious),
+    positionMs: Number(rawObj.positionMs) || 0,
+    durationMs: Number(rawObj.durationMs) || 0,
+    thumbnailBase64: rawObj.thumbnailBase64 || undefined,
+  };
+}
+
 let worker = null;
 let buffer = '';
 let queue = [];
@@ -135,13 +201,12 @@ let current = null;
 let idleTimer = null;
 let scriptPath = null;
 let userDataDirRef = null;
-let mediaCache = { at: 0, value: { active: false } };
+let mediaCache = { at: 0, value: { ok: true, hasSession: false } };
 
 function ensureScript() {
   if (!userDataDirRef) return false;
   scriptPath = path.join(userDataDirRef, 'syntropy-island-worker.ps1');
   try {
-    // BOM UTF-8 pour que PowerShell 5 lise correctement les caractères
     fs.writeFileSync(scriptPath, '\uFEFF' + WORKER_SCRIPT, 'utf8');
     return true;
   } catch (e) {
@@ -236,7 +301,6 @@ function pump() {
   }
   current = queue.shift();
   current.timer = setTimeout(() => {
-    // Le worker ne répond plus : on le relance proprement à la prochaine requête
     stopWorker();
   }, REQUEST_TIMEOUT_MS);
   try {
@@ -263,12 +327,13 @@ module.exports = {
   stop: stopWorker,
   async getNowPlaying() {
     const now = Date.now();
-    if (now - mediaCache.at < 700) return mediaCache.value;
+    if (now - mediaCache.at < 600) return mediaCache.value;
     const raw = await request('media', 'MEDIA');
-    let value = { active: false };
+    let parsed = null;
     if (raw) {
-      try { value = JSON.parse(raw); } catch (_) {}
+      try { parsed = JSON.parse(raw); } catch (_) {}
     }
+    const value = normalizeMediaPayload(parsed);
     mediaCache = { at: Date.now(), value };
     return value;
   },
@@ -290,4 +355,3 @@ module.exports = {
     try { return JSON.parse(raw); } catch (_) { return null; }
   },
 };
-

@@ -1,19 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Music,
   CheckSquare,
-  Timer,
   Flame,
   Inbox,
-  Sparkles,
-  Calendar,
-  Video,
-  Cpu,
-  HardDrive,
-  Maximize2,
-  X,
+  ArrowUpRight,
+  ChevronUp,
 } from 'lucide-react';
 import {
   IslandStyle,
@@ -22,20 +16,11 @@ import {
   SMTCMediaInfo,
   ShelfItem,
   ClipboardEntry,
-  SystemStats,
-  PomodoroSyncState,
 } from '@/types/island';
 import { useData } from '@/context/DataContext';
-import { useDailyLife } from '@/context/DailyLifeContext';
 import { useSettings } from '@/context/SettingsContext';
-import {
-  loadPomodoroSyncState,
-  broadcastPomodoroState,
-  subscribeSyntropySync,
-} from '@/lib/islandSync';
 import { IslandMediaTab } from './IslandMediaTab';
 import { IslandTasksCaptureTab } from './IslandTasksCaptureTab';
-import { IslandFocusAgendaTab, extractVideoCallUrl } from './IslandFocusAgendaTab';
 import { IslandHabitsReadingTab } from './IslandHabitsReadingTab';
 import { IslandShelfClipboardTab } from './IslandShelfClipboardTab';
 
@@ -51,50 +36,55 @@ const ACCENT_HEX_MAP: Record<string, string> = {
   monochrome: '#e4e4e7',
 };
 
+const VALID_TABS: IslandTab[] = ['media', 'tasks', 'shelf', 'habits'];
+
 export const DynamicIsland: React.FC = () => {
-  const { tasks, events } = useData();
-  const { habits, habitHistory } = useDailyLife();
+  const { tasks } = useData();
   const { settings } = useSettings();
 
-  // Configuration Desktop Dynamic Island
-  const [islandStyle, setIslandStyle] = useState<IslandStyle>('pill');
+  const [islandStyle, setIslandStyle] = useState<IslandStyle>('notch');
   const [islandTrigger, setIslandTrigger] = useState<IslandTrigger>('hover');
   const [activeTab, setActiveTab] = useState<IslandTab>('media');
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(true);
-  const [systemStatsEnabled, setSystemStatsEnabled] = useState<boolean>(true);
 
-  // État d'expansion et de capture clavier
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isCaptureFocused, setIsCaptureFocused] = useState<boolean>(false);
   const [autoFocusCapture, setAutoFocusCapture] = useState<boolean>(false);
   const [isDraggingOver, setIsDraggingOver] = useState<boolean>(false);
 
-  // Données temps réel
   const [media, setMedia] = useState<SMTCMediaInfo | null>(null);
   const [fallbackArtwork, setFallbackArtwork] = useState<string | null>(null);
   const [dominantColor, setDominantColor] = useState<string>('#a855f7');
   const [clipboardHistory, setClipboardHistory] = useState<ClipboardEntry[]>([]);
-  const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
   const [shelfItems, setShelfItems] = useState<ShelfItem[]>([]);
   const [clockStr, setClockStr] = useState<string>('');
 
-  // Minuteur Pomodoro synchronisé
-  const [pomodoro, setPomodoro] = useState<PomodoroSyncState>(() => loadPomodoroSyncState(25));
-  const isApplyingExternalPomodoroRef = useRef(false);
-  const collapseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const islandTriggerRef = useRef<IslandTrigger>(islandTrigger);
+  const isCaptureFocusedRef = useRef<boolean>(false);
+  const isDraggingOverRef = useRef<boolean>(false);
+  const suppressHoverUntilLeaveRef = useRef<boolean>(false);
   const lastFetchedArtKeyRef = useRef<string>('');
 
-  // Thème Syntropy OS
-  const isNothing = settings.uiStyle === 'nothing';
-  const isCyberpunk = settings.uiStyle === 'cyberpunk';
-  const isOled = settings.darkBgStyle === 'oled';
-  const accentHex = isCyberpunk
-    ? '#FCEE0A'
-    : isNothing
-    ? '#D71920'
-    : ACCENT_HEX_MAP[settings.accentColor || 'purple'] || '#a855f7';
+  useEffect(() => {
+    islandTriggerRef.current = islandTrigger;
+  }, [islandTrigger]);
 
-  // Assurer la transparence totale du body Electron
+  useEffect(() => {
+    isCaptureFocusedRef.current = isCaptureFocused;
+  }, [isCaptureFocused]);
+
+  useEffect(() => {
+    isDraggingOverRef.current = isDraggingOver;
+  }, [isDraggingOver]);
+
+  const accentHex =
+    settings.uiStyle === 'cyberpunk'
+      ? '#FCEE0A'
+      : settings.uiStyle === 'nothing'
+      ? '#D71920'
+      : ACCENT_HEX_MAP[settings.accentColor || 'purple'] || '#a855f7';
+
+  // Transparence totale du canevas Electron
   useEffect(() => {
     const prevHtmlBg = document.documentElement.style.backgroundColor;
     const prevBodyBg = document.body.style.backgroundColor;
@@ -106,23 +96,39 @@ export const DynamicIsland: React.FC = () => {
     };
   }, []);
 
-  // Horloge HH:mm
+  // Horloge minimale HH:mm
   useEffect(() => {
     const updateClock = () => {
-      const now = new Date();
       setClockStr(
-        now.toLocaleTimeString('fr-FR', {
+        new Date().toLocaleTimeString('fr-FR', {
           hour: '2-digit',
           minute: '2-digit',
         })
       );
     };
     updateClock();
-    const timer = setInterval(updateClock, 15000);
+    const timer = setInterval(updateClock, 10000);
     return () => clearInterval(timer);
   }, []);
 
-  // Chargement et écoute de la configuration Desktop
+  const isMediaPlaying = Boolean(media?.hasSession && media?.status === 'playing' && media?.title);
+  const isNotch = islandStyle === 'notch';
+
+  const currentWidth = isExpanded ? 452 : isMediaPlaying ? 252 : 108;
+  const currentHeight = isExpanded ? 248 : isMediaPlaying ? (isNotch ? 34 : 36) : isNotch ? 31 : 33;
+  const currentTop = isNotch ? 0 : 8;
+
+  // Synchronisation permanente de la hitbox exacte avec le Main Process Electron
+  useEffect(() => {
+    const electron = (window as any).electronAPI;
+    electron?.setIslandHitbox?.({
+      width: currentWidth,
+      height: currentHeight,
+      top: currentTop,
+    });
+  }, [currentWidth, currentHeight, currentTop]);
+
+  // Configuration + Événements IPC Main Process (survol natif sans perte de clic)
   useEffect(() => {
     const electron = (window as any).electronAPI;
     if (!electron) return;
@@ -135,52 +141,61 @@ export const DynamicIsland: React.FC = () => {
       if (cfg.dynamicIslandTrigger === 'hover' || cfg.dynamicIslandTrigger === 'click') {
         setIslandTrigger(cfg.dynamicIslandTrigger);
       }
-      if (cfg.dynamicIslandDefaultTab) {
+      if (cfg.dynamicIslandDefaultTab && VALID_TABS.includes(cfg.dynamicIslandDefaultTab)) {
         setActiveTab(cfg.dynamicIslandDefaultTab);
       }
       if (typeof cfg.dynamicIslandClipboardHistory === 'boolean') {
         setClipboardEnabled(cfg.dynamicIslandClipboardHistory);
       }
-      if (typeof cfg.dynamicIslandSystemStats === 'boolean') {
-        setSystemStatsEnabled(cfg.dynamicIslandSystemStats);
-      }
     };
 
-    if (electron.getDesktopConfig) {
-      electron.getDesktopConfig().then(applyCfg).catch(() => {});
-    }
+    electron.getDesktopConfig?.().then(applyCfg).catch(() => {});
 
-    const unsubCfg = electron.onIslandConfigUpdated
-      ? electron.onIslandConfigUpdated(applyCfg)
-      : () => {};
+    const unsubCfg = electron.onIslandConfigUpdated?.(applyCfg) || (() => {});
 
-    const unsubCapture = electron.onActivateIslandCapture
-      ? electron.onActivateIslandCapture(() => {
-          electron.setIslandIgnoreMouse?.(false);
-          setIsExpanded(true);
-          setActiveTab('tasks');
-          setAutoFocusCapture(true);
-          setTimeout(() => setAutoFocusCapture(false), 300);
-        })
-      : () => {};
+    const unsubHover =
+      electron.onIslandHover?.((hovered: boolean) => {
+        if (hovered) {
+          if (!suppressHoverUntilLeaveRef.current && islandTriggerRef.current === 'hover') {
+            setIsExpanded(true);
+          }
+        } else {
+          suppressHoverUntilLeaveRef.current = false;
+          if (!isCaptureFocusedRef.current && !isDraggingOverRef.current) {
+            setIsExpanded(false);
+          }
+        }
+      }) || (() => {});
 
-    const unsubPreview = electron.onIslandPreview
-      ? electron.onIslandPreview(() => {
-          setIsExpanded(true);
-          setTimeout(() => {
-            setIsExpanded((prev) => (isCaptureFocused ? prev : false));
-          }, 3800);
-        })
-      : () => {};
+    const unsubCapture =
+      electron.onActivateIslandCapture?.(() => {
+        suppressHoverUntilLeaveRef.current = false;
+        setIsExpanded(true);
+        setActiveTab('tasks');
+        setAutoFocusCapture(true);
+        setTimeout(() => setAutoFocusCapture(false), 300);
+      }) || (() => {});
+
+    const unsubPreview =
+      electron.onIslandPreview?.(() => {
+        suppressHoverUntilLeaveRef.current = false;
+        setIsExpanded(true);
+        setTimeout(() => {
+          if (!isCaptureFocusedRef.current) {
+            setIsExpanded(false);
+          }
+        }, 4500);
+      }) || (() => {});
 
     return () => {
       unsubCfg();
+      unsubHover();
       unsubCapture();
       unsubPreview();
     };
-  }, [isCaptureFocused]);
+  }, []);
 
-  // Polling Média Windows SMTC (toutes les 2.5s)
+  // Polling Média SMTC (toutes les 2s)
   useEffect(() => {
     const electron = (window as any).electronAPI;
     if (!electron?.getNowPlaying) return;
@@ -196,14 +211,14 @@ export const DynamicIsland: React.FC = () => {
     };
 
     pollMedia();
-    const interval = setInterval(pollMedia, 2500);
+    const interval = setInterval(pollMedia, 2000);
     return () => {
       mounted = false;
       clearInterval(interval);
     };
   }, []);
 
-  // Fallback Pochette iTunes Search API si SMTC ne renvoie pas de miniature
+  // Fallback Pochette iTunes Search API
   useEffect(() => {
     if (!media?.hasSession || !media?.title) {
       setFallbackArtwork(null);
@@ -247,7 +262,7 @@ export const DynamicIsland: React.FC = () => {
     };
   }, [media?.hasSession, media?.title, media?.artist, media?.thumbnailBase64]);
 
-  // Extraction de la couleur dominante de la pochette via <canvas>
+  // Extraction de la couleur dominante de l'album
   useEffect(() => {
     const src = media?.thumbnailBase64 || fallbackArtwork;
     if (!src) {
@@ -274,7 +289,6 @@ export const DynamicIsland: React.FC = () => {
           const pr = data[i];
           const pg = data[i + 1];
           const pb = data[i + 2];
-          // Ignorer les pixels trop sombres ou trop blancs
           const brightness = (pr + pg + pb) / 3;
           if (brightness > 30 && brightness < 235) {
             r += pr;
@@ -310,129 +324,14 @@ export const DynamicIsland: React.FC = () => {
       })
       .catch(() => {});
 
-    const unsub = electron.onClipboardUpdated
-      ? electron.onClipboardUpdated((list: ClipboardEntry[]) => {
-          if (Array.isArray(list)) setClipboardHistory(list);
-        })
-      : () => {};
+    const unsub =
+      electron.onClipboardUpdated?.((list: ClipboardEntry[]) => {
+        if (Array.isArray(list)) setClipboardHistory(list);
+      }) || (() => {});
 
     return () => unsub();
   }, []);
 
-  // Monitoring CPU / RAM (toutes les 3.5s)
-  useEffect(() => {
-    const electron = (window as any).electronAPI;
-    if (!electron?.getSystemStats || !systemStatsEnabled) return;
-
-    let mounted = true;
-    const pollStats = async () => {
-      try {
-        const st = await electron.getSystemStats();
-        if (mounted && st) setSystemStats(st);
-      } catch {}
-    };
-    pollStats();
-    const interval = setInterval(pollStats, 3500);
-    return () => {
-      mounted = false;
-      clearInterval(interval);
-    };
-  }, [systemStatsEnabled]);
-
-  // Synchronisation temps réel du Pomodoro avec le Dashboard
-  useEffect(() => {
-    const unsub = subscribeSyntropySync((msg) => {
-      if (msg.type === 'pomodoro-sync') {
-        isApplyingExternalPomodoroRef.current = true;
-        setPomodoro(msg.state);
-        setTimeout(() => {
-          isApplyingExternalPomodoroRef.current = false;
-        }, 50);
-      }
-    });
-    return () => unsub();
-  }, []);
-
-  useEffect(() => {
-    if (!pomodoro.isRunning) return;
-    const interval = setInterval(() => {
-      setPomodoro((prev) => {
-        if (!prev.isRunning) return prev;
-        if (prev.timeLeft <= 1) {
-          const nextCompleted =
-            prev.mode === 'focus' ? prev.completedSessions + 1 : prev.completedSessions;
-          const nextMode = prev.mode === 'focus' ? 'break' : 'focus';
-          const nextTotal = nextMode === 'focus' ? 25 * 60 : 5 * 60;
-          const nextState: PomodoroSyncState = {
-            mode: nextMode,
-            timeLeft: nextTotal,
-            totalTime: nextTotal,
-            isRunning: false,
-            completedSessions: nextCompleted,
-            updatedAt: Date.now(),
-          };
-          broadcastPomodoroState(nextState);
-          return nextState;
-        }
-        return {
-          ...prev,
-          timeLeft: prev.timeLeft - 1,
-        };
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [pomodoro.isRunning]);
-
-  const handleTogglePomodoro = () => {
-    setPomodoro((prev) => {
-      const next = { ...prev, isRunning: !prev.isRunning, updatedAt: Date.now() };
-      broadcastPomodoroState(next);
-      return next;
-    });
-  };
-
-  const handleResetPomodoro = () => {
-    setPomodoro((prev) => {
-      const next = {
-        ...prev,
-        isRunning: false,
-        timeLeft: prev.totalTime,
-        updatedAt: Date.now(),
-      };
-      broadcastPomodoroState(next);
-      return next;
-    });
-  };
-
-  const handleSwitchPomodoroMode = (mode: 'focus' | 'break') => {
-    const total = mode === 'focus' ? 25 * 60 : 5 * 60;
-    const next: PomodoroSyncState = {
-      mode,
-      timeLeft: total,
-      totalTime: total,
-      isRunning: false,
-      completedSessions: pomodoro.completedSessions,
-      updatedAt: Date.now(),
-    };
-    setPomodoro(next);
-    broadcastPomodoroState(next);
-  };
-
-  const handleSetCustomMinutes = (mins: number) => {
-    const total = mins * 60;
-    const next: PomodoroSyncState = {
-      mode: 'focus',
-      timeLeft: total,
-      totalTime: total,
-      isRunning: false,
-      completedSessions: pomodoro.completedSessions,
-      updatedAt: Date.now(),
-    };
-    setPomodoro(next);
-    broadcastPomodoroState(next);
-  };
-
-  // Contrôle Média
   const handleControlMedia = async (action: 'play' | 'pause' | 'toggle' | 'next' | 'previous') => {
     const electron = (window as any).electronAPI;
     if (!electron?.controlMedia) return;
@@ -440,7 +339,7 @@ export const DynamicIsland: React.FC = () => {
     setTimeout(async () => {
       const updated = await electron.getNowPlaying?.();
       if (updated) setMedia(updated);
-    }, 250);
+    }, 220);
   };
 
   const handleSelectMediaSession = async (appId: string) => {
@@ -451,41 +350,37 @@ export const DynamicIsland: React.FC = () => {
     if (updated) setMedia(updated);
   };
 
-  // Gestion Click-Through chirurgical & Expansion
-  const handleMouseEnter = () => {
-    if (collapseTimeoutRef.current) {
-      clearTimeout(collapseTimeoutRef.current);
-      collapseTimeoutRef.current = null;
-    }
+  // Fallback survol navigateur (hors Electron)
+  const handleBrowserMouseEnter = () => {
     const electron = (window as any).electronAPI;
     electron?.setIslandIgnoreMouse?.(false);
-    if (islandTrigger === 'hover') {
+    if (!electron?.isDesktop && islandTrigger === 'hover' && !suppressHoverUntilLeaveRef.current) {
       setIsExpanded(true);
     }
   };
 
-  const handleMouseLeave = () => {
-    if (isCaptureFocused || isDraggingOver) return;
-    collapseTimeoutRef.current = setTimeout(() => {
+  const handleBrowserMouseLeave = () => {
+    const electron = (window as any).electronAPI;
+    if (!electron?.isDesktop && !isCaptureFocused && !isDraggingOver) {
+      suppressHoverUntilLeaveRef.current = false;
       setIsExpanded(false);
-      const electron = (window as any).electronAPI;
-      electron?.setIslandFocusable?.(false);
-      electron?.setIslandIgnoreMouse?.(true);
-    }, 180);
+    }
   };
 
   const handleCollapsedClick = () => {
+    suppressHoverUntilLeaveRef.current = false;
     const electron = (window as any).electronAPI;
     electron?.setIslandIgnoreMouse?.(false);
     setIsExpanded(true);
   };
 
-  const handleForceClose = () => {
+  const handleForceClose = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    suppressHoverUntilLeaveRef.current = true;
     setIsCaptureFocused(false);
     setIsExpanded(false);
     const electron = (window as any).electronAPI;
     electron?.setIslandFocusable?.(false);
-    electron?.setIslandIgnoreMouse?.(true);
   };
 
   // Drag & Drop vers Dropzone Shelf
@@ -552,56 +447,24 @@ export const DynamicIsland: React.FC = () => {
     }
   };
 
-  // Détection d'un événement agenda imminent (< 30 min)
-  const imminentEvent = useMemo(() => {
-    const now = Date.now();
-    for (const ev of events) {
-      if (!ev.startDate || !ev.startDate.includes('T')) continue;
-      const startMs = new Date(ev.startDate).getTime();
-      const diffMins = Math.round((startMs - now) / 60000);
-      if (diffMins >= -15 && diffMins <= 30) {
-        return { event: ev, diffMins, videoUrl: extractVideoCallUrl(ev) };
-      }
-    }
-    return null;
-  }, [events]);
-
-  // Compteurs rapides pour le mode repos
-  const todayStr = new Date().toISOString().split('T')[0];
   const pendingTasksCount = useMemo(
     () => tasks.filter((t) => t.status !== 'done').length,
     [tasks]
   );
-  const completedHabitsToday = useMemo(
-    () => habits.filter((h) => !!habitHistory[h.id]?.[todayStr]).length,
-    [habits, habitHistory, todayStr]
-  );
 
-  const isMediaPlaying = Boolean(media?.hasSession && media?.status === 'playing' && media?.title);
-  const hasAnyMedia = Boolean(media?.hasSession && media?.title);
   const artworkUrl = media?.thumbnailBase64 || fallbackArtwork || null;
 
-  const pomoMins = String(Math.floor(pomodoro.timeLeft / 60)).padStart(2, '0');
-  const pomoSecs = String(pomodoro.timeLeft % 60).padStart(2, '0');
-
-  // Styles de conteneur selon le thème (Syntropy Liquid Glass / Nothing / Cyberpunk / OLED) et le mode (pill vs notch)
-  const isNotch = islandStyle === 'notch';
-
-  const containerThemeClasses = useMemo(() => {
-    if (isNotch) {
-      return 'bg-[#050507] text-white border-b border-x border-white/10 shadow-[0_14px_38px_rgba(0,0,0,0.85)]';
-    }
-    if (isNothing) {
-      return 'bg-black/95 text-white border border-white/25 shadow-[0_10px_32px_rgba(0,0,0,0.9)] font-ntype';
-    }
-    if (isCyberpunk) {
-      return 'bg-[#070a14]/95 text-[#00F0FF] border border-[#FCEE0A]/75 shadow-[0_0_25px_rgba(252,238,10,0.22)] font-mono';
-    }
-    if (isOled) {
-      return 'bg-black/95 text-zinc-100 border border-white/15 shadow-[0_12px_36px_rgba(0,0,0,0.95)] backdrop-blur-2xl';
-    }
-    return 'bg-zinc-950/90 text-zinc-100 border border-white/15 shadow-[0_12px_36px_rgba(0,0,0,0.75)] backdrop-blur-2xl';
-  }, [isNotch, isNothing, isCyberpunk, isOled]);
+  const openCorrespondingRoute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const routeMap: Record<IslandTab, string> = {
+      media: '/',
+      tasks: '/tasks',
+      shelf: '/notes',
+      habits: '/habits',
+    };
+    const electron = (window as any).electronAPI;
+    electron?.openMainAppRoute?.(routeMap[activeTab] || '/');
+  };
 
   return (
     <div
@@ -610,91 +473,64 @@ export const DynamicIsland: React.FC = () => {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      <style>{`
+        @keyframes notchEq {
+          0%, 100% { transform: scaleY(0.28); }
+          50% { transform: scaleY(1); }
+        }
+      `}</style>
+
       <div
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={handleBrowserMouseEnter}
+        onMouseLeave={handleBrowserMouseLeave}
         onClick={!isExpanded ? handleCollapsedClick : undefined}
         style={{
-          marginTop: isNotch ? 0 : 8,
-          width: isExpanded ? 510 : isMediaPlaying || pomodoro.isRunning || imminentEvent ? 310 : 256,
-          height: isExpanded ? 298 : isNotch ? 36 : 38,
-          transition: 'all 340ms cubic-bezier(0.22, 1, 0.36, 1)',
-          borderColor:
-            !isNotch && !isNothing && !isCyberpunk && isExpanded ? `${accentHex}55` : undefined,
+          marginTop: currentTop,
+          width: currentWidth,
+          height: currentHeight,
+          transition:
+            'width 300ms cubic-bezier(0.22, 1, 0.36, 1), height 300ms cubic-bezier(0.22, 1, 0.36, 1), border-radius 300ms cubic-bezier(0.22, 1, 0.36, 1)',
+          backgroundColor: isNotch ? '#000000' : '#060608',
+          boxShadow: isNotch
+            ? 'inset 0 -1px 0 rgba(255,255,255,0.08), 0 18px 40px rgba(0,0,0,0.75)'
+            : 'inset 0 0 0 1px rgba(255,255,255,0.09), 0 18px 40px rgba(0,0,0,0.8)',
         }}
-        className={`relative flex flex-col justify-between overflow-visible ${
+        className={`relative flex flex-col text-white overflow-visible ${
           isNotch
             ? isExpanded
-              ? 'rounded-b-[26px] rounded-t-none'
-              : 'rounded-b-[18px] rounded-t-none'
+              ? 'rounded-b-[28px] rounded-t-none'
+              : 'rounded-b-[16px] rounded-t-none cursor-pointer'
             : isExpanded
             ? 'rounded-[28px]'
             : 'rounded-full cursor-pointer'
-        } ${containerThemeClasses}`}
+        }`}
       >
-        {/* Oreilles concaves SVG pour le mode Living Notch (y = 0) */}
+        {/* Congés concaves fluides pour la Living Notch soudée à y = 0 */}
         {isNotch && (
           <>
             <svg
-              className="absolute -left-3 top-0 w-3 h-3 text-[#050507] pointer-events-none"
-              viewBox="0 0 12 12"
+              className="absolute -left-3.5 top-0 w-3.5 h-3.5 text-black pointer-events-none"
+              viewBox="0 0 14 14"
               fill="currentColor"
             >
-              <path d="M12 0H0C6.627 0 12 5.373 12 12V0Z" />
+              <path d="M14 0H0C7.732 0 14 6.268 14 14V0Z" />
             </svg>
             <svg
-              className="absolute -right-3 top-0 w-3 h-3 text-[#050507] pointer-events-none"
-              viewBox="0 0 12 12"
+              className="absolute -right-3.5 top-0 w-3.5 h-3.5 text-black pointer-events-none"
+              viewBox="0 0 14 14"
               fill="currentColor"
             >
-              <path d="M0 0H12C5.373 0 0 5.373 0 12V0Z" />
+              <path d="M0 0H14C6.268 0 0 6.268 0 14V0Z" />
             </svg>
           </>
         )}
 
         {/* ============================================================ */}
-        {/* ÉTAT 1 : PILULE / NOTCH COMPACTE (COLLAPSED)                 */}
+        {/* ÉTAT FERMÉ : ULTRA-ÉPURÉ (HEURE + POINT OU MUSIQUE)          */}
         {/* ============================================================ */}
         {!isExpanded ? (
-          <div className="w-full h-full px-3.5 flex items-center justify-between gap-2 overflow-hidden">
-            {/* Priorité 1 : Pomodoro actif */}
-            {pomodoro.isRunning ? (
-              <>
-                <div className="flex items-center gap-2 min-w-0">
-                  <span
-                    className="w-2 h-2 rounded-full animate-ping flex-shrink-0"
-                    style={{ backgroundColor: accentHex }}
-                  />
-                  <span className="text-[11px] font-bold text-zinc-200 truncate">
-                    {pomodoro.mode === 'focus' ? 'Focus Deep Work' : 'Pause active'}
-                  </span>
-                </div>
-                <span
-                  className="font-mono text-xs font-black px-2 py-0.5 rounded-full bg-white/10"
-                  style={{ color: accentHex }}
-                >
-                  {pomoMins}:{pomoSecs}
-                </span>
-              </>
-            ) : imminentEvent ? (
-              /* Priorité 2 : Réunion / Événement imminent (< 30 min) */
-              <>
-                <div className="flex items-center gap-1.5 min-w-0">
-                  {imminentEvent.videoUrl ? (
-                    <Video className="w-3.5 h-3.5 text-emerald-400 animate-pulse flex-shrink-0" />
-                  ) : (
-                    <Calendar className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
-                  )}
-                  <span className="text-[11px] font-bold text-white truncate">
-                    {imminentEvent.event.title}
-                  </span>
-                </div>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 flex-shrink-0">
-                  {imminentEvent.diffMins <= 0 ? 'En cours' : `${imminentEvent.diffMins} min`}
-                </span>
-              </>
-            ) : isMediaPlaying ? (
-              /* Priorité 3 : Média en cours de lecture */
+          <div className="w-full h-full px-3 flex items-center justify-between gap-2 overflow-hidden">
+            {isMediaPlaying ? (
               <>
                 <div className="flex items-center gap-2 min-w-0">
                   {artworkUrl ? (
@@ -702,111 +538,64 @@ export const DynamicIsland: React.FC = () => {
                     <img
                       src={artworkUrl}
                       alt=""
-                      className="w-5 h-5 rounded-full object-cover border border-white/20 flex-shrink-0"
+                      className="w-5 h-5 rounded-[6px] object-cover flex-shrink-0 ring-1 ring-white/15"
                     />
                   ) : (
                     <div
-                      className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                      className="w-5 h-5 rounded-[6px] flex items-center justify-center flex-shrink-0"
                       style={{ backgroundColor: dominantColor }}
                     >
                       <Music className="w-2.5 h-2.5 text-white" />
                     </div>
                   )}
-                  <span className="text-[11px] font-bold text-white truncate">
+                  <span className="text-[11.5px] font-medium text-white/95 truncate">
                     {media?.title}
                   </span>
-                  {media?.artist && (
-                    <span className="text-[10px] text-zinc-400 truncate hidden sm:inline">
-                      • {media.artist}
-                    </span>
-                  )}
                 </div>
 
-                {/* Mini égaliseur animé */}
-                <div className="flex items-end gap-[2px] h-3 flex-shrink-0">
-                  {[0, 1, 2, 3].map((b) => (
+                {/* Égaliseur Apple Music fluide 60 FPS */}
+                <div className="flex items-center gap-[2.5px] h-3.5 flex-shrink-0 pr-0.5">
+                  {[0.55, 0.85, 0.65, 0.95].map((dur, idx) => (
                     <span
-                      key={b}
-                      className="w-[2.5px] rounded-full"
+                      key={idx}
+                      className="w-[2.5px] h-3 rounded-full origin-center"
                       style={{
-                        backgroundColor: isNothing
-                          ? '#D71920'
-                          : isCyberpunk
-                          ? '#FCEE0A'
-                          : dominantColor,
-                        height: `${[70, 100, 50, 85][b]}%`,
-                        animation: `pulse ${0.55 + b * 0.15}s ease-in-out infinite alternate`,
+                        backgroundColor: dominantColor,
+                        animation: `notchEq ${dur}s ease-in-out ${idx * 0.12}s infinite`,
                       }}
                     />
                   ))}
                 </div>
               </>
             ) : (
-              /* Priorité 4 : État Repos (Logo Syntropy + Compteurs + Horloge) */
-              <>
-                <div className="flex items-center gap-2">
-                  <span
-                    className="w-2 h-2 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: accentHex }}
-                  />
-                  <span className="text-[11px] font-extrabold tracking-tight text-white">
-                    Syntropy
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-300">
-                  <span className="px-1.5 py-0.5 rounded-full bg-white/8 text-zinc-200">
-                    ✓ {pendingTasksCount}
-                  </span>
-                  <span className="px-1.5 py-0.5 rounded-full bg-white/8 text-zinc-200">
-                    🔥 {completedHabitsToday}/{habits.length}
-                  </span>
-                  <span className="text-zinc-400 font-semibold">{clockStr}</span>
-                </div>
-              </>
+              <div className="w-full flex items-center justify-center gap-2">
+                <span
+                  className="w-[5.5px] h-[5.5px] rounded-full flex-shrink-0"
+                  style={{
+                    backgroundColor: pendingTasksCount > 0 ? accentHex : '#34d399',
+                    boxShadow: `0 0 8px ${pendingTasksCount > 0 ? accentHex : '#34d399'}`,
+                  }}
+                />
+                <span className="text-xs font-medium tracking-tight text-white/90 tabular-nums">
+                  {clockStr}
+                </span>
+              </div>
             )}
           </div>
         ) : (
           /* ============================================================ */
-          /* ÉTAT 2 : CARTE ÉTENDUE (5 ONGLETS + SYSTEM MONITOR)          */
+          /* ÉTAT OUVERT : DESIGN APPLE / BORINGNOTCH SANS ENCOMBREMENT   */
           /* ============================================================ */
-          <div className="flex flex-col justify-between w-full h-full overflow-hidden">
-            {/* Barre de navigation supérieure des 5 onglets */}
-            <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5 border-b border-white/10">
-              <div className="flex items-center gap-1">
+          <div className="flex flex-col w-full h-full overflow-hidden">
+            {/* Barre supérieure d'icônes pures (zéro texte tassé) */}
+            <div className="flex items-center justify-between px-4 pt-3 pb-1.5">
+              <div className="flex items-center gap-1 bg-white/[0.05] p-1 rounded-full">
                 {(
                   [
-                    {
-                      id: 'media' as IslandTab,
-                      label: 'Média',
-                      icon: Music,
-                      badge: hasAnyMedia ? '●' : undefined,
-                    },
-                    {
-                      id: 'tasks' as IslandTab,
-                      label: 'Tâches',
-                      icon: CheckSquare,
-                      badge: pendingTasksCount > 0 ? String(pendingTasksCount) : undefined,
-                    },
-                    {
-                      id: 'focus' as IslandTab,
-                      label: 'Focus & Agenda',
-                      icon: Timer,
-                      badge: pomodoro.isRunning ? `${pomoMins}:${pomoSecs}` : undefined,
-                    },
-                    {
-                      id: 'habits' as IslandTab,
-                      label: 'Habitudes',
-                      icon: Flame,
-                      badge: `${completedHabitsToday}/${habits.length}`,
-                    },
-                    {
-                      id: 'shelf' as IslandTab,
-                      label: 'Shelf & Clips',
-                      icon: Inbox,
-                      badge:
-                        shelfItems.length > 0 ? String(shelfItems.length) : undefined,
-                    },
+                    { id: 'media' as IslandTab, icon: Music, title: 'Média' },
+                    { id: 'tasks' as IslandTab, icon: CheckSquare, title: 'Tâches & Capture' },
+                    { id: 'shelf' as IslandTab, icon: Inbox, title: 'Presse-papiers & Dropzone' },
+                    { id: 'habits' as IslandTab, icon: Flame, title: 'Habitudes & Lecture' },
                   ] as const
                 ).map((tab) => {
                   const Icon = tab.icon;
@@ -815,24 +604,18 @@ export const DynamicIsland: React.FC = () => {
                     <button
                       key={tab.id}
                       type="button"
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`px-2.5 py-1 rounded-xl text-[10px] font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveTab(tab.id);
+                      }}
+                      title={tab.title}
+                      className={`w-9 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 cursor-pointer ${
                         active
                           ? 'bg-white text-black shadow-xs'
-                          : 'text-zinc-400 hover:text-white hover:bg-white/8'
+                          : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.06]'
                       }`}
                     >
-                      <Icon className="w-3 h-3" />
-                      <span>{tab.label}</span>
-                      {tab.badge && (
-                        <span
-                          className={`text-[9px] font-mono px-1 rounded-full ${
-                            active ? 'bg-black/15 text-black' : 'bg-white/10 text-zinc-300'
-                          }`}
-                        >
-                          {tab.badge}
-                        </span>
-                      )}
+                      <Icon className="w-3.5 h-3.5" />
                     </button>
                   );
                 })}
@@ -841,27 +624,24 @@ export const DynamicIsland: React.FC = () => {
               <div className="flex items-center gap-1">
                 <button
                   type="button"
-                  onClick={() => {
-                    const electron = (window as any).electronAPI;
-                    electron?.openMainAppRoute?.('/');
-                  }}
-                  className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                  title="Ouvrir Syntropy OS"
+                  onClick={openCorrespondingRoute}
+                  className="w-7 h-7 rounded-full text-zinc-500 hover:text-white hover:bg-white/[0.08] flex items-center justify-center transition-all active:scale-90 cursor-pointer"
+                  title="Ouvrir dans l'application"
                 >
-                  <Maximize2 className="w-3 h-3" />
+                  <ArrowUpRight className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   onClick={handleForceClose}
-                  className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                  title="Réduire la Dynamic Island"
+                  className="w-7 h-7 rounded-full text-zinc-500 hover:text-white hover:bg-white/[0.08] flex items-center justify-center transition-all active:scale-90 cursor-pointer"
+                  title="Replier"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <ChevronUp className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Contenu de l'onglet actif */}
+            {/* Contenu aéré plein format */}
             <div className="flex-1 overflow-hidden">
               {activeTab === 'media' && (
                 <IslandMediaTab
@@ -870,8 +650,6 @@ export const DynamicIsland: React.FC = () => {
                   onControl={handleControlMedia}
                   onSelectSession={handleSelectMediaSession}
                   fallbackArtwork={fallbackArtwork}
-                  isNothing={isNothing}
-                  isCyberpunk={isCyberpunk}
                 />
               )}
 
@@ -879,24 +657,10 @@ export const DynamicIsland: React.FC = () => {
                 <IslandTasksCaptureTab
                   autoFocusCapture={autoFocusCapture}
                   onCaptureActiveChange={setIsCaptureFocused}
-                  onCloseIsland={handleForceClose}
+                  onCloseIsland={() => handleForceClose()}
                   accentHex={accentHex}
                 />
               )}
-
-              {activeTab === 'focus' && (
-                <IslandFocusAgendaTab
-                  pomodoro={pomodoro}
-                  onTogglePomodoro={handleTogglePomodoro}
-                  onResetPomodoro={handleResetPomodoro}
-                  onSwitchPomodoroMode={handleSwitchPomodoroMode}
-                  onSetCustomMinutes={handleSetCustomMinutes}
-                  events={events}
-                  accentHex={accentHex}
-                />
-              )}
-
-              {activeTab === 'habits' && <IslandHabitsReadingTab accentHex={accentHex} />}
 
               {activeTab === 'shelf' && (
                 <IslandShelfClipboardTab
@@ -907,9 +671,9 @@ export const DynamicIsland: React.FC = () => {
                   onClearShelf={() => setShelfItems([])}
                   clipboardHistory={clipboardHistory}
                   clipboardEnabled={clipboardEnabled}
-                  onCopyClipboard={(text) => {
+                  onCopyClipboard={(id) => {
                     const electron = (window as any).electronAPI;
-                    electron?.copyClipboardItem?.(text);
+                    electron?.copyClipboardItem?.(id);
                   }}
                   onPinClipboard={async (id) => {
                     const electron = (window as any).electronAPI;
@@ -926,43 +690,10 @@ export const DynamicIsland: React.FC = () => {
                     const updated = await electron?.clearClipboardHistory?.();
                     if (Array.isArray(updated)) setClipboardHistory(updated);
                   }}
-                  accentHex={accentHex}
                 />
               )}
-            </div>
 
-            {/* Pied de carte : Mini-moniteur Système CPU / RAM + Horloge */}
-            <div className="px-3.5 py-1.5 border-t border-white/10 flex items-center justify-between text-[10px] font-mono text-zinc-400 bg-black/25">
-              {systemStatsEnabled && systemStats ? (
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`flex items-center gap-1 ${
-                      systemStats.cpuPercent > 85 ? 'text-rose-400 font-bold' : 'text-zinc-400'
-                    }`}
-                  >
-                    <Cpu className="w-3 h-3" />
-                    <span>CPU {systemStats.cpuPercent}%</span>
-                  </span>
-                  <span
-                    className={`flex items-center gap-1 ${
-                      systemStats.ramPercent > 85 ? 'text-amber-400 font-bold' : 'text-zinc-400'
-                    }`}
-                  >
-                    <HardDrive className="w-3 h-3" />
-                    <span>
-                      RAM {systemStats.ramPercent}% ({systemStats.ramUsedGb}/
-                      {systemStats.ramTotalGb} Go)
-                    </span>
-                  </span>
-                </div>
-              ) : (
-                <span className="text-zinc-500">Syntropy OS Dynamic Island</span>
-              )}
-
-              <div className="flex items-center gap-2">
-                <span className="text-zinc-500">Alt+Espace : Capture</span>
-                <span className="text-zinc-300 font-semibold">{clockStr}</span>
-              </div>
+              {activeTab === 'habits' && <IslandHabitsReadingTab />}
             </div>
           </div>
         )}
@@ -970,4 +701,5 @@ export const DynamicIsland: React.FC = () => {
     </div>
   );
 };
+
 export default DynamicIsland;
