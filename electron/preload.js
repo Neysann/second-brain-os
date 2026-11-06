@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-let appVersion = '2.7.1';
+let appVersion = '2.7.2';
 try {
   const pkg = require('../package.json');
   if (pkg && pkg.version) appVersion = pkg.version;
@@ -121,6 +121,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const sub = () => callback();
     ipcRenderer.on('island-preview', sub);
     return () => ipcRenderer.removeListener('island-preview', sub);
+  },
+  onIslandVisibility: (callback) => {
+    const sub = (_e, visible) => callback(Boolean(visible));
+    ipcRenderer.on('island-visibility', sub);
+    return () => ipcRenderer.removeListener('island-visibility', sub);
   },
   onClipboardUpdated: (callback) => {
     const sub = (_e, list) => callback(list);

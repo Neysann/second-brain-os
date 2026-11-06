@@ -16,7 +16,7 @@ const ISLAND_HEIGHT = 340;
 const CLIPBOARD_MAX = 20;
 const FS_POLL_MS = 3000;
 const CLIP_POLL_MS = 1200;
-const CURSOR_POLL_MS = 25;
+const CURSOR_POLL_MS = 16;
 
 function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl }) {
   let islandWindow = null;
@@ -104,18 +104,18 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
     }
 
     let pt;
-    let d;
+    let wb;
     try {
       pt = screen.getCursorScreenPoint();
-      d = screen.getPrimaryDisplay();
+      wb = w.getBounds();
     } catch (_) {
       return;
     }
 
-    const centerX = d.bounds.x + d.bounds.width / 2;
-    const halfW = Math.max(65, (hitbox.width || 150) / 2) + 10;
-    const topY = d.bounds.y;
-    const bottomY = d.bounds.y + (hitbox.top || 0) + (hitbox.height || 40) + 12;
+    const centerX = wb.x + wb.width / 2;
+    const halfW = Math.max(72, (hitbox.width || 150) / 2) + 16;
+    const topY = wb.y - 6;
+    const bottomY = wb.y + (hitbox.top || 0) + (hitbox.height || 40) + 14;
 
     const inside =
       pt.x >= centerX - halfW &&
@@ -423,11 +423,18 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
       setIgnoreMouseSafe(false);
       w.webContents.send('island-preview');
     });
-    if (previewTimer) clearTimeout(previewTimer);
-    previewTimer = setTimeout(() => {
-      previewMode = false;
-      applyConfig();
-    }, 6500);
+    const schedulePreviewEnd = (delayMs) => {
+      if (previewTimer) clearTimeout(previewTimer);
+      previewTimer = setTimeout(() => {
+        if (cursorInside || isCaptureActive) {
+          schedulePreviewEnd(1500);
+          return;
+        }
+        previewMode = false;
+        applyConfig();
+      }, delayMs);
+    };
+    schedulePreviewEnd(6500);
     return { success: true };
   }
 

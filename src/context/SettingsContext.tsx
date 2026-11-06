@@ -115,8 +115,21 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         } catch {}
       }
     };
+    const refreshFromLocal = () => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setSettings((prev) => ({ ...prev, ...parsed }));
+        }
+      } catch {}
+    };
     window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    window.addEventListener('syntropy-sync-settings', refreshFromLocal);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('syntropy-sync-settings', refreshFromLocal);
+    };
   }, []);
 
   // 3. Synchronisation cloud avec Firebase (si l'utilisateur est connecté)

@@ -11,19 +11,20 @@ import {
 } from 'lucide-react';
 import { Task, TaskPriority } from '@/types';
 import { useData } from '@/context/DataContext';
+import { IslandThemeTokens } from './islandTheme';
 
 interface IslandTasksCaptureTabProps {
   autoFocusCapture?: boolean;
   onCaptureActiveChange: (active: boolean) => void;
   onCloseIsland: () => void;
-  accentHex: string;
+  themeTokens: IslandThemeTokens;
 }
 
 export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
   autoFocusCapture,
   onCaptureActiveChange,
   onCloseIsland,
-  accentHex,
+  themeTokens,
 }) => {
   const { tasks, addTask, addNote, toggleTaskStatus } = useData();
 
@@ -35,6 +36,9 @@ export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
 
   const inputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  const isNothing = themeTokens.mode === 'nothing';
+  const isCyberpunk = themeTokens.mode === 'cyberpunk';
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -180,13 +184,16 @@ export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
               e.stopPropagation();
               setCaptureMode((m) => (m === 'task' ? 'note' : 'task'));
             }}
-            className="h-9 px-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-xs font-medium text-zinc-200 flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer flex-shrink-0"
+            style={themeTokens.subtleActiveStyle}
+            className={`h-9 px-2.5 rounded-xl border text-xs font-medium text-zinc-100 flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer flex-shrink-0 hover:brightness-110 ${
+              isNothing ? 'font-ndot uppercase tracking-wider text-[11px]' : ''
+            }`}
             title="Basculer entre Tâche et Note"
           >
             {captureMode === 'task' ? (
-              <CheckSquare className="w-3.5 h-3.5 text-zinc-300" />
+              <CheckSquare className="w-3.5 h-3.5" style={{ color: themeTokens.accentHex }} />
             ) : (
-              <FileText className="w-3.5 h-3.5 text-zinc-300" />
+              <FileText className="w-3.5 h-3.5" style={{ color: themeTokens.accentHex }} />
             )}
             <span>{captureMode === 'task' ? 'Tâche' : 'Note'}</span>
           </button>
@@ -205,13 +212,15 @@ export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
                   ? 'Ajouter une tâche...'
                   : 'Créer une note rapide...'
               }
-              className="w-full h-9 bg-white/[0.06] hover:bg-white/[0.09] focus:bg-white/[0.11] rounded-xl pl-3 pr-14 text-xs text-white placeholder:text-zinc-500 outline-none transition-all"
+              className="w-full h-9 bg-white/[0.06] hover:bg-white/[0.10] focus:bg-white/[0.12] border border-white/[0.08] rounded-xl pl-3 pr-14 text-xs text-white placeholder:text-zinc-500 outline-none transition-all"
             />
             {captureMode === 'task' && (
               <button
                 type="button"
                 onClick={cyclePriority}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-6 px-2 rounded-lg bg-black/40 hover:bg-black/70 text-[10px] font-medium text-zinc-300 flex items-center gap-1 cursor-pointer transition-colors"
+                className={`absolute right-1.5 top-1/2 -translate-y-1/2 h-6 px-2 rounded-lg bg-[#121218] hover:bg-[#1c1c26] border border-white/10 text-[10px] font-medium text-zinc-200 flex items-center gap-1 cursor-pointer transition-colors ${
+                  isNothing ? 'font-ndot uppercase' : isCyberpunk ? 'font-mono' : ''
+                }`}
                 title="Changer la priorité"
               >
                 <span
@@ -229,7 +238,7 @@ export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
             className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-95 cursor-pointer flex-shrink-0 ${
               isListening
                 ? 'bg-rose-500/25 text-rose-300 animate-pulse'
-                : 'bg-white/[0.06] hover:bg-white/[0.12] text-zinc-400 hover:text-white'
+                : 'bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 hover:text-white'
             }`}
             title="Dictée vocale"
           >
@@ -239,11 +248,12 @@ export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
           <button
             type="submit"
             disabled={!title.trim() && !justSaved}
-            className="w-9 h-9 rounded-xl bg-white hover:bg-zinc-200 disabled:opacity-30 text-black flex items-center justify-center transition-all active:scale-95 cursor-pointer flex-shrink-0"
+            style={themeTokens.primaryBtnStyle}
+            className={`w-9 h-9 rounded-xl hover:brightness-110 disabled:opacity-35 flex items-center justify-center transition-all active:scale-95 cursor-pointer flex-shrink-0 ${themeTokens.primaryBtnTextClass}`}
             title="Valider"
           >
             {justSaved ? (
-              <Check className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
+              <Check className="w-4 h-4 stroke-[2.5]" />
             ) : (
               <Plus className="w-4 h-4 stroke-[2.5]" />
             )}
@@ -273,19 +283,25 @@ export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
                   e.stopPropagation();
                   toggleTaskStatus(task.id);
                 }}
-                className="w-full h-9 px-3 rounded-xl bg-white/[0.035] hover:bg-white/[0.08] flex items-center justify-between gap-2.5 text-left transition-all active:scale-[0.99] cursor-pointer group"
+                className="w-full h-9 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.09] flex items-center justify-between gap-2.5 text-left transition-all active:scale-[0.99] cursor-pointer group"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div
-                    className="w-4 h-4 rounded-full border border-zinc-600 group-hover:border-white flex items-center justify-center transition-colors flex-shrink-0"
+                    className="w-4 h-4 rounded-full border border-zinc-500 group-hover:border-white flex items-center justify-center transition-colors flex-shrink-0"
                     style={
                       task.status === 'in_progress'
-                        ? { borderColor: accentHex, backgroundColor: `${accentHex}30` }
+                        ? {
+                            borderColor: themeTokens.accentHex,
+                            backgroundColor: `${themeTokens.accentHex}33`,
+                          }
                         : undefined
                     }
                   >
                     {task.status === 'in_progress' && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                      <span
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{ backgroundColor: themeTokens.accentHex }}
+                      />
                     )}
                   </div>
                   <span className="text-[12.5px] font-medium text-zinc-200 group-hover:text-white truncate">

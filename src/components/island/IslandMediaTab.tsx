@@ -12,6 +12,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { SMTCMediaInfo, SyncedLyricLine } from '@/types/island';
+import { IslandThemeTokens } from './islandTheme';
 
 interface IslandMediaTabProps {
   media: SMTCMediaInfo | null;
@@ -19,6 +20,7 @@ interface IslandMediaTabProps {
   onControl: (action: 'play' | 'pause' | 'toggle' | 'next' | 'previous') => void;
   onSelectSession: (appId: string) => void;
   fallbackArtwork: string | null;
+  themeTokens: IslandThemeTokens;
 }
 
 function parseLrc(lrc: string): SyncedLyricLine[] {
@@ -59,6 +61,7 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
   onControl,
   onSelectSession,
   fallbackArtwork,
+  themeTokens,
 }) => {
   const [showLyrics, setShowLyrics] = useState(false);
   const [lyrics, setLyrics] = useState<SyncedLyricLine[]>([]);
@@ -71,6 +74,10 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
   const hasMedia = Boolean(media?.hasSession && media?.title);
   const isPlaying = media?.status === 'playing';
   const artworkUrl = media?.thumbnailBase64 || fallbackArtwork || null;
+
+  const isNothing = themeTokens.mode === 'nothing';
+  const isCyberpunk = themeTokens.mode === 'cyberpunk';
+  const numFontClass = isNothing ? 'font-ndot' : isCyberpunk ? 'font-mono' : 'tabular-nums';
 
   useEffect(() => {
     if (typeof media?.positionMs === 'number') {
@@ -184,11 +191,19 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
   if (!hasMedia) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center px-6 select-none">
-        <div className="w-11 h-11 rounded-2xl bg-white/[0.05] flex items-center justify-center mb-2.5 text-zinc-500">
+        <div
+          className="w-11 h-11 rounded-2xl border flex items-center justify-center mb-2.5"
+          style={{
+            ...themeTokens.subtleActiveStyle,
+            color: themeTokens.accentHex,
+          }}
+        >
           <Disc3 className="w-5 h-5" />
         </div>
-        <p className="text-[13px] font-medium text-zinc-300">Aucune lecture en cours</p>
-        <p className="text-[11px] text-zinc-500 mt-0.5">
+        <p className={`text-[13px] font-medium text-zinc-200 ${isNothing ? 'font-ndot tracking-wider' : ''}`}>
+          Aucune lecture en cours
+        </p>
+        <p className="text-[11px] text-zinc-400 mt-0.5">
           Lancez un titre sur Spotify, YouTube ou Apple Music
         </p>
       </div>
@@ -197,11 +212,16 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
 
   return (
     <div className="relative flex flex-col justify-between h-full px-5 pb-4 pt-1 select-none overflow-hidden">
-      {/* Halo ambiant subtil derrière la pochette (style Apple Music / BoringNotch) */}
-      <div
-        className="pointer-events-none absolute -left-6 top-2 w-32 h-32 rounded-full opacity-20 blur-2xl transition-colors duration-700"
-        style={{ backgroundColor: dominantColor }}
-      />
+      {/* Halo ambiant subtil derrière la pochette */}
+      {!themeTokens.isOled && themeTokens.neonIntensity !== 'none' && (
+        <div
+          className="pointer-events-none absolute -left-6 top-2 w-32 h-32 rounded-full opacity-20 blur-2xl transition-colors duration-700"
+          style={{
+            backgroundColor:
+              isCyberpunk || isNothing ? themeTokens.accentHex : dominantColor || themeTokens.accentHex,
+          }}
+        />
+      )}
 
       {showLyrics ? (
         <div className="relative z-10 flex flex-col h-[112px]">
@@ -215,14 +235,15 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
                 e.stopPropagation();
                 setShowLyrics(false);
               }}
-              className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-white text-black cursor-pointer transition-transform active:scale-95"
+              style={themeTokens.primaryBtnStyle}
+              className={`px-2.5 py-1 rounded-full text-[10px] font-semibold cursor-pointer transition-transform active:scale-95 ${themeTokens.primaryBtnTextClass}`}
             >
               Pochette
             </button>
           </div>
           <div className="flex-1 overflow-y-auto pr-1 space-y-1.5 scrollbar-none">
             {lyricsLoading ? (
-              <div className="flex items-center justify-center h-full text-xs text-zinc-500">
+              <div className="flex items-center justify-center h-full text-xs text-zinc-400">
                 Chargement des paroles...
               </div>
             ) : lyrics.length > 0 ? (
@@ -232,10 +253,15 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
                   <div
                     key={`${line.timeMs}-${i}`}
                     ref={isCurrent ? activeLyricRef : null}
+                    style={
+                      isCurrent && isCyberpunk
+                        ? { color: '#00F0FF', textShadow: '0 0 8px rgba(0,240,255,0.4)' }
+                        : undefined
+                    }
                     className={`transition-all duration-300 leading-snug ${
                       isCurrent
                         ? 'text-[13px] text-white font-semibold'
-                        : 'text-xs text-zinc-600 font-medium'
+                        : 'text-xs text-zinc-500 font-medium'
                     }`}
                   >
                     {line.text}
@@ -256,7 +282,15 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
       ) : (
         <div className="relative z-10 flex items-center gap-4">
           {/* Pochette haute définition */}
-          <div className="w-[74px] h-[74px] rounded-2xl overflow-hidden flex-shrink-0 bg-zinc-900 shadow-lg ring-1 ring-white/10">
+          <div
+            className={`w-[74px] h-[74px] overflow-hidden flex-shrink-0 bg-zinc-900 shadow-lg ring-1 ${
+              isCyberpunk
+                ? 'rounded-xl ring-[#FCEE0A]/40'
+                : isNothing
+                ? 'rounded-xl ring-white/20'
+                : 'rounded-2xl ring-white/15'
+            }`}
+          >
             {artworkUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -268,7 +302,7 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
               <div
                 className="w-full h-full flex items-center justify-center"
                 style={{
-                  background: `linear-gradient(135deg, ${dominantColor}, #18181b)`,
+                  background: `linear-gradient(135deg, ${themeTokens.accentHex}, #18181b)`,
                 }}
               >
                 <Music className="w-7 h-7 text-white/85" />
@@ -288,11 +322,13 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
                   <button
                     type="button"
                     onClick={handleCycleSession}
-                    className="h-6 px-2 rounded-full bg-white/[0.07] hover:bg-white/[0.14] text-[10px] font-medium text-zinc-300 flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
+                    className={`h-6 px-2 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-[10px] font-medium text-zinc-200 flex items-center gap-1 transition-all active:scale-95 cursor-pointer ${
+                      isNothing ? 'font-ndot uppercase' : isCyberpunk ? 'font-mono text-[#00F0FF]' : ''
+                    }`}
                     title="Changer de lecteur audio"
                   >
                     <span>{currentSourceLabel}</span>
-                    <RefreshCw className="w-2.5 h-2.5 opacity-70" />
+                    <RefreshCw className="w-2.5 h-2.5 opacity-75" />
                   </button>
                 )}
                 <button
@@ -301,7 +337,7 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
                     e.stopPropagation();
                     setShowLyrics(true);
                   }}
-                  className="w-7 h-7 rounded-full bg-white/[0.07] hover:bg-white/[0.15] text-zinc-300 hover:text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                  className="w-7 h-7 rounded-full bg-white/[0.08] hover:bg-white/[0.16] text-zinc-300 hover:text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer"
                   title="Paroles synchronisées"
                 >
                   <Mic2 className="w-3.5 h-3.5" />
@@ -309,29 +345,35 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
               </div>
             </div>
 
-            <p className="text-[12.5px] text-zinc-400 truncate mt-0.5">
+            <p className="text-[12.5px] text-zinc-300/90 truncate mt-0.5">
               {media?.artist || currentSourceLabel}
             </p>
             {media?.albumTitle && (
-              <p className="text-[11px] text-zinc-600 truncate mt-0.5">{media.albumTitle}</p>
+              <p className="text-[11px] text-zinc-500 truncate mt-0.5">{media.albumTitle}</p>
             )}
           </div>
         </div>
       )}
 
-      {/* Timeline + Grands Contrôles Apple Music */}
+      {/* Timeline + Contrôles tactiles thématisés */}
       <div className="relative z-10 space-y-2 pt-1">
         <div className="flex items-center gap-2.5">
-          <span className="text-[10px] font-medium text-zinc-500 tabular-nums w-7 text-right">
+          <span
+            className={`text-[10px] font-medium text-zinc-400 w-8 text-right ${numFontClass}`}
+            style={isCyberpunk ? { color: '#00F0FF' } : undefined}
+          >
             {durationMs > 0 ? formatMs(localPosMs) : '--:--'}
           </span>
           <div className="flex-1 h-[4px] rounded-full bg-white/[0.12] overflow-hidden">
             <div
-              className="h-full rounded-full bg-white/90 transition-all duration-300"
-              style={{ width: `${durationMs > 0 ? progressPct : isPlaying ? 100 : 0}%` }}
+              className="h-full rounded-full transition-all duration-300"
+              style={{
+                width: `${durationMs > 0 ? progressPct : isPlaying ? 100 : 0}%`,
+                ...themeTokens.progressFillStyle,
+              }}
             />
           </div>
-          <span className="text-[10px] font-medium text-zinc-500 tabular-nums w-7">
+          <span className={`text-[10px] font-medium text-zinc-400 w-8 ${numFontClass}`}>
             {durationMs > 0 ? formatMs(durationMs) : '--:--'}
           </span>
         </div>
@@ -343,7 +385,7 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
               e.stopPropagation();
               onControl('previous');
             }}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all active:scale-90 cursor-pointer"
+            className="w-9 h-9 rounded-full bg-white/[0.03] hover:bg-white/[0.10] flex items-center justify-center text-zinc-200 hover:text-white transition-all active:scale-90 cursor-pointer"
             title="Précédent"
           >
             <SkipBack className="w-[18px] h-[18px] fill-current" />
@@ -355,7 +397,8 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
               e.stopPropagation();
               onControl('toggle');
             }}
-            className="w-10 h-10 rounded-full flex items-center justify-center bg-white text-black hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer"
+            style={themeTokens.primaryBtnStyle}
+            className={`w-10 h-10 rounded-full flex items-center justify-center hover:brightness-110 hover:scale-105 active:scale-95 transition-all cursor-pointer ${themeTokens.primaryBtnTextClass}`}
             title={isPlaying ? 'Pause' : 'Lecture'}
           >
             {isPlaying ? (
@@ -371,7 +414,7 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
               e.stopPropagation();
               onControl('next');
             }}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all active:scale-90 cursor-pointer"
+            className="w-9 h-9 rounded-full bg-white/[0.03] hover:bg-white/[0.10] flex items-center justify-center text-zinc-200 hover:text-white transition-all active:scale-90 cursor-pointer"
             title="Suivant"
           >
             <SkipForward className="w-[18px] h-[18px] fill-current" />

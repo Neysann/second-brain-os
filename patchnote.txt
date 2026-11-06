@@ -2,6 +2,23 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.7.2] - 2026-11-06 (Correctif Clics Living Notch Win32, Police Repliée Confortable & Thèmes Immersifs / Secrets)
+--------------------------------------------------------------------------------
+1. Correction Définitive du Bug des Clics en Mode « Living Notch » (`src/components/island/*`, `src/app/globals.css`, `electron/island-manager.js`) :
+- Résolution du piège Win32 `WS_EX_LAYERED` / `LWA_COLORKEY = 0x000000` sur les fenêtres Electron transparentes sans cadre sous Windows : en v2.7.1, la Living Notch utilisait un fond `#000000` pur (`RGB(0, 0, 0)`), que le compositeur Windows considérait comme transparent aux événements souris (`HTTRANSPARENT`), faisant passer 100 % des clics à travers la Notch (alors que la Pilule Flottante en `#060608` recevait bien les clics).
+- Remplacement intégral de tout `#000000` par des noirs profonds non-zéro (`#060608`, `#060609`, `#070a14` ou teintés selon l'accentuation) sur le conteneur, les oreilles concaves SVG (`earFill`) et tous les boutons internes, doublé d'une protection CSS dédiée `html[data-island-window="true"]` dans `src/app/globals.css` garantissant à la fois la transparence externe de la fenêtre et l'absence totale de `#000000` même en mode OLED.
+- Affinement du hit-testing natif à 60 Hz (`CURSOR_POLL_MS = 16`) calé sur `w.getBounds()` exact avec tolérance au bord supérieur `y = 0` (`wb.y - 6`) et maintien intelligent du mode aperçu (`previewIsland`) tant que le curseur survole la Notch.
+
+2. Augmentation Confortable de la Police en Mode Replié (`src/components/island/DynamicIsland.tsx`) :
+- État repos : horloge passée à `14px` (`font-semibold tabular-nums`) accompagnée d'un point d'état lumineux agrandi (`6.5px`) dans une capsule aérée (`128 × 36 px` en Living Notch / `128 × 38 px` en Pilule).
+- État lecture multimédia : titre du morceau passé à `13px` (`font-medium`) avec pochette `22 × 22 px` et égaliseur 60 FPS dans un format confortable (`276 × 37 px` en Living Notch / `276 × 39 px` en Pilule).
+
+3. Adaptation Immersive aux Couleurs d'Accentuation & aux Thèmes Secrets (`src/components/island/islandTheme.ts`, `src/context/SettingsContext.tsx`) :
+- Mode Syntropy Immersif : fond sombre profond subtilement teinté par la couleur d'accentuation active (`Violet`, `Aether` dégradé bleu-violet, `Harmonie Mix` multicolore, `Cyan`, `Émeraude`, `Ambre`, `Rouge Rubis`, `Monochrome`), liseré/halo néon respectant `neonIntensity` (`vibrant`, `subtle`, `none`) et `darkBgStyle` (`oled`), onglet actif, boutons principaux, jauges de lecture et indicateurs assortis.
+- Identité complète **Nothing OS Edition** (`uiStyle === 'nothing'`) : typographie matricielle officielle `NDot57` sur l'horloge, les compteurs et les badges + `NType82` sur les textes, point rouge vermillon iconique `#D71920`, trame hardware dot-matrix discrète en fond et contrôles rouge `#D71920` / blanc industriel.
+- Identité complète **Cyberpunk HUD 2077** (`uiStyle === 'cyberpunk'`) : fond cyberdeck `#070a14` avec scanlines discrètes, coins HUD angulaires `#FCEE0A`, horloge digitale Cyan `#00F0FF` luminescente, onglet actif et boutons d'action Jaune `#FCEE0A` à contraste noir et barres de progression dégradées `#FCEE0A -> #00F0FF`.
+- Synchronisation instantanée inter-fenêtres (`syntropy-sync-settings` + IPC `onIslandVisibility`) dès qu'une couleur ou un thème secret est modifié dans les Paramètres.
+
 #### [V2.7.1] - 2026-11-06 (Refonte Visuelle Apple / BoringNotch & Fiabilisation 100 % des Clics de la Dynamic Island)
 --------------------------------------------------------------------------------
 1. Correction Définitive des Clics sur les Icônes & Hit-Testing Natif Main Process (`electron/island-manager.js`, `electron/preload.js`) :

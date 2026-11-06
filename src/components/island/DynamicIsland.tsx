@@ -19,22 +19,11 @@ import {
 } from '@/types/island';
 import { useData } from '@/context/DataContext';
 import { useSettings } from '@/context/SettingsContext';
+import { getIslandThemeTokens } from './islandTheme';
 import { IslandMediaTab } from './IslandMediaTab';
 import { IslandTasksCaptureTab } from './IslandTasksCaptureTab';
 import { IslandHabitsReadingTab } from './IslandHabitsReadingTab';
 import { IslandShelfClipboardTab } from './IslandShelfClipboardTab';
-
-const ACCENT_HEX_MAP: Record<string, string> = {
-  purple: '#a855f7',
-  aether: '#6366f1',
-  cyan: '#06b6d4',
-  emerald: '#10b981',
-  amber: '#f59e0b',
-  red: '#ef4444',
-  rose: '#f43f5e',
-  cyberpunk: '#FCEE0A',
-  monochrome: '#e4e4e7',
-};
 
 const VALID_TABS: IslandTab[] = ['media', 'tasks', 'shelf', 'habits'];
 
@@ -54,7 +43,7 @@ export const DynamicIsland: React.FC = () => {
 
   const [media, setMedia] = useState<SMTCMediaInfo | null>(null);
   const [fallbackArtwork, setFallbackArtwork] = useState<string | null>(null);
-  const [dominantColor, setDominantColor] = useState<string>('#a855f7');
+  const [dominantColor, setDominantColor] = useState<string>('#8b5cf6');
   const [clipboardHistory, setClipboardHistory] = useState<ClipboardEntry[]>([]);
   const [shelfItems, setShelfItems] = useState<ShelfItem[]>([]);
   const [clockStr, setClockStr] = useState<string>('');
@@ -77,26 +66,25 @@ export const DynamicIsland: React.FC = () => {
     isDraggingOverRef.current = isDraggingOver;
   }, [isDraggingOver]);
 
-  const accentHex =
-    settings.uiStyle === 'cyberpunk'
-      ? '#FCEE0A'
-      : settings.uiStyle === 'nothing'
-      ? '#D71920'
-      : ACCENT_HEX_MAP[settings.accentColor || 'purple'] || '#a855f7';
+  const isNotch = islandStyle === 'notch';
+  const themeTokens = useMemo(
+    () => getIslandThemeTokens(settings, isNotch),
+    [settings, isNotch]
+  );
 
-  // Transparence totale du canevas Electron
+  // Marqueur DOM pour transparence externe garantie et protection contre le #000000 Win32
   useEffect(() => {
-    const prevHtmlBg = document.documentElement.style.backgroundColor;
-    const prevBodyBg = document.body.style.backgroundColor;
-    document.documentElement.style.backgroundColor = 'transparent';
-    document.body.style.backgroundColor = 'transparent';
+    document.documentElement.setAttribute('data-island-window', 'true');
+    document.documentElement.style.setProperty('background', 'transparent', 'important');
+    document.body.style.setProperty('background', 'transparent', 'important');
     return () => {
-      document.documentElement.style.backgroundColor = prevHtmlBg;
-      document.body.style.backgroundColor = prevBodyBg;
+      document.documentElement.removeAttribute('data-island-window');
+      document.documentElement.style.removeProperty('background');
+      document.body.style.removeProperty('background');
     };
   }, []);
 
-  // Horloge minimale HH:mm
+  // Horloge HH:mm
   useEffect(() => {
     const updateClock = () => {
       setClockStr(
@@ -112,10 +100,18 @@ export const DynamicIsland: React.FC = () => {
   }, []);
 
   const isMediaPlaying = Boolean(media?.hasSession && media?.status === 'playing' && media?.title);
-  const isNotch = islandStyle === 'notch';
 
-  const currentWidth = isExpanded ? 452 : isMediaPlaying ? 252 : 108;
-  const currentHeight = isExpanded ? 248 : isMediaPlaying ? (isNotch ? 34 : 36) : isNotch ? 31 : 33;
+  // Dimensions confortables (heure 14px / titre média 13px replié)
+  const currentWidth = isExpanded ? 456 : isMediaPlaying ? 276 : 128;
+  const currentHeight = isExpanded
+    ? 250
+    : isMediaPlaying
+    ? isNotch
+      ? 37
+      : 39
+    : isNotch
+    ? 36
+    : 38;
   const currentTop = isNotch ? 0 : 8;
 
   // Synchronisation permanente de la hitbox exacte avec le Main Process Electron
@@ -133,6 +129,10 @@ export const DynamicIsland: React.FC = () => {
     const electron = (window as any).electronAPI;
     if (!electron) return;
 
+    const syncThemeSettings = () => {
+      window.dispatchEvent(new Event('syntropy-sync-settings'));
+    };
+
     const applyCfg = (cfg: any) => {
       if (!cfg) return;
       if (cfg.dynamicIslandStyle === 'pill' || cfg.dynamicIslandStyle === 'notch') {
@@ -147,15 +147,22 @@ export const DynamicIsland: React.FC = () => {
       if (typeof cfg.dynamicIslandClipboardHistory === 'boolean') {
         setClipboardEnabled(cfg.dynamicIslandClipboardHistory);
       }
+      syncThemeSettings();
     };
 
     electron.getDesktopConfig?.().then(applyCfg).catch(() => {});
 
     const unsubCfg = electron.onIslandConfigUpdated?.(applyCfg) || (() => {});
 
+    const unsubVis =
+      electron.onIslandVisibility?.((visible: boolean) => {
+        if (visible) syncThemeSettings();
+      }) || (() => {});
+
     const unsubHover =
       electron.onIslandHover?.((hovered: boolean) => {
         if (hovered) {
+          syncThemeSettings();
           if (!suppressHoverUntilLeaveRef.current && islandTriggerRef.current === 'hover') {
             setIsExpanded(true);
           }
@@ -169,6 +176,7 @@ export const DynamicIsland: React.FC = () => {
 
     const unsubCapture =
       electron.onActivateIslandCapture?.(() => {
+        syncThemeSettings();
         suppressHoverUntilLeaveRef.current = false;
         setIsExpanded(true);
         setActiveTab('tasks');
@@ -178,17 +186,19 @@ export const DynamicIsland: React.FC = () => {
 
     const unsubPreview =
       electron.onIslandPreview?.(() => {
+        syncThemeSettings();
         suppressHoverUntilLeaveRef.current = false;
         setIsExpanded(true);
         setTimeout(() => {
           if (!isCaptureFocusedRef.current) {
             setIsExpanded(false);
           }
-        }, 4500);
+        }, 4800);
       }) || (() => {});
 
     return () => {
       unsubCfg();
+      unsubVis();
       unsubHover();
       unsubCapture();
       unsubPreview();
@@ -266,7 +276,7 @@ export const DynamicIsland: React.FC = () => {
   useEffect(() => {
     const src = media?.thumbnailBase64 || fallbackArtwork;
     if (!src) {
-      setDominantColor(accentHex);
+      setDominantColor(themeTokens.accentHex);
       return;
     }
 
@@ -303,14 +313,14 @@ export const DynamicIsland: React.FC = () => {
           b = Math.min(255, Math.round((b / count) * 1.15));
           setDominantColor(`rgb(${r}, ${g}, ${b})`);
         } else {
-          setDominantColor(accentHex);
+          setDominantColor(themeTokens.accentHex);
         }
       } catch {
-        setDominantColor(accentHex);
+        setDominantColor(themeTokens.accentHex);
       }
     };
     img.src = src;
-  }, [media?.thumbnailBase64, fallbackArtwork, accentHex]);
+  }, [media?.thumbnailBase64, fallbackArtwork, themeTokens.accentHex]);
 
   // Presse-papiers intelligent
   useEffect(() => {
@@ -350,8 +360,7 @@ export const DynamicIsland: React.FC = () => {
     if (updated) setMedia(updated);
   };
 
-  // Fallback survol navigateur (hors Electron)
-  const handleBrowserMouseEnter = () => {
+  const handlePointerOrMouseEnter = () => {
     const electron = (window as any).electronAPI;
     electron?.setIslandIgnoreMouse?.(false);
     if (!electron?.isDesktop && islandTrigger === 'hover' && !suppressHoverUntilLeaveRef.current) {
@@ -466,9 +475,23 @@ export const DynamicIsland: React.FC = () => {
     electron?.openMainAppRoute?.(routeMap[activeTab] || '/');
   };
 
+  const shapeRadiusClass = isNotch
+    ? isExpanded
+      ? 'rounded-b-[28px] rounded-t-none'
+      : 'rounded-b-[18px] rounded-t-none cursor-pointer'
+    : isExpanded
+    ? 'rounded-[28px]'
+    : 'rounded-full cursor-pointer';
+
+  const isNothing = themeTokens.mode === 'nothing';
+  const isCyberpunk = themeTokens.mode === 'cyberpunk';
+
+  const equalizerColor =
+    isNothing || isCyberpunk ? themeTokens.accentHex : dominantColor || themeTokens.accentHex;
+
   return (
     <div
-      className="w-full h-full flex justify-center items-start bg-transparent overflow-hidden select-none"
+      className={`w-full h-full flex justify-center items-start bg-transparent overflow-hidden select-none ${themeTokens.bodyFontClass}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -481,7 +504,8 @@ export const DynamicIsland: React.FC = () => {
       `}</style>
 
       <div
-        onMouseEnter={handleBrowserMouseEnter}
+        onPointerEnter={handlePointerOrMouseEnter}
+        onMouseEnter={handlePointerOrMouseEnter}
         onMouseLeave={handleBrowserMouseLeave}
         onClick={!isExpanded ? handleCollapsedClick : undefined}
         style={{
@@ -489,78 +513,118 @@ export const DynamicIsland: React.FC = () => {
           width: currentWidth,
           height: currentHeight,
           transition:
-            'width 300ms cubic-bezier(0.22, 1, 0.36, 1), height 300ms cubic-bezier(0.22, 1, 0.36, 1), border-radius 300ms cubic-bezier(0.22, 1, 0.36, 1)',
-          backgroundColor: isNotch ? '#000000' : '#060608',
-          boxShadow: isNotch
-            ? 'inset 0 -1px 0 rgba(255,255,255,0.08), 0 18px 40px rgba(0,0,0,0.75)'
-            : 'inset 0 0 0 1px rgba(255,255,255,0.09), 0 18px 40px rgba(0,0,0,0.8)',
+            'width 300ms cubic-bezier(0.22, 1, 0.36, 1), height 300ms cubic-bezier(0.22, 1, 0.36, 1), border-radius 300ms cubic-bezier(0.22, 1, 0.36, 1), background-color 280ms ease, box-shadow 280ms ease',
+          backgroundColor: themeTokens.surfaceBg,
+          boxShadow: themeTokens.boxShadow,
         }}
-        className={`relative flex flex-col text-white overflow-visible ${
-          isNotch
-            ? isExpanded
-              ? 'rounded-b-[28px] rounded-t-none'
-              : 'rounded-b-[16px] rounded-t-none cursor-pointer'
-            : isExpanded
-            ? 'rounded-[28px]'
-            : 'rounded-full cursor-pointer'
-        }`}
+        className={`relative flex flex-col text-white overflow-visible ${shapeRadiusClass}`}
       >
-        {/* Congés concaves fluides pour la Living Notch soudée à y = 0 */}
+        {/* Congés concaves fluides pour la Living Notch soudée à y = 0 (couleur non-#000000 identique au fond) */}
         {isNotch && (
           <>
             <svg
-              className="absolute -left-3.5 top-0 w-3.5 h-3.5 text-black pointer-events-none"
+              className="absolute -left-3.5 top-0 w-3.5 h-3.5 pointer-events-none"
               viewBox="0 0 14 14"
-              fill="currentColor"
+              fill={themeTokens.earFill}
             >
               <path d="M14 0H0C7.732 0 14 6.268 14 14V0Z" />
             </svg>
             <svg
-              className="absolute -right-3.5 top-0 w-3.5 h-3.5 text-black pointer-events-none"
+              className="absolute -right-3.5 top-0 w-3.5 h-3.5 pointer-events-none"
               viewBox="0 0 14 14"
-              fill="currentColor"
+              fill={themeTokens.earFill}
             >
               <path d="M0 0H14C6.268 0 0 6.268 0 14V0Z" />
             </svg>
           </>
         )}
 
+        {/* Calques décoratifs immersifs (strictement pointer-events-none et découpés aux coins) */}
+        <div className={`pointer-events-none absolute inset-0 overflow-hidden z-0 ${shapeRadiusClass}`}>
+          {/* Reflet immersif de la couleur d'accentuation ou du thème secret */}
+          <div
+            className="absolute inset-0 transition-opacity duration-300"
+            style={{ backgroundImage: themeTokens.surfaceGradient }}
+          />
+
+          {/* Trame matricielle Nothing OS */}
+          {isNothing && (
+            <div
+              className="absolute inset-0 opacity-90"
+              style={{
+                backgroundImage:
+                  'radial-gradient(rgba(255, 255, 255, 0.085) 1px, transparent 1px)',
+                backgroundSize: '8px 8px',
+              }}
+            />
+          )}
+
+          {/* Scanlines & Coins angulaires Cyberpunk HUD */}
+          {isCyberpunk && (
+            <>
+              <div
+                className="absolute inset-0 opacity-60"
+                style={{
+                  backgroundImage:
+                    'repeating-linear-gradient(0deg, rgba(0, 240, 255, 0.025) 0px, rgba(0, 240, 255, 0.025) 1px, transparent 1px, transparent 3px)',
+                }}
+              />
+              {isExpanded && (
+                <>
+                  <span className="absolute bottom-2 left-3 w-2.5 h-2.5 border-b-2 border-l-2 border-[#FCEE0A]/80" />
+                  <span className="absolute bottom-2 right-3 w-2.5 h-2.5 border-b-2 border-r-2 border-[#FCEE0A]/80" />
+                  {!isNotch && (
+                    <>
+                      <span className="absolute top-2 left-3 w-2.5 h-2.5 border-t-2 border-l-2 border-[#00F0FF]/70" />
+                      <span className="absolute top-2 right-3 w-2.5 h-2.5 border-t-2 border-r-2 border-[#00F0FF]/70" />
+                    </>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </div>
+
         {/* ============================================================ */}
-        {/* ÉTAT FERMÉ : ULTRA-ÉPURÉ (HEURE + POINT OU MUSIQUE)          */}
+        {/* ÉTAT FERMÉ : POLICE CONFORTABLE (14px HEURE / 13px MÉDIA)    */}
         {/* ============================================================ */}
         {!isExpanded ? (
-          <div className="w-full h-full px-3 flex items-center justify-between gap-2 overflow-hidden">
+          <div className="relative z-10 w-full h-full px-3.5 flex items-center justify-between gap-2.5 overflow-hidden">
             {isMediaPlaying ? (
               <>
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2.5 min-w-0">
                   {artworkUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={artworkUrl}
                       alt=""
-                      className="w-5 h-5 rounded-[6px] object-cover flex-shrink-0 ring-1 ring-white/15"
+                      className="w-[22px] h-[22px] rounded-[7px] object-cover flex-shrink-0 ring-1 ring-white/20"
                     />
                   ) : (
                     <div
-                      className="w-5 h-5 rounded-[6px] flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: dominantColor }}
+                      className="w-[22px] h-[22px] rounded-[7px] flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: equalizerColor }}
                     >
-                      <Music className="w-2.5 h-2.5 text-white" />
+                      <Music className="w-3 h-3 text-white" />
                     </div>
                   )}
-                  <span className="text-[11.5px] font-medium text-white/95 truncate">
+                  <span
+                    className={`text-[13px] font-medium text-white/95 leading-none truncate ${
+                      isNothing ? 'font-ntype' : ''
+                    }`}
+                  >
                     {media?.title}
                   </span>
                 </div>
 
-                {/* Égaliseur Apple Music fluide 60 FPS */}
+                {/* Égaliseur 60 FPS */}
                 <div className="flex items-center gap-[2.5px] h-3.5 flex-shrink-0 pr-0.5">
                   {[0.55, 0.85, 0.65, 0.95].map((dur, idx) => (
                     <span
                       key={idx}
-                      className="w-[2.5px] h-3 rounded-full origin-center"
+                      className="w-[2.5px] h-3.5 rounded-full origin-center"
                       style={{
-                        backgroundColor: dominantColor,
+                        backgroundColor: equalizerColor,
                         animation: `notchEq ${dur}s ease-in-out ${idx * 0.12}s infinite`,
                       }}
                     />
@@ -568,15 +632,32 @@ export const DynamicIsland: React.FC = () => {
                 </div>
               </>
             ) : (
-              <div className="w-full flex items-center justify-center gap-2">
+              <div className="w-full flex items-center justify-center gap-2.5">
                 <span
-                  className="w-[5.5px] h-[5.5px] rounded-full flex-shrink-0"
+                  className={`w-[6.5px] h-[6.5px] rounded-full flex-shrink-0 ${
+                    isNothing ? 'animate-pulse' : ''
+                  }`}
                   style={{
-                    backgroundColor: pendingTasksCount > 0 ? accentHex : '#34d399',
-                    boxShadow: `0 0 8px ${pendingTasksCount > 0 ? accentHex : '#34d399'}`,
+                    backgroundColor:
+                      isNothing || isCyberpunk
+                        ? themeTokens.statusDotColor
+                        : pendingTasksCount > 0
+                        ? themeTokens.statusDotColor
+                        : '#34d399',
+                    boxShadow:
+                      isNothing || isCyberpunk
+                        ? themeTokens.statusDotShadow
+                        : pendingTasksCount > 0
+                        ? themeTokens.statusDotShadow
+                        : themeTokens.neonIntensity === 'none'
+                        ? 'none'
+                        : '0 0 8px rgba(52, 211, 153, 0.8)',
                   }}
                 />
-                <span className="text-xs font-medium tracking-tight text-white/90 tabular-nums">
+                <span
+                  style={themeTokens.clockStyle}
+                  className={`text-[14px] font-semibold leading-none tabular-nums ${themeTokens.clockFontClass}`}
+                >
                   {clockStr}
                 </span>
               </div>
@@ -584,12 +665,12 @@ export const DynamicIsland: React.FC = () => {
           </div>
         ) : (
           /* ============================================================ */
-          /* ÉTAT OUVERT : DESIGN APPLE / BORINGNOTCH SANS ENCOMBREMENT   */
+          /* ÉTAT OUVERT : NAVIGATION 100 % ICÔNES + IDENTITÉ THÉMATIQUE  */
           /* ============================================================ */
-          <div className="flex flex-col w-full h-full overflow-hidden">
-            {/* Barre supérieure d'icônes pures (zéro texte tassé) */}
+          <div className="relative z-20 flex flex-col w-full h-full overflow-hidden">
+            {/* Barre supérieure d'icônes pures */}
             <div className="flex items-center justify-between px-4 pt-3 pb-1.5">
-              <div className="flex items-center gap-1 bg-white/[0.05] p-1 rounded-full">
+              <div className="flex items-center gap-1 bg-white/[0.06] p-1 rounded-full border border-white/[0.06]">
                 {(
                   [
                     { id: 'media' as IslandTab, icon: Music, title: 'Média' },
@@ -609,10 +690,11 @@ export const DynamicIsland: React.FC = () => {
                         setActiveTab(tab.id);
                       }}
                       title={tab.title}
+                      style={active ? themeTokens.activeTabStyle : undefined}
                       className={`w-9 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 cursor-pointer ${
                         active
-                          ? 'bg-white text-black shadow-xs'
-                          : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.06]'
+                          ? themeTokens.activeTabTextClass
+                          : 'bg-white/[0.015] text-zinc-400 hover:text-white hover:bg-white/[0.08]'
                       }`}
                     >
                       <Icon className="w-3.5 h-3.5" />
@@ -625,7 +707,7 @@ export const DynamicIsland: React.FC = () => {
                 <button
                   type="button"
                   onClick={openCorrespondingRoute}
-                  className="w-7 h-7 rounded-full text-zinc-500 hover:text-white hover:bg-white/[0.08] flex items-center justify-center transition-all active:scale-90 cursor-pointer"
+                  className="w-7 h-7 rounded-full bg-white/[0.03] text-zinc-400 hover:text-white hover:bg-white/[0.10] flex items-center justify-center transition-all active:scale-90 cursor-pointer"
                   title="Ouvrir dans l'application"
                 >
                   <ArrowUpRight className="w-4 h-4" />
@@ -633,7 +715,7 @@ export const DynamicIsland: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleForceClose}
-                  className="w-7 h-7 rounded-full text-zinc-500 hover:text-white hover:bg-white/[0.08] flex items-center justify-center transition-all active:scale-90 cursor-pointer"
+                  className="w-7 h-7 rounded-full bg-white/[0.03] text-zinc-400 hover:text-white hover:bg-white/[0.10] flex items-center justify-center transition-all active:scale-90 cursor-pointer"
                   title="Replier"
                 >
                   <ChevronUp className="w-4 h-4" />
@@ -650,6 +732,7 @@ export const DynamicIsland: React.FC = () => {
                   onControl={handleControlMedia}
                   onSelectSession={handleSelectMediaSession}
                   fallbackArtwork={fallbackArtwork}
+                  themeTokens={themeTokens}
                 />
               )}
 
@@ -658,7 +741,7 @@ export const DynamicIsland: React.FC = () => {
                   autoFocusCapture={autoFocusCapture}
                   onCaptureActiveChange={setIsCaptureFocused}
                   onCloseIsland={() => handleForceClose()}
-                  accentHex={accentHex}
+                  themeTokens={themeTokens}
                 />
               )}
 
@@ -690,10 +773,11 @@ export const DynamicIsland: React.FC = () => {
                     const updated = await electron?.clearClipboardHistory?.();
                     if (Array.isArray(updated)) setClipboardHistory(updated);
                   }}
+                  themeTokens={themeTokens}
                 />
               )}
 
-              {activeTab === 'habits' && <IslandHabitsReadingTab />}
+              {activeTab === 'habits' && <IslandHabitsReadingTab themeTokens={themeTokens} />}
             </div>
           </div>
         )}

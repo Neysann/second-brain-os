@@ -19,6 +19,7 @@ import { ShelfItem, ClipboardEntry } from '@/types/island';
 import { NoteAttachment } from '@/types';
 import { useData } from '@/context/DataContext';
 import { saveAttachmentLocally } from '@/lib/attachmentStorage';
+import { IslandThemeTokens } from './islandTheme';
 
 interface IslandShelfClipboardTabProps {
   shelfItems: ShelfItem[];
@@ -30,6 +31,7 @@ interface IslandShelfClipboardTabProps {
   onPinClipboard: (id: string) => void;
   onDeleteClipboard: (id: string) => void;
   onClearClipboard: () => void;
+  themeTokens: IslandThemeTokens;
 }
 
 export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = ({
@@ -42,6 +44,7 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
   onPinClipboard,
   onDeleteClipboard,
   onClearClipboard,
+  themeTokens,
 }) => {
   const { addNote, addTask } = useData();
   const [subView, setSubView] = useState<'clipboard' | 'shelf'>(
@@ -49,6 +52,8 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
   );
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [sentId, setSentId] = useState<string | null>(null);
+
+  const isNothing = themeTokens.mode === 'nothing';
 
   const handleSendShelfToNote = async (e: React.MouseEvent, item: ShelfItem) => {
     e.stopPropagation();
@@ -134,16 +139,19 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
     <div className="flex flex-col justify-between h-full px-5 pb-3.5 pt-1 select-none">
       {/* Barre supérieure épurée */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1 bg-white/[0.05] p-0.5 rounded-full">
+        <div className="flex items-center gap-1 bg-white/[0.06] p-0.5 rounded-full">
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               setSubView('clipboard');
             }}
+            style={subView === 'clipboard' ? themeTokens.primaryBtnStyle : undefined}
             className={`h-7 px-3 rounded-full text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+              isNothing ? 'font-ndot uppercase tracking-wider text-[10px]' : ''
+            } ${
               subView === 'clipboard'
-                ? 'bg-white text-black'
+                ? themeTokens.primaryBtnTextClass
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
@@ -157,9 +165,12 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
               e.stopPropagation();
               setSubView('shelf');
             }}
+            style={subView === 'shelf' ? themeTokens.primaryBtnStyle : undefined}
             className={`h-7 px-3 rounded-full text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+              isNothing ? 'font-ndot uppercase tracking-wider text-[10px]' : ''
+            } ${
               subView === 'shelf'
-                ? 'bg-white text-black'
+                ? themeTokens.primaryBtnTextClass
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
@@ -176,7 +187,7 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
               if (subView === 'shelf') onClearShelf();
               else onClearClipboard();
             }}
-            className="w-7 h-7 rounded-full hover:bg-white/[0.08] text-zinc-500 hover:text-rose-400 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-7 h-7 rounded-full bg-white/[0.03] hover:bg-white/[0.10] text-zinc-400 hover:text-rose-400 flex items-center justify-center transition-colors cursor-pointer"
             title="Vider la liste"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -188,9 +199,12 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
       {subView === 'shelf' ? (
         <div className="flex-1 mt-2 overflow-y-auto space-y-1.5 scrollbar-none">
           {shelfItems.length === 0 ? (
-            <div className="h-full rounded-2xl border border-dashed border-white/10 bg-white/[0.02] flex flex-col items-center justify-center text-center px-4">
-              <Inbox className="w-5 h-5 text-zinc-500 mb-1.5" />
-              <p className="text-xs font-medium text-zinc-300">
+            <div
+              className="h-full rounded-2xl border border-dashed flex flex-col items-center justify-center text-center px-4"
+              style={themeTokens.subtleActiveStyle}
+            >
+              <Inbox className="w-5 h-5 mb-1.5" style={{ color: themeTokens.accentHex }} />
+              <p className="text-xs font-medium text-zinc-200">
                 Déposez un fichier, une image ou un lien ici
               </p>
             </div>
@@ -200,7 +214,7 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
               return (
                 <div
                   key={item.id}
-                  className="h-10 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-between gap-2 transition-all"
+                  className="h-10 px-3 rounded-xl bg-white/[0.045] hover:bg-white/[0.09] flex items-center justify-between gap-2 transition-all"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     {item.type === 'image' && item.dataUrl ? (
@@ -211,9 +225,9 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
                         className="w-6 h-6 rounded-md object-cover flex-shrink-0"
                       />
                     ) : item.type === 'link' ? (
-                      <Link2 className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+                      <Link2 className="w-4 h-4 flex-shrink-0" style={{ color: themeTokens.accentHex }} />
                     ) : item.type === 'image' ? (
-                      <ImageIcon className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+                      <ImageIcon className="w-4 h-4 flex-shrink-0" style={{ color: themeTokens.accentHex }} />
                     ) : (
                       <FileIcon className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                     )}
@@ -250,7 +264,7 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
                         e.stopPropagation();
                         onRemoveShelfItem(item.id);
                       }}
-                      className="w-7 h-7 rounded-lg text-zinc-500 hover:text-rose-400 flex items-center justify-center cursor-pointer"
+                      className="w-7 h-7 rounded-lg bg-white/[0.02] hover:bg-white/[0.08] text-zinc-400 hover:text-rose-400 flex items-center justify-center cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -268,8 +282,8 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
             </div>
           ) : clipboardHistory.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center px-4">
-              <p className="text-xs font-medium text-zinc-400">Aucun élément copié récemment</p>
-              <p className="text-[11px] text-zinc-600 mt-0.5">
+              <p className="text-xs font-medium text-zinc-300">Aucun élément copié récemment</p>
+              <p className="text-[11px] text-zinc-500 mt-0.5">
                 Faites Ctrl+C sur du texte, un lien ou du code
               </p>
             </div>
@@ -282,15 +296,15 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
                 <div
                   key={entry.id}
                   onClick={() => triggerCopy(entry.id)}
-                  className="group h-9 px-3 rounded-xl bg-white/[0.035] hover:bg-white/[0.08] flex items-center justify-between gap-2 transition-all cursor-pointer"
+                  className="group h-9 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.09] flex items-center justify-between gap-2 transition-all cursor-pointer"
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     {entry.kind === 'link' ? (
-                      <Link2 className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
+                      <Link2 className="w-3.5 h-3.5 flex-shrink-0" style={{ color: themeTokens.accentHex }} />
                     ) : entry.kind === 'code' ? (
-                      <Code2 className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
+                      <Code2 className="w-3.5 h-3.5 flex-shrink-0" style={{ color: themeTokens.accentHex }} />
                     ) : (
-                      <Copy className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
+                      <Copy className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
                     )}
                     <span className="text-xs text-zinc-200 group-hover:text-white truncate">
                       {entry.text}
@@ -299,7 +313,13 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
 
                   <div className="flex items-center gap-0.5 flex-shrink-0">
                     {isCopied ? (
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold">
+                      <span
+                        className="px-2 py-0.5 rounded-md text-[10px] font-semibold border"
+                        style={{
+                          ...themeTokens.subtleActiveStyle,
+                          color: themeTokens.accentHex,
+                        }}
+                      >
                         Copié
                       </span>
                     ) : (
@@ -323,9 +343,10 @@ export const IslandShelfClipboardTab: React.FC<IslandShelfClipboardTabProps> = (
                             e.stopPropagation();
                             onPinClipboard(entry.id);
                           }}
+                          style={entry.pinned ? { color: themeTokens.accentHex } : undefined}
                           className={`w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer ${
                             entry.pinned
-                              ? 'text-amber-400'
+                              ? ''
                               : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/10'
                           }`}
                           title="Épingler"
