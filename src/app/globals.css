@@ -2760,7 +2760,9 @@ html.dark.oled .animate-ping {
    DYNAMIC ISLAND DESKTOP — TRANSPARENCE EXTERNE & PROTECTION HIT-TEST WIN32
    ========================================================================== */
 html[data-island-window="true"],
+html[data-island-window="true"] body[class],
 html[data-island-window="true"] body,
+html[data-island-window="true"] main[class],
 html[data-island-window="true"] main {
   background: transparent !important;
   background-color: transparent !important;
@@ -2770,7 +2772,7 @@ html[data-island-window="true"] main {
 /* Empêche tout #000000 exact (LWA_COLORKEY Win32 click-through) dans l'Island */
 html[data-island-window="true"] .bg-black,
 html[data-island-window="true"] .bg-zinc-950 {
-  background-color: #060609 !important;
+  background-color: #0b0b0f !important;
 }
 
 

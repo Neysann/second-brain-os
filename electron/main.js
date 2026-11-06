@@ -33,6 +33,7 @@ const DEFAULT_DESKTOP_CONFIG = {
   dynamicIslandDefaultTab: 'media', // 'media' | 'tasks' | 'capture' | 'focus' | 'habits' | 'shelf'
   dynamicIslandClipboardHistory: true,
   dynamicIslandSystemStats: true,
+  dynamicIslandAccentIntensity: 70, // 0..100 (%)
 };
 
 let islandManager = null;

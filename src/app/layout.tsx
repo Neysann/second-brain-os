@@ -30,29 +30,34 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                var s = localStorage.getItem('syntropy_app_settings');
-                if (s) {
-                  var p = JSON.parse(s);
-                  if (p.accentColor) {
-                    var acc = p.accentColor === 'rose' ? 'red' : p.accentColor;
-                    document.documentElement.setAttribute('data-accent', acc);
-                  }
-                  if (p.theme === 'light') {
-                    document.documentElement.classList.remove('dark');
-                    document.documentElement.classList.add('light');
-                    document.documentElement.setAttribute('data-color-mode', 'light');
-                    document.documentElement.setAttribute('data-theme', 'light');
-                  } else if (p.darkBgStyle === 'oled') {
-                    document.documentElement.setAttribute('data-dark-bg', 'oled');
-                    document.documentElement.classList.add('oled');
-                  }
-                  if (p.uiStyle === 'cyberpunk') {
-                    document.documentElement.setAttribute('data-ui-style', 'cyberpunk');
-                    document.documentElement.setAttribute('data-accent', 'cyberpunk');
-                    document.documentElement.classList.add('cyberpunk-mode');
-                  } else if (p.uiStyle === 'nothing') {
-                    document.documentElement.setAttribute('data-ui-style', 'nothing');
-                    document.documentElement.classList.add('nothing-os-mode');
+                if (window.location.pathname && window.location.pathname.indexOf('/dynamic-island') === 0) {
+                  document.documentElement.setAttribute('data-island-window', 'true');
+                  document.documentElement.style.setProperty('background', 'transparent', 'important');
+                } else {
+                  var s = localStorage.getItem('syntropy_app_settings');
+                  if (s) {
+                    var p = JSON.parse(s);
+                    if (p.accentColor) {
+                      var acc = p.accentColor === 'rose' ? 'red' : p.accentColor;
+                      document.documentElement.setAttribute('data-accent', acc);
+                    }
+                    if (p.theme === 'light') {
+                      document.documentElement.classList.remove('dark');
+                      document.documentElement.classList.add('light');
+                      document.documentElement.setAttribute('data-color-mode', 'light');
+                      document.documentElement.setAttribute('data-theme', 'light');
+                    } else if (p.darkBgStyle === 'oled') {
+                      document.documentElement.setAttribute('data-dark-bg', 'oled');
+                      document.documentElement.classList.add('oled');
+                    }
+                    if (p.uiStyle === 'cyberpunk') {
+                      document.documentElement.setAttribute('data-ui-style', 'cyberpunk');
+                      document.documentElement.setAttribute('data-accent', 'cyberpunk');
+                      document.documentElement.classList.add('cyberpunk-mode');
+                    } else if (p.uiStyle === 'nothing') {
+                      document.documentElement.setAttribute('data-ui-style', 'nothing');
+                      document.documentElement.classList.add('nothing-os-mode');
+                    }
                   }
                 }
               } catch (e) {}

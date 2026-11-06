@@ -68,6 +68,14 @@ export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
     }
   }, [autoFocusCapture]);
 
+  useEffect(() => {
+    return () => {
+      onCaptureActiveChange(false);
+      const electron = (window as any).electronAPI;
+      electron?.setIslandFocusable?.(false);
+    };
+  }, []);
+
   const activateInputFocus = () => {
     onCaptureActiveChange(true);
     const electron = (window as any).electronAPI;
@@ -150,6 +158,8 @@ export const IslandTasksCaptureTab: React.FC<IslandTasksCaptureTabProps> = ({
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 1200);
     onCaptureActiveChange(false);
+    const electron = (window as any).electronAPI;
+    electron?.setIslandFocusable?.(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

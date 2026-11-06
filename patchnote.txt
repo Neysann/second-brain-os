@@ -2,6 +2,21 @@
 SYNTROPY OS — PATCHNOTES & JOURNAL DES VERSIONS
 ================================================================================
 
+#### [V2.7.3] - 2026-11-06 (Fiabilisation des Clics Post-Changement de Thème & Curseur d'Accentuation 0–100 % de la Notch)
+--------------------------------------------------------------------------------
+1. Correction Définitive de la Perte des Clics sur la Notch après Changement de Thème (`electron/island-manager.js`, `src/context/SettingsContext.tsx`, `src/app/layout.tsx`, `src/app/globals.css`, `src/components/island/*`) :
+- Correction de la désynchronisation Win32 `GWL_EXSTYLE` (`WS_EX_TRANSPARENT`) dans `electron/island-manager.js` : lorsque `islandWindow` se masquait pendant le survol (`open-main-app-route`, `Alt+Tab` ou clic vers Syntropy OS dans la fenêtre de grâce de 170 ms de `leaveTimer`), le cache `ignoringMouse` restait figé sur `false`, court-circuitant `w.setIgnoreMouseEvents(false)` lors de la réapparition via `w.showInactive()`.
+- Ajout d'un paramètre de ré-assertion native forcée `setIgnoreMouseSafe(ignore, force = true)` à chaque entrée du curseur dans la Notch, après chaque `w.setFocusable()`, à chaque cycle `hide()` / `show()` (avec restauration systématique de `setAlwaysOnTop(true, 'screen-saver')` + `moveTop()` et purge de `ignoringMouse = null`), ainsi qu'au démontage/validation de l'onglet Tâches (`IslandTasksCaptureTab.tsx`).
+- Isolation DOM complète de la route `/dynamic-island` dans `src/context/SettingsContext.tsx` et `src/app/layout.tsx` : les classes et attributs CSS globaux (`.nothing-os-mode`, `.cyberpunk-mode`, `.oled`, `.light`, `data-ui-style`, `data-dark-bg`) ne mutent plus jamais `<html>`/`<body>` de `islandWindow`, éliminant tout risque d'injection de `#000000` (`LWA_COLORKEY` click-through) ou d'écrasement `!important` lors du passage d'un thème à l'autre, avec déduplication JSON des événements `storage` / `syntropy-sync-settings`.
+
+2. Option « Degré d'Accentuation des Couleurs de la Notch » (0 % à 100 % + 4 Préréglages) (`src/components/settings/DesktopSettingsSection.tsx`, `src/components/island/islandTheme.ts`, `src/components/island/DynamicIsland.tsx`, `electron/main.js`) :
+- Ajout dans `Paramètres -> Application Desktop -> Dynamic Island Desktop` d'un curseur continu `0 % -> 100 %` (`dynamicIslandAccentIntensity`, défaut `70 %`) synchronisé en direct via IPC (`island-config-updated`) accompagné de 4 préréglages rapides en 1 clic :
+  * `0 % • Minimal` : esthétique monochrome noir carbone & blanc pur haute lisibilité, seul le point de statut conserve sa teinte.
+  * `35 % • Subtil` : surface neutre sombre, boutons principaux blancs épurés, onglet actif et barres de progression colorés.
+  * `70 % • Équilibré` : onglet actif, boutons d'action principaux, jauges et liseré fin assortis au thème.
+  * `100 % • Immersif` : surface teintée selon la palette active, reflet radial interne, bordure néon et halo lumineux externe.
+- Prise en charge continue des 8 palettes d'accentuation Syntropy OS ainsi que des **Thèmes Secrets** (**Nothing OS** : dosage progressif du rouge `#D71920` et de la trame dot-matrix en conservant `NDot57`/`NType82` ; **Cyberpunk HUD** : dosage progressif du jaune `#FCEE0A`, du cyan `#00F0FF`, des scanlines et des équerres HUD en conservant `font-mono`), avec plancher RGB sécurisé (`>= #08080b`) sur toutes les teintes interpolées.
+
 #### [V2.7.2] - 2026-11-06 (Correctif Clics Living Notch Win32, Police Repliée Confortable & Thèmes Immersifs / Secrets)
 --------------------------------------------------------------------------------
 1. Correction Définitive du Bug des Clics en Mode « Living Notch » (`src/components/island/*`, `src/app/globals.css`, `electron/island-manager.js`) :

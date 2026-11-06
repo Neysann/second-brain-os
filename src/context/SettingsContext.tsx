@@ -107,21 +107,28 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setIsLoaded(true);
     }
 
+    const applyExternalSettingsJson = (raw: string | null) => {
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw);
+        setSettings((prev) => {
+          const next = { ...prev, ...parsed };
+          if (JSON.stringify(prev) === JSON.stringify(next)) {
+            return prev;
+          }
+          return next;
+        });
+      } catch {}
+    };
+
     const handleStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY && e.newValue) {
-        try {
-          const parsed = JSON.parse(e.newValue);
-          setSettings((prev) => ({ ...prev, ...parsed }));
-        } catch {}
+        applyExternalSettingsJson(e.newValue);
       }
     };
     const refreshFromLocal = () => {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          setSettings((prev) => ({ ...prev, ...parsed }));
-        }
+        applyExternalSettingsJson(localStorage.getItem(STORAGE_KEY));
       } catch {}
     };
     window.addEventListener('storage', handleStorage);
@@ -170,6 +177,22 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (typeof document === 'undefined') return;
     const root = document.documentElement;
     const body = document.body;
+
+    // Isolation stricte de la fenêtre Dynamic Island : évite toute mutation CSS globale (#000000 OLED/Nothing, overrides !important) lors des changements de thème
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/dynamic-island')) {
+      root.setAttribute('data-island-window', 'true');
+      root.classList.add('dark');
+      body.classList.add('dark');
+      root.classList.remove('light', 'oled', 'nothing-os-mode', 'cyberpunk-mode', 'neon-vibrant', 'neon-subtle', 'neon-none');
+      body.classList.remove('light', 'oled', 'nothing-os-mode', 'cyberpunk-mode', 'neon-vibrant', 'neon-subtle', 'neon-none', 'bg-zinc-950');
+      ['data-ui-style', 'data-dark-bg', 'data-accent', 'data-neon', 'data-theme'].forEach((attr) => {
+        root.removeAttribute(attr);
+        body.removeAttribute(attr);
+      });
+      root.style.setProperty('background', 'transparent', 'important');
+      body.style.setProperty('background', 'transparent', 'important');
+      return;
+    }
 
     // A. Thème (dark / light)
     root.classList.remove('dark', 'light');

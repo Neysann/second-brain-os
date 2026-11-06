@@ -213,10 +213,11 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
   return (
     <div className="relative flex flex-col justify-between h-full px-5 pb-4 pt-1 select-none overflow-hidden">
       {/* Halo ambiant subtil derrière la pochette */}
-      {!themeTokens.isOled && themeTokens.neonIntensity !== 'none' && (
+      {!themeTokens.isOled && themeTokens.neonIntensity !== 'none' && themeTokens.accentIntensity >= 25 && (
         <div
-          className="pointer-events-none absolute -left-6 top-2 w-32 h-32 rounded-full opacity-20 blur-2xl transition-colors duration-700"
+          className="pointer-events-none absolute -left-6 top-2 w-32 h-32 rounded-full blur-2xl transition-all duration-700"
           style={{
+            opacity: Number((0.06 + 0.18 * (themeTokens.accentIntensity / 100)).toFixed(2)),
             backgroundColor:
               isCyberpunk || isNothing ? themeTokens.accentHex : dominantColor || themeTokens.accentHex,
           }}
@@ -254,7 +255,7 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
                     key={`${line.timeMs}-${i}`}
                     ref={isCurrent ? activeLyricRef : null}
                     style={
-                      isCurrent && isCyberpunk
+                      isCurrent && isCyberpunk && themeTokens.accentIntensity >= 15
                         ? { color: '#00F0FF', textShadow: '0 0 8px rgba(0,240,255,0.4)' }
                         : undefined
                     }
@@ -284,9 +285,9 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
           {/* Pochette haute définition */}
           <div
             className={`w-[74px] h-[74px] overflow-hidden flex-shrink-0 bg-zinc-900 shadow-lg ring-1 ${
-              isCyberpunk
+              isCyberpunk && themeTokens.accentIntensity >= 25
                 ? 'rounded-xl ring-[#FCEE0A]/40'
-                : isNothing
+                : isNothing || isCyberpunk
                 ? 'rounded-xl ring-white/20'
                 : 'rounded-2xl ring-white/15'
             }`}
@@ -323,7 +324,13 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
                     type="button"
                     onClick={handleCycleSession}
                     className={`h-6 px-2 rounded-full bg-white/[0.08] hover:bg-white/[0.15] text-[10px] font-medium text-zinc-200 flex items-center gap-1 transition-all active:scale-95 cursor-pointer ${
-                      isNothing ? 'font-ndot uppercase' : isCyberpunk ? 'font-mono text-[#00F0FF]' : ''
+                      isNothing
+                        ? 'font-ndot uppercase'
+                        : isCyberpunk && themeTokens.accentIntensity >= 15
+                        ? 'font-mono text-[#00F0FF]'
+                        : isCyberpunk
+                        ? 'font-mono'
+                        : ''
                     }`}
                     title="Changer de lecteur audio"
                   >
@@ -360,7 +367,9 @@ export const IslandMediaTab: React.FC<IslandMediaTabProps> = ({
         <div className="flex items-center gap-2.5">
           <span
             className={`text-[10px] font-medium text-zinc-400 w-8 text-right ${numFontClass}`}
-            style={isCyberpunk ? { color: '#00F0FF' } : undefined}
+            style={
+              isCyberpunk && themeTokens.accentIntensity >= 15 ? { color: '#00F0FF' } : undefined
+            }
           >
             {durationMs > 0 ? formatMs(localPosMs) : '--:--'}
           </span>

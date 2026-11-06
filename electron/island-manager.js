@@ -58,13 +58,14 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
     if (w) w.setBounds(getBounds());
   }
 
-  function setIgnoreMouseSafe(ignore) {
+  function setIgnoreMouseSafe(ignore, force = false) {
     const w = win();
     if (!w) return;
-    if (ignoringMouse === ignore) return;
-    ignoringMouse = ignore;
+    const next = Boolean(ignore);
+    if (!force && ignoringMouse === next) return;
+    ignoringMouse = next;
     try {
-      if (ignore) {
+      if (next) {
         w.setIgnoreMouseEvents(true, { forward: true });
       } else {
         w.setIgnoreMouseEvents(false);
@@ -78,6 +79,7 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
     const next = Boolean(focusable);
     if (isFocusable === next) {
       if (next) {
+        setIgnoreMouseSafe(false, true);
         try { w.focus(); } catch (_) {}
       }
       return;
@@ -85,7 +87,13 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
     isFocusable = next;
     try {
       w.setFocusable(next);
-      if (next) w.focus();
+      if (next) {
+        setIgnoreMouseSafe(false, true);
+        w.focus();
+      } else {
+        const shouldIgnore = !cursorInside && !isCaptureActive && !forceShow;
+        setIgnoreMouseSafe(shouldIgnore, true);
+      }
     } catch (_) {}
   }
 
@@ -99,7 +107,7 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
         clearTimeout(leaveTimer);
         leaveTimer = null;
       }
-      setIgnoreMouseSafe(false);
+      setIgnoreMouseSafe(false, ignoringMouse !== false);
       return;
     }
 
@@ -128,10 +136,13 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
         clearTimeout(leaveTimer);
         leaveTimer = null;
       }
-      setIgnoreMouseSafe(false);
       if (!cursorInside) {
         cursorInside = true;
+        // Ré-assertion native forcée à chaque entrée du curseur (évite toute désynchronisation Win32 GWL_EXSTYLE)
+        setIgnoreMouseSafe(false, true);
         w.webContents.send('island-hover', true);
+      } else {
+        setIgnoreMouseSafe(false);
       }
     } else if (cursorInside && !leaveTimer) {
       leaveTimer = setTimeout(() => {
@@ -142,10 +153,10 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
           curWin.webContents.send('island-hover', false);
         }
         setFocusableSafe(false);
-        setIgnoreMouseSafe(true);
+        setIgnoreMouseSafe(true, true);
       }, 170);
-    } else if (!cursorInside && !ignoringMouse) {
-      setIgnoreMouseSafe(true);
+    } else if (!cursorInside && ignoringMouse !== true) {
+      setIgnoreMouseSafe(true, true);
     }
   }
 
@@ -175,13 +186,30 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
     const cfg = loadConfig();
 
     const hide = () => {
-      if (w.isVisible()) w.hide();
       stopCursorWatcher();
+      isCaptureActive = false;
+      if (isFocusable) {
+        isFocusable = false;
+        try { w.setFocusable(false); } catch (_) {}
+      }
+      setIgnoreMouseSafe(true, true);
+      ignoringMouse = null;
+      try { w.webContents.send('island-hover', false); } catch (_) {}
+      if (w.isVisible()) w.hide();
       notifyVisibility(false);
     };
     const show = () => {
-      if (!w.isVisible()) w.showInactive();
+      const wasHidden = !w.isVisible();
+      if (wasHidden) {
+        ignoringMouse = null;
+        w.showInactive();
+        try {
+          w.setAlwaysOnTop(true, 'screen-saver');
+          w.moveTop();
+        } catch (_) {}
+      }
       startCursorWatcher();
+      pollCursor();
       notifyVisibility(true);
     };
 
@@ -406,7 +434,11 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
     isCaptureActive = true;
     whenReady(w, () => {
       updateVisibility();
-      setIgnoreMouseSafe(false);
+      try {
+        w.setAlwaysOnTop(true, 'screen-saver');
+        w.moveTop();
+      } catch (_) {}
+      setIgnoreMouseSafe(false, true);
       setFocusableSafe(true);
       w.webContents.send('activate-island-capture');
     });
@@ -420,7 +452,11 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
     if (!w) return { success: false };
     updateVisibility();
     whenReady(w, () => {
-      setIgnoreMouseSafe(false);
+      try {
+        w.setAlwaysOnTop(true, 'screen-saver');
+        w.moveTop();
+      } catch (_) {}
+      setIgnoreMouseSafe(false, true);
       w.webContents.send('island-preview');
     });
     const schedulePreviewEnd = (delayMs) => {
@@ -458,16 +494,16 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
           clearTimeout(leaveTimer);
           leaveTimer = null;
         }
-        setIgnoreMouseSafe(false);
+        setIgnoreMouseSafe(false, true);
       } else if (!cursorInside && !isCaptureActive) {
-        setIgnoreMouseSafe(true);
+        setIgnoreMouseSafe(true, true);
       }
     });
 
     ipcMain.on('set-island-focusable', (_e, focusable) => {
       isCaptureActive = Boolean(focusable);
       if (focusable) {
-        setIgnoreMouseSafe(false);
+        setIgnoreMouseSafe(false, true);
         setFocusableSafe(true);
       } else {
         forceShow = false;
@@ -482,7 +518,7 @@ function createIslandManager({ getMainWindow, loadConfig, saveConfig, getAppUrl 
       isCaptureActive = false;
       cursorInside = false;
       setFocusableSafe(false);
-      setIgnoreMouseSafe(true);
+      setIgnoreMouseSafe(true, true);
       applyConfig();
     });
 

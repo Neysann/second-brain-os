@@ -35,6 +35,7 @@ export const DynamicIsland: React.FC = () => {
   const [islandTrigger, setIslandTrigger] = useState<IslandTrigger>('hover');
   const [activeTab, setActiveTab] = useState<IslandTab>('media');
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(true);
+  const [accentIntensity, setAccentIntensity] = useState<number>(70);
 
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isCaptureFocused, setIsCaptureFocused] = useState<boolean>(false);
@@ -68,8 +69,8 @@ export const DynamicIsland: React.FC = () => {
 
   const isNotch = islandStyle === 'notch';
   const themeTokens = useMemo(
-    () => getIslandThemeTokens(settings, isNotch),
-    [settings, isNotch]
+    () => getIslandThemeTokens(settings, isNotch, accentIntensity),
+    [settings, isNotch, accentIntensity]
   );
 
   // Marqueur DOM pour transparence externe garantie et protection contre le #000000 Win32
@@ -127,7 +128,18 @@ export const DynamicIsland: React.FC = () => {
   // Configuration + Événements IPC Main Process (survol natif sans perte de clic)
   useEffect(() => {
     const electron = (window as any).electronAPI;
-    if (!electron) return;
+    if (!electron) {
+      const readWebIntensity = () => {
+        const raw = localStorage.getItem('syntropy_island_accent_intensity');
+        if (raw !== null) {
+          const n = Number(raw);
+          if (Number.isFinite(n)) setAccentIntensity(Math.max(0, Math.min(100, Math.round(n))));
+        }
+      };
+      readWebIntensity();
+      window.addEventListener('storage', readWebIntensity);
+      return () => window.removeEventListener('storage', readWebIntensity);
+    }
 
     const syncThemeSettings = () => {
       window.dispatchEvent(new Event('syntropy-sync-settings'));
@@ -147,6 +159,12 @@ export const DynamicIsland: React.FC = () => {
       if (typeof cfg.dynamicIslandClipboardHistory === 'boolean') {
         setClipboardEnabled(cfg.dynamicIslandClipboardHistory);
       }
+      if (
+        typeof cfg.dynamicIslandAccentIntensity === 'number' &&
+        Number.isFinite(cfg.dynamicIslandAccentIntensity)
+      ) {
+        setAccentIntensity(Math.max(0, Math.min(100, Math.round(cfg.dynamicIslandAccentIntensity))));
+      }
       syncThemeSettings();
     };
 
@@ -156,7 +174,13 @@ export const DynamicIsland: React.FC = () => {
 
     const unsubVis =
       electron.onIslandVisibility?.((visible: boolean) => {
-        if (visible) syncThemeSettings();
+        suppressHoverUntilLeaveRef.current = false;
+        if (visible) {
+          syncThemeSettings();
+        } else {
+          setIsCaptureFocused(false);
+          setIsExpanded(false);
+        }
       }) || (() => {});
 
     const unsubHover =
@@ -487,7 +511,11 @@ export const DynamicIsland: React.FC = () => {
   const isCyberpunk = themeTokens.mode === 'cyberpunk';
 
   const equalizerColor =
-    isNothing || isCyberpunk ? themeTokens.accentHex : dominantColor || themeTokens.accentHex;
+    accentIntensity < 12
+      ? '#ffffff'
+      : isNothing || isCyberpunk
+      ? themeTokens.accentHex
+      : dominantColor || themeTokens.accentHex;
 
   return (
     <div
@@ -550,23 +578,27 @@ export const DynamicIsland: React.FC = () => {
           {/* Trame matricielle Nothing OS */}
           {isNothing && (
             <div
-              className="absolute inset-0 opacity-90"
+              className="absolute inset-0 transition-opacity duration-300"
               style={{
+                opacity: themeTokens.decorOpacity,
                 backgroundImage:
-                  'radial-gradient(rgba(255, 255, 255, 0.085) 1px, transparent 1px)',
+                  'radial-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px)',
                 backgroundSize: '8px 8px',
               }}
             />
           )}
 
           {/* Scanlines & Coins angulaires Cyberpunk HUD */}
-          {isCyberpunk && (
-            <>
+          {isCyberpunk && themeTokens.decorOpacity > 0 && (
+            <div
+              className="absolute inset-0 transition-opacity duration-300"
+              style={{ opacity: themeTokens.decorOpacity }}
+            >
               <div
-                className="absolute inset-0 opacity-60"
+                className="absolute inset-0 opacity-70"
                 style={{
                   backgroundImage:
-                    'repeating-linear-gradient(0deg, rgba(0, 240, 255, 0.025) 0px, rgba(0, 240, 255, 0.025) 1px, transparent 1px, transparent 3px)',
+                    'repeating-linear-gradient(0deg, rgba(0, 240, 255, 0.028) 0px, rgba(0, 240, 255, 0.028) 1px, transparent 1px, transparent 3px)',
                 }}
               />
               {isExpanded && (
@@ -581,7 +613,7 @@ export const DynamicIsland: React.FC = () => {
                   )}
                 </>
               )}
-            </>
+            </div>
           )}
         </div>
 

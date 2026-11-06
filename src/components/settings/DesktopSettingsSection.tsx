@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Laptop,
   Monitor,
@@ -94,6 +94,8 @@ export default function DesktopSettingsSection({
   const [dynamicIslandShortcutTarget, setDynamicIslandShortcutTarget] = useState<'island' | 'classic-window'>('island');
   const [dynamicIslandDefaultTab, setDynamicIslandDefaultTab] = useState<'media' | 'tasks' | 'habits' | 'shelf'>('media');
   const [dynamicIslandClipboardHistory, setDynamicIslandClipboardHistory] = useState(true);
+  const [dynamicIslandAccentIntensity, setDynamicIslandAccentIntensity] = useState<number>(70);
+  const accentSliderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Chargement initial des préférences natives Desktop
   useEffect(() => {
@@ -162,6 +164,14 @@ export default function DesktopSettingsSection({
                 if (typeof cfg.dynamicIslandClipboardHistory === 'boolean') {
                   setDynamicIslandClipboardHistory(cfg.dynamicIslandClipboardHistory);
                 }
+                if (
+                  typeof cfg.dynamicIslandAccentIntensity === 'number' &&
+                  Number.isFinite(cfg.dynamicIslandAccentIntensity)
+                ) {
+                  setDynamicIslandAccentIntensity(
+                    Math.max(0, Math.min(100, Math.round(cfg.dynamicIslandAccentIntensity)))
+                  );
+                }
 
                 if (cfg.shortcut) {
                   setQuickCaptureShortcut(cfg.shortcut);
@@ -197,7 +207,18 @@ export default function DesktopSettingsSection({
 
       const savedFolder = localStorage.getItem('syntropy_local_backup_folder') || '';
       if (savedFolder && !localBackupFolder) setLocalBackupFolder(savedFolder);
+
+      const savedIntensity = localStorage.getItem('syntropy_island_accent_intensity');
+      if (savedIntensity !== null && !(window as any).electronAPI?.isDesktop) {
+        const parsed = Number(savedIntensity);
+        if (Number.isFinite(parsed)) {
+          setDynamicIslandAccentIntensity(Math.max(0, Math.min(100, Math.round(parsed))));
+        }
+      }
     }
+    return () => {
+      if (accentSliderTimerRef.current) clearTimeout(accentSliderTimerRef.current);
+    };
   }, []);
 
   // Helpers de persistance de configuration Electron
@@ -739,6 +760,97 @@ export default function DesktopSettingsSection({
                 <option value="shelf">📥 Presse-papiers & Dropzone</option>
                 <option value="habits">🔥 Habitudes & Lecture</option>
               </select>
+            </div>
+          </div>
+
+          {/* Degré d'accentuation des couleurs de la Notch (0 % -> 100 % + 4 préréglages) */}
+          <div
+            className={`md:col-span-2 p-3.5 rounded-xl border ${
+              isDark ? 'bg-zinc-950/50 border-zinc-800' : 'bg-zinc-50 border-zinc-200'
+            } space-y-3`}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Sliders className="w-3.5 h-3.5 text-purple-400" />
+                  <span className={`text-xs font-bold ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                    Degré d&apos;accentuation des couleurs de la Notch
+                  </span>
+                </div>
+                <p className="text-[10px] text-zinc-500 mt-0.5">
+                  Ajuste en continu l&apos;intensité des couleurs d&apos;accentuation Syntropy ainsi que des thèmes secrets (Nothing OS &amp; Cyberpunk HUD).
+                </p>
+              </div>
+
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-purple-500/15 text-purple-300 border border-purple-500/30 self-start sm:self-auto flex-shrink-0">
+                {dynamicIslandAccentIntensity} % •{' '}
+                {dynamicIslandAccentIntensity < 12
+                  ? 'Minimal'
+                  : dynamicIslandAccentIntensity < 48
+                  ? 'Subtil'
+                  : dynamicIslandAccentIntensity < 85
+                  ? 'Équilibré'
+                  : 'Immersif'}
+              </span>
+            </div>
+
+            {/* Curseur continu 0 % -> 100 % */}
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-mono text-zinc-500 w-7 text-right">0%</span>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={dynamicIslandAccentIntensity}
+                onChange={(e) => {
+                  const val = Math.max(0, Math.min(100, Number(e.target.value)));
+                  setDynamicIslandAccentIntensity(val);
+                  localStorage.setItem('syntropy_island_accent_intensity', String(val));
+                  if (accentSliderTimerRef.current) clearTimeout(accentSliderTimerRef.current);
+                  accentSliderTimerRef.current = setTimeout(() => {
+                    updateDesktopConfig({ dynamicIslandAccentIntensity: val });
+                  }, 75);
+                }}
+                className="flex-1 h-1.5 rounded-full accent-purple-500 cursor-pointer"
+              />
+              <span className="text-[10px] font-mono text-zinc-500 w-9">100%</span>
+            </div>
+
+            {/* 4 Préréglages rapides */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-0.5">
+              {(
+                [
+                  { value: 0, label: '0 % • Minimal', desc: 'Monochrome noir & blanc' },
+                  { value: 35, label: '35 % • Subtil', desc: 'Onglet actif & jauges' },
+                  { value: 70, label: '70 % • Équilibré', desc: 'Boutons, jauges & liseré' },
+                  { value: 100, label: '100 % • Immersif', desc: 'Fond teinté & halo néon' },
+                ] as const
+              ).map((preset) => {
+                const isSelected = dynamicIslandAccentIntensity === preset.value;
+                return (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    onClick={async () => {
+                      if (accentSliderTimerRef.current) clearTimeout(accentSliderTimerRef.current);
+                      setDynamicIslandAccentIntensity(preset.value);
+                      localStorage.setItem('syntropy_island_accent_intensity', String(preset.value));
+                      await updateDesktopConfig({ dynamicIslandAccentIntensity: preset.value });
+                    }}
+                    className={`p-2 rounded-lg text-left border transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-purple-500/20 border-purple-500/50 text-purple-200'
+                        : isDark
+                        ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+                        : 'bg-white border-zinc-200 text-zinc-600 hover:border-zinc-300'
+                    }`}
+                  >
+                    <div className="text-[11px] font-bold leading-tight">{preset.label}</div>
+                    <div className="text-[10px] text-zinc-500 mt-0.5 leading-tight">{preset.desc}</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
